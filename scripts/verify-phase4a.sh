@@ -68,8 +68,8 @@ case "$effect_rc" in
         add_gate "effect layer" BLOCKED
         ;;
     *)
-        add_gate "effect layer" PARTIAL
-        echo "PARTIAL: effect layer gate failed; InsetEffectLayer fallback"
+        add_gate "effect layer" FAIL
+        echo "FAIL: effect layer gate failed; the shipped X11 head has no inset fallback"
         ;;
 esac
 

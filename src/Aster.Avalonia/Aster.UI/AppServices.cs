@@ -94,9 +94,9 @@ public sealed class AppServices : IAsyncDisposable
             },
             openSettings: window.ShowSettings,
             quit: window.Quit,
-            setMinimal: enabled => SettingsViewModel.MinimalNotch = enabled,
-            setMascot: enabled => SettingsViewModel.ShowMascot = enabled,
-            setFullscreen: enabled => SettingsViewModel.HideInFullscreen = enabled,
+            setMinimal: window.SetMinimalNotch,
+            setMascot: window.SetShowMascot,
+            setFullscreen: window.SetHideInFullscreen,
             showAbout: window.ShowAbout);
 
         try

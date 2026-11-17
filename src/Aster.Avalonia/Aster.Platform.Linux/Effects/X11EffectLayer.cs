@@ -28,7 +28,7 @@ public sealed class X11EffectLayer : IEffectLayer
 
     public void Attach(AvaloniaWindow island)
     {
-        if (_window is not null)
+        if (_window is not null || _disabled)
         {
             return;
         }
