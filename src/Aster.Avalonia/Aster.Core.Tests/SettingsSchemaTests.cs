@@ -22,32 +22,17 @@ public class SettingsSchemaTests
     }
 
     [Fact]
+    public void SchemaHasTwentyTwoUserFields()
+    {
+        var userFields = typeof(AppSettings).GetProperties().Length - 1;
+
+        Assert.Equal(22, userFields);
+    }
+
+    [Fact]
     public void JsonRoundTripPreservesValues()
     {
-        var original = new AppSettings(
-            SchemaVersion: SettingsSchema.CurrentVersion,
-            StartWithWindows: true,
-            MinimalNotch: true,
-            HideInFullscreen: false,
-            GlassBackground: false,
-            BouncySpring: false,
-            ShowMascot: true,
-            VolumeToast: true,
-            BrightnessToast: true,
-            LyricsEnabled: true,
-            LyricsHighlightColor: SettingsSchema.DefaultLyricsHighlight,
-            WaterReminderEnabled: false,
-            WaterIntervalMinutes: 60,
-            WaterActiveStartHour: 8,
-            WaterActiveEndHour: 22,
-            WaterDailyGoal: 8,
-            WaterGlassesToday: 0,
-            WaterDate: string.Empty,
-            CameraMirror: true,
-            FocusMinutes: 25,
-            ShortBreakMinutes: 5,
-            LongBreakMinutes: 15,
-            FocusChime: true);
+        var original = SettingsTestData.NonDefault;
         var json = JsonSerializer.Serialize(original, SettingsJsonContext.Default.AppSettings);
         var restored = JsonSerializer.Deserialize(json, SettingsJsonContext.Default.AppSettings);
 

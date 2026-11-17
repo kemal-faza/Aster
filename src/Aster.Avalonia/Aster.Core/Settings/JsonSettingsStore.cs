@@ -35,7 +35,6 @@ public sealed class JsonSettingsStore : ISettingsStore
             }
 
             var json = await File.ReadAllTextAsync(_path, ct);
-            using var document = JsonDocument.Parse(json);
             var loaded = JsonSerializer.Deserialize(json, SettingsJsonContext.Default.SettingsDocument);
 
             if (loaded is null)
@@ -89,6 +88,8 @@ public sealed class JsonSettingsStore : ISettingsStore
             _log.Warn("Settings save skipped because the store is read-only.");
             return;
         }
+
+        settings = settings with { SchemaVersion = SettingsSchema.CurrentVersion };
 
         await _gate.WaitAsync(ct);
         try

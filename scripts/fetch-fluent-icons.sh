@@ -15,6 +15,7 @@ mkdir -p "$root/src/Aster.Avalonia/Aster.UI/Assets/Fonts"
 mkdir -p "$root/src/Aster.Avalonia/Aster.UI/Controls"
 cp "$tmp/FluentSystemIcons-Regular.ttf" "$root/src/Aster.Avalonia/Aster.UI/Assets/Fonts/"
 python3 "$root/scripts/generate-glyph-map.py" "$tmp/FluentSystemIcons-Regular.json" \
-  "$root/src/Aster.Avalonia/Aster.UI/Controls/GlyphMap.g.cs"
+  "$root/src/Aster.Avalonia/Aster.UI/Controls/GlyphMap.g.cs" \
+  "$root/src/Aster.Avalonia/Aster.UI/Assets/Fonts/FluentSystemIcons-Regular.ttf"
 (cd "$root" && sha256sum "src/Aster.Avalonia/Aster.UI/Assets/Fonts/FluentSystemIcons-Regular.ttf") \
   | tee "$root/src/Aster.Avalonia/Aster.UI/Assets/Fonts/FluentSystemIcons-Regular.sha256"

@@ -111,5 +111,8 @@ Fluent UI System Icons
 Copyright (c) Microsoft Corporation
 MIT License
 https://github.com/microsoft/fluentui-system-icons
+Version: 1.1.346 (tag; commit 67e6dec1ee956af3ab4c746a2b3bb6a2e5520a44)
 Bundled font: FluentSystemIcons-Regular.ttf
-SHA-256: see Aster.UI/Assets/Fonts/FluentSystemIcons-Regular.sha256
+SHA-256: dcbc53cef37733e7b872c9909aec4d09dab7583879ccebc6c8574236280f1efb
+  (also recorded in Aster.UI/Assets/Fonts/FluentSystemIcons-Regular.sha256
+  and in GlyphMap.FontSha256)

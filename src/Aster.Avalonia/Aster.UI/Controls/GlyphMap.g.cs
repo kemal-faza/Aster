@@ -3,6 +3,8 @@ namespace Aster.UI.Controls;
 
 public static partial class GlyphMap
 {
+    public const string FontSha256 = "dcbc53cef37733e7b872c9909aec4d09dab7583879ccebc6c8574236280f1efb";
+
     public static readonly
         System.Collections.Generic.IReadOnlyDictionary<Glyph.Kind, int> Codepoints =
         new System.Collections.Generic.Dictionary<Glyph.Kind, int>

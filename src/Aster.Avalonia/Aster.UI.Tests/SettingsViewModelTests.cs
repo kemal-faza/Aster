@@ -30,6 +30,31 @@ public class SettingsViewModelTests
     }
 
     [Fact]
+    public async Task UneditedFieldsSurviveSave()
+    {
+        var seeded = SettingsSchema.Default with
+        {
+            ShowMascot = false,
+            LyricsHighlightColor = "#112233",
+            WaterDailyGoal = 12,
+            WaterDate = "2026-11-17",
+            CameraMirror = false,
+            FocusMinutes = 30,
+            FocusChime = false
+        };
+        var store = new FakeStore(seeded);
+        var vm = new SettingsViewModel(store, new NullLog(), "Start with Windows")
+        {
+            StartWithWindows = true
+        };
+
+        await vm.SaveNowAsync();
+
+        Assert.NotNull(store.Saved);
+        Assert.Equal(seeded with { StartWithWindows = true }, store.Saved);
+    }
+
+    [Fact]
     public async Task FlushSavesPendingChange()
     {
         var store = new FakeStore();
@@ -56,7 +81,9 @@ public class SettingsViewModelTests
 
     private sealed class FakeStore : ISettingsStore
     {
-        public AppSettings Current { get; private set; } = SettingsSchema.Default;
+        public FakeStore(AppSettings? current = null) => Current = current ?? SettingsSchema.Default;
+
+        public AppSettings Current { get; private set; }
         public bool CanSave { get; set; } = true;
         public string? Warning { get; set; }
         string? ISettingsStore.LoadWarning => Warning;

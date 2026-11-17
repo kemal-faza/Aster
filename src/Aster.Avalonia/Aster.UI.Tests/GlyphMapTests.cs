@@ -1,4 +1,5 @@
 using System.IO;
+using System.Security.Cryptography;
 using Aster.UI.Controls;
 using SkiaSharp;
 using Xunit;
@@ -15,6 +16,10 @@ public class GlyphMapTests
             "Assets", "Fonts", "FluentSystemIcons-Regular.ttf");
         Assert.True(File.Exists(path), path);
 
+        var digest = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(path)))
+            .ToLowerInvariant();
+        Assert.Equal(GlyphMap.FontSha256, digest);
+
         using var typeface = SKTypeface.FromFile(path);
         Assert.NotNull(typeface);
 
@@ -23,5 +28,8 @@ public class GlyphMapTests
             var codepoint = Glyph.Get(kind)[0];
             Assert.NotEqual(0, typeface.GetGlyph(codepoint));
         }
+
+        var codepoints = GlyphMap.Codepoints.Values.ToList();
+        Assert.Equal(codepoints.Count, codepoints.Distinct().Count());
     }
 }

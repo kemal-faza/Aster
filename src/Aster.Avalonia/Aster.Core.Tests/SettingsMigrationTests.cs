@@ -21,7 +21,6 @@ public class SettingsMigrationTests
         }
         """;
 
-        using var doc = JsonDocument.Parse(json);
         var loaded = JsonSerializer.Deserialize(json, SettingsJsonContext.Default.SettingsDocument);
         Assert.NotNull(loaded);
 
@@ -66,10 +65,27 @@ public class SettingsMigrationTests
     }
 
     [Fact]
+    public void V1IgnoresV2Fields()
+    {
+        var settings = SettingsMigrations.FromDocument(new SettingsDocument
+        {
+            SchemaVersion = 1,
+            LyricsHighlightColor = "#112233",
+            WaterDailyGoal = 12,
+            FocusMinutes = 30
+        });
+
+        Assert.Equal("#7C9CFF", settings.LyricsHighlightColor);
+        Assert.Equal(8, settings.WaterDailyGoal);
+        Assert.Equal(25, settings.FocusMinutes);
+    }
+
+    [Fact]
     public void InvalidValuesAreClampedOrDefaulted()
     {
         var settings = SettingsMigrations.FromDocument(new SettingsDocument
         {
+            SchemaVersion = 2,
             WaterIntervalMinutes = 999,
             WaterActiveStartHour = -4,
             WaterDailyGoal = 99,

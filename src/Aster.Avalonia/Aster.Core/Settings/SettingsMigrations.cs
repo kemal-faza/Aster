@@ -9,6 +9,21 @@ public static class SettingsMigrations
     public static AppSettings FromDocument(SettingsDocument doc)
     {
         var d = SettingsSchema.Default;
+
+        // Missing schemaVersion and version 1 are legacy documents: keep only
+        // the five fields that existed in v1 and default every later field.
+        if (doc.SchemaVersion is null or 1)
+        {
+            return d with
+            {
+                StartWithWindows = doc.StartWithWindows ?? d.StartWithWindows,
+                MinimalNotch = doc.MinimalNotch ?? d.MinimalNotch,
+                HideInFullscreen = doc.HideInFullscreen ?? d.HideInFullscreen,
+                GlassBackground = doc.GlassBackground ?? d.GlassBackground,
+                BouncySpring = doc.BouncySpring ?? d.BouncySpring
+            };
+        }
+
         return new AppSettings(
             SchemaVersion: SettingsSchema.CurrentVersion,
             StartWithWindows: doc.StartWithWindows ?? d.StartWithWindows,

@@ -29,36 +29,27 @@ public class JsonSettingsStoreTests : IDisposable
     {
         var store = new JsonSettingsStore(PathToSettings, _log);
         await store.LoadAsync();
-        var changed = new AppSettings(
-            SchemaVersion: SettingsSchema.CurrentVersion,
-            StartWithWindows: true,
-            MinimalNotch: true,
-            HideInFullscreen: false,
-            GlassBackground: false,
-            BouncySpring: false,
-            ShowMascot: true,
-            VolumeToast: true,
-            BrightnessToast: true,
-            LyricsEnabled: true,
-            LyricsHighlightColor: SettingsSchema.DefaultLyricsHighlight,
-            WaterReminderEnabled: false,
-            WaterIntervalMinutes: 60,
-            WaterActiveStartHour: 8,
-            WaterActiveEndHour: 22,
-            WaterDailyGoal: 8,
-            WaterGlassesToday: 0,
-            WaterDate: string.Empty,
-            CameraMirror: true,
-            FocusMinutes: 25,
-            ShortBreakMinutes: 5,
-            LongBreakMinutes: 15,
-            FocusChime: true);
+        var changed = SettingsTestData.NonDefault;
 
         await store.SaveAsync(changed);
 
         var reloaded = new JsonSettingsStore(PathToSettings, _log);
         await reloaded.LoadAsync();
         Assert.Equal(changed, reloaded.Current);
+    }
+
+    [Fact]
+    public async Task SaveAlwaysWritesCurrentSchemaVersion()
+    {
+        var store = new JsonSettingsStore(PathToSettings, _log);
+        await store.LoadAsync();
+
+        await store.SaveAsync(SettingsTestData.NonDefault with { SchemaVersion = 1 });
+
+        Assert.Equal(SettingsSchema.CurrentVersion, store.Current.SchemaVersion);
+        var reloaded = new JsonSettingsStore(PathToSettings, _log);
+        await reloaded.LoadAsync();
+        Assert.Equal(SettingsSchema.CurrentVersion, reloaded.Current.SchemaVersion);
     }
 
     [Fact]

@@ -24,37 +24,32 @@ try
     var settings = new AppSettings(
         SchemaVersion: SettingsSchema.CurrentVersion,
         StartWithWindows: true,
-        MinimalNotch: false,
-        HideInFullscreen: true,
+        MinimalNotch: true,
+        HideInFullscreen: false,
         GlassBackground: false,
-        BouncySpring: true,
-        ShowMascot: true,
-        VolumeToast: true,
-        BrightnessToast: true,
-        LyricsEnabled: true,
-        LyricsHighlightColor: "#7C9CFF",
-        WaterReminderEnabled: false,
-        WaterIntervalMinutes: 60,
-        WaterActiveStartHour: 8,
-        WaterActiveEndHour: 22,
-        WaterDailyGoal: 8,
-        WaterGlassesToday: 0,
-        WaterDate: string.Empty,
-        CameraMirror: true,
-        FocusMinutes: 25,
-        ShortBreakMinutes: 5,
-        LongBreakMinutes: 15,
-        FocusChime: true);
+        BouncySpring: false,
+        ShowMascot: false,
+        VolumeToast: false,
+        BrightnessToast: false,
+        LyricsEnabled: false,
+        LyricsHighlightColor: "#112233",
+        WaterReminderEnabled: true,
+        WaterIntervalMinutes: 90,
+        WaterActiveStartHour: 9,
+        WaterActiveEndHour: 21,
+        WaterDailyGoal: 12,
+        WaterGlassesToday: 3,
+        WaterDate: "2026-11-17",
+        CameraMirror: false,
+        FocusMinutes: 30,
+        ShortBreakMinutes: 7,
+        LongBreakMinutes: 20,
+        FocusChime: false);
     await store.SaveAsync(settings);
     var reloaded = new JsonSettingsStore(settingsPath, log);
     await reloaded.LoadAsync();
 
-    if (reloaded.Current.SchemaVersion != settings.SchemaVersion ||
-        reloaded.Current.StartWithWindows != settings.StartWithWindows ||
-        reloaded.Current.MinimalNotch != settings.MinimalNotch ||
-        reloaded.Current.HideInFullscreen != settings.HideInFullscreen ||
-        reloaded.Current.GlassBackground != settings.GlassBackground ||
-        reloaded.Current.BouncySpring != settings.BouncySpring)
+    if (reloaded.Current != settings)
     {
         Console.Error.WriteLine("JSON_ROUNDTRIP_FAILED");
         return 1;
