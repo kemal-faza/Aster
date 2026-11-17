@@ -2,12 +2,20 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <ControlTheme x:Key="ToggleSwitch" TargetType="CheckBox">
     <Setter Property="Height" Value="22" />
+    <Setter Property="Margin" Value="0,0,0,6" />
+    <Setter Property="FocusAdorner" Value="{x:Null}" />
     <Setter Property="Template">
       <ControlTemplate>
         <Grid ColumnDefinitions="*,Auto">
-          <ContentPresenter VerticalAlignment="Center" Margin="0,0,10,0" />
+          <ContentPresenter Foreground="{TemplateBinding Foreground}"
+                            FontFamily="{TemplateBinding FontFamily}"
+                            Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            VerticalAlignment="Center"
+                            Margin="0,0,10,0" />
           <Border Grid.Column="1" Name="PART_Track" Width="40" Height="22"
-                  Background="#2C2C32" CornerRadius="11">
+                  Background="#2C2C32" CornerRadius="11"
+                  BorderBrush="Transparent" BorderThickness="1">
             <Ellipse Name="PART_Thumb" Width="16" Height="16" Margin="3,0,0,0"
                      HorizontalAlignment="Left" Fill="#FFFFFF" />
           </Border>
@@ -23,6 +31,9 @@
     </Style>
     <Style Selector="^:disabled">
       <Setter Property="Opacity" Value="0.4" />
+    </Style>
+    <Style Selector="^:focus-visible /template/ Border#PART_Track">
+      <Setter Property="BorderBrush" Value="{StaticResource TextSecondary}" />
     </Style>
   </ControlTheme>
 </ResourceDictionary>

@@ -2,9 +2,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Style Selector="Window">
     <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
-  </Style>
-  <Style Selector="TextBlock">
-    <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
     <Setter Property="Foreground" Value="{StaticResource TextPrimary}" />
   </Style>
   <Style Selector="TextBlock.title">

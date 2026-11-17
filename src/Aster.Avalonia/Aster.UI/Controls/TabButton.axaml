@@ -10,7 +10,12 @@
     <Setter Property="Template">
       <ControlTemplate>
         <Border Name="PART_Bg" Background="{TemplateBinding Background}" CornerRadius="12">
-          <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+          <ContentPresenter Foreground="{TemplateBinding Foreground}"
+                            FontFamily="{TemplateBinding FontFamily}"
+                            Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center" />
         </Border>
       </ControlTemplate>
     </Setter>

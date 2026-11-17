@@ -11,7 +11,12 @@
         <Grid>
           <Border Name="PART_PlayBg" Background="{TemplateBinding Background}" CornerRadius="18" />
           <Border Name="PART_PlayOverlay" Background="Transparent" CornerRadius="18" />
-          <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+          <ContentPresenter Foreground="{TemplateBinding Foreground}"
+                            FontFamily="{TemplateBinding FontFamily}"
+                            Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center" />
         </Grid>
       </ControlTemplate>
     </Setter>

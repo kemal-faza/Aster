@@ -5,36 +5,293 @@
         xmlns:vm="using:Aster.UI.ViewModels"
         x:Class="Aster.UI.Views.SettingsWindow"
         x:DataType="vm:SettingsViewModel"
-        Title="Aster Lab Avalonia - Settings"
+        Title="Aster Settings"
         Width="740" Height="580"
         CanResize="False"
         WindowStartupLocation="Manual"
-        KeyDown="OnKeyDown"
-        Background="#F2070708">
-  <Grid RowDefinitions="Auto,*,Auto" Margin="28">
-    <StackPanel Spacing="4">
-      <TextBlock Text="Settings" Foreground="#F5F4F0" FontSize="22" FontWeight="SemiBold" />
-      <TextBlock Text="{Binding Warning}" Foreground="#E0A040" FontSize="12" IsVisible="{Binding Warning, Converter={x:Static converters:ObjectConverters.IsNotNull}}" />
-    </StackPanel>
+        WindowDecorations="None"
+        TransparencyLevelHint="Transparent"
+        Background="Transparent"
+        KeyDown="OnKeyDown">
+  <Grid Margin="12">
+    <Border CornerRadius="18"
+            Background="{StaticResource IslandGlassBackground}"
+            BorderBrush="{StaticResource IslandRimBrush}"
+            BorderThickness="1"
+            BoxShadow="{StaticResource SettingsWindowShadow}"
+            ClipToBounds="True">
+      <Grid RowDefinitions="54,*">
+        <Grid Grid.Row="0" Background="Transparent" PointerPressed="OnTitleBarPressed">
+          <TextBlock Text="Aster Settings"
+                     FontSize="13.5"
+                     FontWeight="SemiBold"
+                     Margin="20,0,0,0"
+                     VerticalAlignment="Center" />
+          <Button Theme="{StaticResource GlyphButton}"
+                  Content="{Binding CloseGlyph}"
+                  HorizontalAlignment="Right"
+                  Margin="0,0,12,0"
+                  Click="OnCloseClick"
+                  automation:AutomationProperties.Name="Close settings"
+                  automation:AutomationProperties.HelpText="Close the settings window." />
+        </Grid>
 
-    <StackPanel Grid.Row="1" Spacing="18" Margin="0,28,0,0" IsEnabled="{Binding CanSave}">
-      <CheckBox Content="{Binding AutostartLabel}" IsChecked="{Binding StartWithWindows, Mode=TwoWay}"
-                automation:AutomationProperties.Name="{Binding AutostartLabel}"
-                automation:AutomationProperties.HelpText="Start Aster Lab Avalonia when you sign in." />
-      <CheckBox Content="Minimal notch" IsChecked="{Binding MinimalNotch, Mode=TwoWay}"
-                automation:AutomationProperties.Name="Minimal notch"
-                automation:AutomationProperties.HelpText="Show only a small blank notch." />
-      <CheckBox Content="Hide in fullscreen" IsChecked="{Binding HideInFullscreen, Mode=TwoWay}"
-                automation:AutomationProperties.Name="Hide in fullscreen"
-                automation:AutomationProperties.HelpText="Hide the island while a fullscreen app is active." />
-      <CheckBox Content="Glass background" IsChecked="{Binding GlassBackground, Mode=TwoWay}"
-                automation:AutomationProperties.Name="Glass background"
-                automation:AutomationProperties.HelpText="Use the glass gradient instead of a solid background." />
-      <CheckBox Content="Bouncy spring" IsChecked="{Binding BouncySpring, Mode=TwoWay}"
-                automation:AutomationProperties.Name="Bouncy spring"
-                automation:AutomationProperties.HelpText="Use the bouncy damping for expand and collapse." />
-    </StackPanel>
+        <Grid Grid.Row="1" ColumnDefinitions="188,*">
+          <Border Grid.Column="0"
+                  Margin="10,0,0,10"
+                  CornerRadius="16"
+                  Background="{StaticResource SettingsCardFill}"
+                  BorderBrush="{StaticResource SettingsCardBorder}"
+                  BorderThickness="1">
+            <StackPanel Margin="8,10,8,0">
+              <RadioButton Theme="{StaticResource SettingsNavItem}"
+                           GroupName="SettingsNav"
+                           Content="General"
+                           Tag="General"
+                           IsChecked="True"
+                           IsCheckedChanged="OnNavChecked"
+                           automation:AutomationProperties.Name="General settings"
+                           automation:AutomationProperties.HelpText="Show startup and window settings." />
+              <RadioButton Theme="{StaticResource SettingsNavItem}"
+                           GroupName="SettingsNav"
+                           Content="Appearance"
+                           Tag="Appearance"
+                           IsCheckedChanged="OnNavChecked"
+                           automation:AutomationProperties.Name="Appearance settings"
+                           automation:AutomationProperties.HelpText="Show island, glass, motion, and overlay settings." />
+              <RadioButton Theme="{StaticResource SettingsNavItem}"
+                           GroupName="SettingsNav"
+                           Content="Lyrics"
+                           Tag="Lyrics"
+                           IsCheckedChanged="OnNavChecked"
+                           automation:AutomationProperties.Name="Lyrics settings"
+                           automation:AutomationProperties.HelpText="Show lyrics settings availability." />
+              <RadioButton Theme="{StaticResource SettingsNavItem}"
+                           GroupName="SettingsNav"
+                           Content="Focus"
+                           Tag="Focus"
+                           IsCheckedChanged="OnNavChecked"
+                           automation:AutomationProperties.Name="Focus settings"
+                           automation:AutomationProperties.HelpText="Show focus timer settings availability." />
+              <RadioButton Theme="{StaticResource SettingsNavItem}"
+                           GroupName="SettingsNav"
+                           Content="Water"
+                           Tag="Water"
+                           IsCheckedChanged="OnNavChecked"
+                           automation:AutomationProperties.Name="Water settings"
+                           automation:AutomationProperties.HelpText="Show water reminder settings availability." />
+              <RadioButton Theme="{StaticResource SettingsNavItem}"
+                           GroupName="SettingsNav"
+                           Content="About"
+                           Tag="About"
+                           IsCheckedChanged="OnNavChecked"
+                           automation:AutomationProperties.Name="About settings"
+                           automation:AutomationProperties.HelpText="Show storage, version, and application information." />
+            </StackPanel>
+          </Border>
 
-    <Button Grid.Row="2" Content="Close" HorizontalAlignment="Right" Click="OnCloseClick" />
+          <ScrollViewer Grid.Column="1"
+                        Margin="24,0,20,16"
+                        HorizontalScrollBarVisibility="Disabled"
+                        VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+              <Border Classes="settings-card"
+                      Margin="0,0,0,12"
+                      IsVisible="{Binding Warning, Converter={x:Static converters:ObjectConverters.IsNotNull}}">
+                <TextBlock Text="{Binding Warning}"
+                           Classes="subtitle"
+                           Foreground="{StaticResource TextSecondary}"
+                           TextWrapping="Wrap" />
+              </Border>
+
+              <Grid>
+                <StackPanel x:Name="GeneralPage">
+                  <TextBlock Classes="title" Text="General" />
+                  <TextBlock Classes="subtitle"
+                             Text="Startup and window behavior."
+                             Margin="0,2,0,18" />
+
+                  <Border Classes="settings-card">
+                    <StackPanel>
+                      <TextBlock Classes="settings-card-title" Text="STARTUP" />
+                      <CheckBox x:Name="AutostartToggle"
+                                Theme="{StaticResource ToggleSwitch}"
+                                Content="{Binding AutostartLabel}"
+                                IsChecked="{Binding StartWithWindows, Mode=TwoWay}"
+                                IsEnabled="{Binding CanSave}"
+                                automation:AutomationProperties.Name="{Binding AutostartLabel}"
+                                automation:AutomationProperties.HelpText="Start Aster when you sign in." />
+                    </StackPanel>
+                  </Border>
+
+                  <Border Classes="settings-card">
+                    <StackPanel>
+                      <TextBlock Classes="settings-card-title" Text="FULLSCREEN" />
+                      <CheckBox x:Name="HideFullscreenToggle"
+                                Theme="{StaticResource ToggleSwitch}"
+                                Content="Hide in fullscreen"
+                                IsChecked="{Binding HideInFullscreen, Mode=TwoWay}"
+                                IsEnabled="{Binding CanSave}"
+                                automation:AutomationProperties.Name="Hide in fullscreen"
+                                automation:AutomationProperties.HelpText="Hide the island while a fullscreen app is active." />
+                    </StackPanel>
+                  </Border>
+                </StackPanel>
+
+                <StackPanel x:Name="AppearancePage" IsVisible="False">
+                  <TextBlock Classes="title" Text="Appearance" />
+                  <TextBlock Classes="subtitle"
+                             Text="Island shape, surface, motion, and overlays."
+                             Margin="0,2,0,18" />
+
+                  <Border Classes="settings-card">
+                    <StackPanel>
+                      <TextBlock Classes="settings-card-title" Text="ISLAND" />
+                      <CheckBox x:Name="MinimalNotchToggle"
+                                Theme="{StaticResource ToggleSwitch}"
+                                Content="Minimal notch"
+                                IsChecked="{Binding MinimalNotch, Mode=TwoWay}"
+                                IsEnabled="{Binding CanSave}"
+                                automation:AutomationProperties.Name="Minimal notch"
+                                automation:AutomationProperties.HelpText="Show only a small blank notch." />
+                      <CheckBox x:Name="ShowMascotToggle"
+                                Theme="{StaticResource ToggleSwitch}"
+                                Content="Show mascot"
+                                IsChecked="{Binding ShowMascot, Mode=TwoWay}"
+                                IsEnabled="{Binding CanSave}"
+                                automation:AutomationProperties.Name="Show mascot"
+                                automation:AutomationProperties.HelpText="Show the mascot placeholder in the idle island." />
+                    </StackPanel>
+                  </Border>
+
+                  <Border Classes="settings-card">
+                    <StackPanel>
+                      <TextBlock Classes="settings-card-title" Text="GLASS &amp; MOTION" />
+                      <CheckBox x:Name="GlassToggle"
+                                Theme="{StaticResource ToggleSwitch}"
+                                Content="Glass background"
+                                IsChecked="{Binding GlassBackground, Mode=TwoWay}"
+                                IsEnabled="{Binding CanSave}"
+                                automation:AutomationProperties.Name="Glass background"
+                                automation:AutomationProperties.HelpText="Use the glass gradient instead of a solid background." />
+                      <CheckBox x:Name="BouncyToggle"
+                                Theme="{StaticResource ToggleSwitch}"
+                                Content="Bouncy open/close"
+                                IsChecked="{Binding BouncySpring, Mode=TwoWay}"
+                                IsEnabled="{Binding CanSave}"
+                                automation:AutomationProperties.Name="Bouncy open and close"
+                                automation:AutomationProperties.HelpText="Use the bouncy damping for expand and collapse." />
+                    </StackPanel>
+                  </Border>
+
+                  <Border Classes="settings-card">
+                    <StackPanel>
+                      <TextBlock Classes="settings-card-title" Text="OVERLAYS (4E)" />
+                      <TextBlock Classes="subtitle"
+                                 Text="Volume and brightness overlays arrive in Phase 4E."
+                                 Margin="0,0,0,10"
+                                 TextWrapping="Wrap" />
+                      <CheckBox x:Name="VolumeToggle"
+                                Theme="{StaticResource ToggleSwitch}"
+                                Content="Volume overlay"
+                                IsChecked="{Binding VolumeToast, Mode=TwoWay}"
+                                IsEnabled="False"
+                                automation:AutomationProperties.Name="Volume overlay"
+                                automation:AutomationProperties.HelpText="Not available in this build. Volume overlays arrive in Phase 4E." />
+                      <CheckBox x:Name="BrightnessToggle"
+                                Theme="{StaticResource ToggleSwitch}"
+                                Content="Brightness overlay"
+                                IsChecked="{Binding BrightnessToast, Mode=TwoWay}"
+                                IsEnabled="False"
+                                automation:AutomationProperties.Name="Brightness overlay"
+                                automation:AutomationProperties.HelpText="Not available in this build. Brightness overlays arrive in Phase 4E." />
+                    </StackPanel>
+                  </Border>
+                </StackPanel>
+
+                <StackPanel x:Name="LyricsPage" IsVisible="False">
+                  <TextBlock Classes="title" Text="Lyrics" />
+                  <TextBlock Classes="subtitle"
+                             Text="Lyrics are not available in this build."
+                             Margin="0,2,0,18" />
+                  <Border Classes="settings-card">
+                    <TextBlock Classes="subtitle"
+                               Text="Lyric sync, highlighting, and color controls arrive in Phase 4B."
+                               TextWrapping="Wrap" />
+                  </Border>
+                </StackPanel>
+
+                <StackPanel x:Name="FocusPage" IsVisible="False">
+                  <TextBlock Classes="title" Text="Focus" />
+                  <TextBlock Classes="subtitle"
+                             Text="Focus sessions are not available in this build."
+                             Margin="0,2,0,18" />
+                  <Border Classes="settings-card">
+                    <TextBlock Classes="subtitle"
+                               Text="Durations, breaks, and the chime control arrive in Phase 4C."
+                               TextWrapping="Wrap" />
+                  </Border>
+                </StackPanel>
+
+                <StackPanel x:Name="WaterPage" IsVisible="False">
+                  <TextBlock Classes="title" Text="Water" />
+                  <TextBlock Classes="subtitle"
+                             Text="Water reminders are not available in this build."
+                             Margin="0,2,0,18" />
+                  <Border Classes="settings-card">
+                    <TextBlock Classes="subtitle"
+                               Text="Interval, active hours, and daily goal controls arrive in Phase 4C."
+                               TextWrapping="Wrap" />
+                  </Border>
+                </StackPanel>
+
+                <StackPanel x:Name="AboutPage" IsVisible="False">
+                  <TextBlock Classes="title" Text="About" />
+                  <TextBlock Classes="subtitle"
+                             Text="Storage, version, and application information."
+                             Margin="0,2,0,18" />
+
+                  <Border Classes="settings-card">
+                    <StackPanel>
+                      <TextBlock Classes="settings-card-title" Text="STORAGE" />
+                      <Button Theme="{StaticResource SettingsGhostButton}"
+                              Content="Open data folder"
+                              HorizontalAlignment="Left"
+                              Click="OnOpenDataFolderClick"
+                              automation:AutomationProperties.Name="Open data folder"
+                              automation:AutomationProperties.HelpText="Open the Aster data folder in your file manager." />
+                      <TextBlock Text="{Binding DataPath}"
+                                 Classes="tertiary"
+                                 Margin="0,8,0,0"
+                                 TextWrapping="Wrap" />
+                    </StackPanel>
+                  </Border>
+
+                  <Border Classes="settings-card">
+                    <StackPanel>
+                      <TextBlock Classes="settings-card-title" Text="ABOUT" />
+                      <TextBlock Text="Aster for Linux"
+                                 FontSize="17"
+                                 FontWeight="SemiBold" />
+                      <TextBlock Text="A tiny island for your desktop. Built with C# / Avalonia (.NET 10)."
+                                 Classes="subtitle"
+                                 Margin="0,6,0,0"
+                                 TextWrapping="Wrap" />
+                      <Grid ColumnDefinitions="Auto,*" Margin="0,14,0,0">
+                        <TextBlock Text="Version" Classes="tertiary" />
+                        <TextBlock Grid.Column="1"
+                                   Text="0.12.0-dev"
+                                   Classes="tertiary"
+                                   Margin="8,0,0,0" />
+                      </Grid>
+                    </StackPanel>
+                  </Border>
+                </StackPanel>
+              </Grid>
+            </StackPanel>
+          </ScrollViewer>
+        </Grid>
+      </Grid>
+    </Border>
   </Grid>
 </Window>

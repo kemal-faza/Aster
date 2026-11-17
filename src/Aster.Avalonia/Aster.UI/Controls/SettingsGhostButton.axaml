@@ -8,6 +8,7 @@
     <Setter Property="Padding" Value="12,6" />
     <Setter Property="Foreground" Value="{StaticResource TextPrimary}" />
     <Setter Property="FontSize" Value="11.5" />
+    <Setter Property="FocusAdorner" Value="{x:Null}" />
     <Setter Property="Template">
       <ControlTemplate>
         <Border Background="{TemplateBinding Background}"
@@ -15,7 +16,12 @@
                 BorderThickness="{TemplateBinding BorderThickness}"
                 CornerRadius="{TemplateBinding CornerRadius}"
                 Padding="{TemplateBinding Padding}">
-          <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+          <ContentPresenter Foreground="{TemplateBinding Foreground}"
+                            FontFamily="{TemplateBinding FontFamily}"
+                            Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center" />
         </Border>
       </ControlTemplate>
     </Setter>
@@ -27,6 +33,9 @@
     <Style Selector="^:pressed">
       <Setter Property="Background" Value="#1FFFFFFF" />
       <Setter Property="BorderBrush" Value="#59FFFFFF" />
+    </Style>
+    <Style Selector="^:focus-visible">
+      <Setter Property="BorderBrush" Value="{StaticResource TextPrimary}" />
     </Style>
     <Style Selector="^:disabled">
       <Setter Property="Opacity" Value="0.4" />

@@ -89,15 +89,24 @@ public sealed class AppServices : IAsyncDisposable
                     return false;
                 }
 
-                _ = Settings.SaveAsync(Settings.Current with { StartWithWindows = enabled });
+                SettingsViewModel.StartWithWindows = enabled;
                 return true;
             },
             openSettings: window.ShowSettings,
-            quit: window.Quit);
+            quit: window.Quit,
+            setMinimal: enabled => SettingsViewModel.MinimalNotch = enabled,
+            setMascot: enabled => SettingsViewModel.ShowMascot = enabled,
+            setFullscreen: enabled => SettingsViewModel.HideInFullscreen = enabled,
+            showAbout: window.ShowAbout);
 
         try
         {
-            Tray = new TrayService(commands, () => Autostart.IsEnabled);
+            Tray = new TrayService(
+                commands,
+                () => Autostart.IsEnabled,
+                () => Settings.Current,
+                () => window.IsVisible,
+                SettingsViewModel.AutostartLabel);
         }
         catch (Exception ex)
         {
