@@ -11,6 +11,7 @@ public partial class IslandShell : UserControl
     {
         InitializeComponent();
         DockView.CloseRequested += (_, _) => CloseRequested?.Invoke(this, EventArgs.Empty);
+        DockView.SettingsRequested += (_, _) => SettingsRequested?.Invoke(this, EventArgs.Empty);
         MusicView.SettingsRequested += (_, _) => SettingsRequested?.Invoke(this, EventArgs.Empty);
     }
 }

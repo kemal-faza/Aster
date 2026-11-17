@@ -26,7 +26,10 @@ public partial class MusicView : UserControl
         if (DataContext is ShellViewModel { Media: not null } vm)
         {
             vm.Media.IsSeeking = false;
-            vm.Media.SeekCommand.Execute(value);
+            if (vm.Media.DurationSeconds > 0)
+            {
+                vm.Media.SeekCommand.Execute(value);
+            }
         }
     }
 }

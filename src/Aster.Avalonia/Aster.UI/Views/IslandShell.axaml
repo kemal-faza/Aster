@@ -5,8 +5,7 @@
              xmlns:controls="using:Aster.UI.Controls"
              x:Class="Aster.UI.Views.IslandShell"
              x:DataType="vm:ShellViewModel">
-  <Border x:Name="Island" CornerRadius="0,0,22,22" ClipToBounds="False"
-          BoxShadow="{StaticResource IslandShadow}">
+  <Border x:Name="Island" CornerRadius="0,0,22,22" ClipToBounds="False">
     <Grid>
       <Border x:Name="GlassBackground" CornerRadius="0,0,22,22"
               Background="{StaticResource IslandGlassBackground}"

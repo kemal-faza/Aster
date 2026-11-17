@@ -1,10 +1,11 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:automation="using:Avalonia.Automation"
              xmlns:vm="using:Aster.UI.ViewModels"
              xmlns:controls="using:Aster.UI.Controls"
              x:Class="Aster.UI.Views.DockView"
              x:DataType="vm:ShellViewModel">
-  <Grid ColumnDefinitions="280,Auto">
+  <Grid ColumnDefinitions="280,Auto,Auto">
     <Border Grid.Column="0" Width="280" Height="28" CornerRadius="14"
             Background="{StaticResource DockSurface}" BorderBrush="{StaticResource DockStroke}"
             BorderThickness="1">
@@ -40,6 +41,12 @@
       </StackPanel>
     </Border>
     <Button Grid.Column="1" Theme="{StaticResource GlyphButton}" Width="28" Height="24"
-            Margin="4,0,0,0" Content="{Binding ChevronGlyph}" Click="OnCollapseClick" />
+            Margin="4,0,0,0" Content="{Binding SettingsGlyph}" Click="OnSettingsClick"
+            automation:AutomationProperties.Name="Settings"
+            ToolTip.Tip="Settings" />
+    <Button Grid.Column="2" Theme="{StaticResource GlyphButton}" Width="28" Height="24"
+            Margin="4,0,0,0" Content="{Binding ChevronGlyph}" Click="OnCollapseClick"
+            automation:AutomationProperties.Name="Collapse"
+            ToolTip.Tip="Collapse" />
   </Grid>
 </UserControl>

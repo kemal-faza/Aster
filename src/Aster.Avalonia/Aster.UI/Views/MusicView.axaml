@@ -1,10 +1,11 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:automation="using:Avalonia.Automation"
              xmlns:vm="using:Aster.UI.ViewModels"
              xmlns:controls="using:Aster.UI.Controls"
              x:Class="Aster.UI.Views.MusicView"
              x:DataType="vm:ShellViewModel">
-  <Grid RowDefinitions="Auto,*" Margin="0,8,0,4">
+  <Grid RowDefinitions="Auto,*" Margin="0,8,0,4" ClipToBounds="True">
     <Grid ColumnDefinitions="92,16,*" IsVisible="{Binding HasMedia}">
       <Border Width="92" Height="92" CornerRadius="20" ClipToBounds="True">
         <Image Source="{Binding Media.ArtworkImage}" Stretch="UniformToFill" />
@@ -15,11 +16,17 @@
         <TextBlock Text="{Binding Media.SourceApp}" Classes="tertiary" />
         <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto" Margin="0,4,0,0">
           <Button Theme="{StaticResource GlyphButton}" Content="{Binding PreviousGlyph}"
-                  Command="{Binding Media.PreviousCommand}" />
+                  Command="{Binding Media.PreviousCommand}"
+                  automation:AutomationProperties.Name="Previous track"
+                  ToolTip.Tip="Previous" />
           <Button Grid.Column="1" Theme="{StaticResource PlayButton}" Margin="8,0"
-                  Content="{Binding PlayGlyph}" Command="{Binding Media.PlayPauseCommand}" />
+                  Content="{Binding PlayGlyph}" Command="{Binding Media.PlayPauseCommand}"
+                  automation:AutomationProperties.Name="Play or pause"
+                  ToolTip.Tip="Play / pause" />
           <Button Grid.Column="2" Theme="{StaticResource GlyphButton}"
-                  Content="{Binding NextGlyph}" Command="{Binding Media.NextCommand}" />
+                  Content="{Binding NextGlyph}" Command="{Binding Media.NextCommand}"
+                  automation:AutomationProperties.Name="Next track"
+                  ToolTip.Tip="Next" />
         </Grid>
         <controls:SeekSlider x:Name="SeekSlider" Height="16" Margin="0,4,0,0"
                              Value="{Binding Media.PositionSeconds}"
@@ -32,11 +39,13 @@
           <TextBlock Grid.Column="1" Text="{Binding Media.DurationText}" Classes="tertiary"
                      Margin="6,0,0,0" VerticalAlignment="Center" />
           <Button Grid.Column="3" Theme="{StaticResource GlyphButton}"
-                  Content="{Binding SettingsGlyph}" Click="OnSettingsClick" />
+                  Content="{Binding SettingsGlyph}" Click="OnSettingsClick"
+                  automation:AutomationProperties.Name="Settings"
+                  ToolTip.Tip="Settings" />
         </Grid>
       </StackPanel>
     </Grid>
-    <StackPanel IsVisible="{Binding HasNoMedia}" VerticalAlignment="Center"
+    <StackPanel Grid.Row="1" IsVisible="{Binding HasNoMedia}" VerticalAlignment="Center"
                 HorizontalAlignment="Center">
       <TextBlock Text="Nothing playing" FontSize="20" FontWeight="SemiBold"
                  HorizontalAlignment="Center" />
