@@ -68,13 +68,14 @@ public partial class SettingsViewModel : ObservableObject
             return;
         }
 
-        var settings = new AppSettings(
-            SettingsSchema.CurrentVersion,
-            StartWithWindows,
-            MinimalNotch,
-            HideInFullscreen,
-            GlassBackground,
-            BouncySpring);
+        var settings = _store.Current with
+        {
+            StartWithWindows = StartWithWindows,
+            MinimalNotch = MinimalNotch,
+            HideInFullscreen = HideInFullscreen,
+            GlassBackground = GlassBackground,
+            BouncySpring = BouncySpring
+        };
 
         await _store.SaveAsync(settings);
         Saved?.Invoke(this, settings);

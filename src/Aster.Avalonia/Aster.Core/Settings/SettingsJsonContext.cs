@@ -7,6 +7,7 @@ namespace Aster.Core.Settings;
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
     WriteIndented = true)]
 [JsonSerializable(typeof(AppSettings))]
+[JsonSerializable(typeof(SettingsDocument))]
 public partial class SettingsJsonContext : JsonSerializerContext
 {
 }

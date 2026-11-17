@@ -29,7 +29,30 @@ public class JsonSettingsStoreTests : IDisposable
     {
         var store = new JsonSettingsStore(PathToSettings, _log);
         await store.LoadAsync();
-        var changed = new AppSettings(1, true, true, false, false, false);
+        var changed = new AppSettings(
+            SchemaVersion: SettingsSchema.CurrentVersion,
+            StartWithWindows: true,
+            MinimalNotch: true,
+            HideInFullscreen: false,
+            GlassBackground: false,
+            BouncySpring: false,
+            ShowMascot: true,
+            VolumeToast: true,
+            BrightnessToast: true,
+            LyricsEnabled: true,
+            LyricsHighlightColor: SettingsSchema.DefaultLyricsHighlight,
+            WaterReminderEnabled: false,
+            WaterIntervalMinutes: 60,
+            WaterActiveStartHour: 8,
+            WaterActiveEndHour: 22,
+            WaterDailyGoal: 8,
+            WaterGlassesToday: 0,
+            WaterDate: string.Empty,
+            CameraMirror: true,
+            FocusMinutes: 25,
+            ShortBreakMinutes: 5,
+            LongBreakMinutes: 15,
+            FocusChime: true);
 
         await store.SaveAsync(changed);
 
@@ -70,7 +93,7 @@ public class JsonSettingsStoreTests : IDisposable
     [Fact]
     public async Task NewerSchemaDisablesSaveAndPreservesFile()
     {
-        var newer = """{"schemaVersion":2,"startWithWindows":true}""";
+        var newer = """{"schemaVersion":3,"startWithWindows":true}""";
         await File.WriteAllTextAsync(PathToSettings, newer);
         var store = new JsonSettingsStore(PathToSettings, _log);
 

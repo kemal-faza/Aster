@@ -1,0 +1,88 @@
+using System.Text.Json;
+using Aster.Core.Models;
+using Aster.Core.Settings;
+using Xunit;
+
+namespace Aster.Core.Tests;
+
+public class SettingsMigrationTests
+{
+    [Fact]
+    public void V1PreservesFiveFieldsAndFillsDefaults()
+    {
+        const string json = """
+        {
+          "schemaVersion": 1,
+          "startWithWindows": true,
+          "minimalNotch": true,
+          "hideInFullscreen": false,
+          "glassBackground": false,
+          "bouncySpring": false
+        }
+        """;
+
+        using var doc = JsonDocument.Parse(json);
+        var loaded = JsonSerializer.Deserialize(json, SettingsJsonContext.Default.SettingsDocument);
+        Assert.NotNull(loaded);
+
+        var settings = SettingsMigrations.FromDocument(loaded!);
+
+        Assert.Equal(2, settings.SchemaVersion);
+        Assert.True(settings.StartWithWindows);
+        Assert.True(settings.MinimalNotch);
+        Assert.False(settings.HideInFullscreen);
+        Assert.False(settings.GlassBackground);
+        Assert.False(settings.BouncySpring);
+        Assert.True(settings.ShowMascot);
+        Assert.True(settings.VolumeToast);
+        Assert.True(settings.BrightnessToast);
+        Assert.True(settings.LyricsEnabled);
+        Assert.Equal("#7C9CFF", settings.LyricsHighlightColor);
+        Assert.False(settings.WaterReminderEnabled);
+        Assert.Equal(60, settings.WaterIntervalMinutes);
+        Assert.Equal(8, settings.WaterActiveStartHour);
+        Assert.Equal(22, settings.WaterActiveEndHour);
+        Assert.Equal(8, settings.WaterDailyGoal);
+        Assert.Equal(0, settings.WaterGlassesToday);
+        Assert.Equal(string.Empty, settings.WaterDate);
+        Assert.True(settings.CameraMirror);
+        Assert.Equal(25, settings.FocusMinutes);
+        Assert.Equal(5, settings.ShortBreakMinutes);
+        Assert.Equal(15, settings.LongBreakMinutes);
+        Assert.True(settings.FocusChime);
+    }
+
+    [Fact]
+    public void MissingFieldsUseDefaults()
+    {
+        var settings = SettingsMigrations.FromDocument(new SettingsDocument());
+
+        Assert.Equal(2, settings.SchemaVersion);
+        Assert.True(settings.HideInFullscreen);
+        Assert.True(settings.GlassBackground);
+        Assert.True(settings.BouncySpring);
+        Assert.Equal(8, settings.WaterActiveStartHour);
+        Assert.Equal("#7C9CFF", settings.LyricsHighlightColor);
+    }
+
+    [Fact]
+    public void InvalidValuesAreClampedOrDefaulted()
+    {
+        var settings = SettingsMigrations.FromDocument(new SettingsDocument
+        {
+            WaterIntervalMinutes = 999,
+            WaterActiveStartHour = -4,
+            WaterDailyGoal = 99,
+            FocusMinutes = 0,
+            LyricsHighlightColor = "nope",
+            WaterDate = "2026-13-99"
+        });
+
+        Assert.Equal(240, settings.WaterIntervalMinutes);
+        Assert.Equal(0, settings.WaterActiveStartHour);
+        Assert.Equal(20, settings.WaterDailyGoal);
+        Assert.Equal(1, settings.FocusMinutes);
+        Assert.Equal("#7C9CFF", settings.LyricsHighlightColor);
+        Assert.Equal(string.Empty, settings.WaterDate);
+    }
+}

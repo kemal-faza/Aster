@@ -6,17 +6,52 @@ public sealed record AppSettings(
     bool MinimalNotch,
     bool HideInFullscreen,
     bool GlassBackground,
-    bool BouncySpring);
+    bool BouncySpring,
+    bool ShowMascot,
+    bool VolumeToast,
+    bool BrightnessToast,
+    bool LyricsEnabled,
+    string LyricsHighlightColor,
+    bool WaterReminderEnabled,
+    int WaterIntervalMinutes,
+    int WaterActiveStartHour,
+    int WaterActiveEndHour,
+    int WaterDailyGoal,
+    int WaterGlassesToday,
+    string WaterDate,
+    bool CameraMirror,
+    int FocusMinutes,
+    int ShortBreakMinutes,
+    int LongBreakMinutes,
+    bool FocusChime);
 
 public static class SettingsSchema
 {
-    public const int CurrentVersion = 1;
+    public const int CurrentVersion = 2;
+    public const string DefaultLyricsHighlight = "#7C9CFF";
 
     public static AppSettings Default { get; } = new(
-        CurrentVersion,
+        SchemaVersion: CurrentVersion,
         StartWithWindows: false,
         MinimalNotch: false,
         HideInFullscreen: true,
         GlassBackground: true,
-        BouncySpring: true);
+        BouncySpring: true,
+        ShowMascot: true,
+        VolumeToast: true,
+        BrightnessToast: true,
+        LyricsEnabled: true,
+        LyricsHighlightColor: DefaultLyricsHighlight,
+        WaterReminderEnabled: false,
+        WaterIntervalMinutes: 60,
+        WaterActiveStartHour: 8,
+        WaterActiveEndHour: 22,
+        WaterDailyGoal: 8,
+        WaterGlassesToday: 0,
+        WaterDate: string.Empty,
+        CameraMirror: true,
+        FocusMinutes: 25,
+        ShortBreakMinutes: 5,
+        LongBreakMinutes: 15,
+        FocusChime: true);
 }

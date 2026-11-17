@@ -42,7 +42,30 @@ public class ShellViewModelTests
     {
         var vm = new ShellViewModel();
 
-        vm.ApplySettings(new AppSettings(1, false, true, true, false, true));
+        vm.ApplySettings(new AppSettings(
+            SchemaVersion: SettingsSchema.CurrentVersion,
+            StartWithWindows: false,
+            MinimalNotch: true,
+            HideInFullscreen: true,
+            GlassBackground: false,
+            BouncySpring: true,
+            ShowMascot: true,
+            VolumeToast: true,
+            BrightnessToast: true,
+            LyricsEnabled: true,
+            LyricsHighlightColor: SettingsSchema.DefaultLyricsHighlight,
+            WaterReminderEnabled: false,
+            WaterIntervalMinutes: 60,
+            WaterActiveStartHour: 8,
+            WaterActiveEndHour: 22,
+            WaterDailyGoal: 8,
+            WaterGlassesToday: 0,
+            WaterDate: string.Empty,
+            CameraMirror: true,
+            FocusMinutes: 25,
+            ShortBreakMinutes: 5,
+            LongBreakMinutes: 15,
+            FocusChime: true));
 
         Assert.True(vm.IsMinimal);
         Assert.False(vm.GlassBackground);
