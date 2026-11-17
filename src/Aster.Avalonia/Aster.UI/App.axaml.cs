@@ -6,6 +6,7 @@ using Avalonia.Threading;
 using Aster.Core;
 using Aster.Core.Logging;
 using Aster.UI.Abstractions;
+using Aster.UI.Services;
 using Aster.UI.Views;
 
 namespace Aster.UI;
@@ -14,6 +15,9 @@ public partial class App : Application
 {
     public static IPlatformFactory PlatformFactory { get; set; } = null!;
     public static Stopwatch StartupClock { get; } = new();
+
+    private AppServices? _services;
+    private bool _shuttingDown;
 
     public override void Initialize()
     {
@@ -33,48 +37,51 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            if (PlatformFactory is null)
-            {
-                throw new InvalidOperationException("App.PlatformFactory was not set by the head.");
-            }
+            _ = InitializeAsync(desktop);
+        }
 
-            var window = new MainWindow(PlatformFactory);
+        base.OnFrameworkInitializationCompleted();
+    }
+
+    private async Task InitializeAsync(IClassicDesktopStyleApplicationLifetime desktop)
+    {
+        try
+        {
+            var dispatcher = new AvaloniaUiDispatcher();
+            _services = await AppServices.CreateAsync(PlatformFactory, dispatcher);
+            var window = new MainWindow(_services);
             desktop.MainWindow = window;
             desktop.ShutdownRequested += OnShutdownRequested;
+            window.Show();
 
             if (desktop.Args?.Contains("--settings") == true)
             {
                 Dispatcher.UIThread.Post(window.ShowSettings);
             }
         }
-
-        base.OnFrameworkInitializationCompleted();
+        catch (Exception ex)
+        {
+            LogCrash("Startup failed.", ex);
+            desktop.Shutdown(1);
+        }
     }
-
-    private bool _flushStarted;
 
     private async void OnShutdownRequested(object? sender, ShutdownRequestedEventArgs e)
     {
-        if (_flushStarted)
+        if (_shuttingDown || _services is null)
         {
             return;
         }
 
-        if (ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop ||
-            desktop.MainWindow is not MainWindow main)
-        {
-            return;
-        }
-
-        _flushStarted = true;
+        _shuttingDown = true;
         e.Cancel = true;
         try
         {
-            await main.FlushSettingsAsync();
+            await _services.ShutdownAsync(TimeSpan.FromSeconds(5));
         }
         finally
         {
-            desktop.Shutdown();
+            (ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.Shutdown();
         }
     }
 
