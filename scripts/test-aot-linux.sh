@@ -142,7 +142,7 @@ done
 if [ -n "$effect_wid" ]; then
     echo "A1 PASS: Aster Effect Layer is mapped (window $effect_wid)"
 else
-    echo "PARTIAL: A1 effect window 'Aster Effect Layer' not visible for pid $pid; InsetEffectLayer fallback active"
+    echo "PARTIAL: A1 effect window 'Aster Effect Layer' not visible for pid $pid; effect layer may have self-disabled"
     echo "reason: xdotool found no mapped window matching '^Aster Effect Layer$' owned by the app within 4s"
     tail -n 10 "$app_log" >&2 || true
     effect_status="PARTIAL"

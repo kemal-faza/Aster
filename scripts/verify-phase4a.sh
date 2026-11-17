@@ -56,8 +56,8 @@ add_gate "core/ui/linux tests" PASS
 
 echo "== Runtime gates =="
 
-# The synthetic effect-layer gate is independently allowed to fall back to the
-# inset effect layer. Record that as PARTIAL, never PASS.
+# The shipped X11 head has no inset fallback; a genuine effect-gate failure is
+# FAIL. Transparency/self-disable handling lives inside X11EffectLayer.
 effect_rc=0
 "$root/scripts/test-effect-layer.sh" || effect_rc=$?
 case "$effect_rc" in
