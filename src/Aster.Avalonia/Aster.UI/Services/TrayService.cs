@@ -53,7 +53,7 @@ public sealed class TrayService : IDisposable
         };
         _minimal.Click += (_, _) =>
         {
-            var enabled = !_minimal.IsChecked;
+            var enabled = !_settings().MinimalNotch;
             commands.SetMinimal(enabled);
             ApplyState();
         };
@@ -64,7 +64,7 @@ public sealed class TrayService : IDisposable
         };
         _mascot.Click += (_, _) =>
         {
-            var enabled = !_mascot.IsChecked;
+            var enabled = !_settings().ShowMascot;
             commands.SetMascot(enabled);
             ApplyState();
         };
@@ -75,7 +75,7 @@ public sealed class TrayService : IDisposable
         };
         _fullscreen.Click += (_, _) =>
         {
-            var enabled = !_fullscreen.IsChecked;
+            var enabled = !_settings().HideInFullscreen;
             commands.SetFullscreen(enabled);
             ApplyState();
         };

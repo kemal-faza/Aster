@@ -46,6 +46,7 @@ public partial class SettingsViewModel : ObservableObject
         _log = log;
         AutostartLabel = autostartLabel;
         var current = store.Current;
+        _lastSaved = current;
         _startWithWindows = current.StartWithWindows;
         _minimalNotch = current.MinimalNotch;
         _hideInFullscreen = current.HideInFullscreen;
@@ -71,7 +72,14 @@ public partial class SettingsViewModel : ObservableObject
         _saveTimer.Tick += async (_, _) =>
         {
             _saveTimer.Stop();
-            await SaveNowAsync();
+            try
+            {
+                await SaveNowAsync();
+            }
+            catch (Exception ex)
+            {
+                _log.Error("Debounced settings save failed.", ex);
+            }
         };
 
         _store.Changed += (_, settings) =>
@@ -142,14 +150,13 @@ public partial class SettingsViewModel : ObservableObject
             }
             catch
             {
-                _lastSaved = null;
+                _lastSaved = _store.Current;
                 throw;
             }
 
             if (_store.Current != next)
             {
                 _log.Warn("Settings save did not persist.");
-                _lastSaved = null;
                 RefreshFromStore(_store.Current);
                 return;
             }
@@ -261,9 +268,7 @@ public partial class SettingsViewModel : ObservableObject
     }
 
     private T Reconcile<T>(T current, T persisted, T incoming) =>
-        _lastSaved is null || EqualityComparer<T>.Default.Equals(current, persisted)
-            ? incoming
-            : current;
+        EqualityComparer<T>.Default.Equals(current, persisted) ? incoming : current;
 
     private void ScheduleSave()
     {

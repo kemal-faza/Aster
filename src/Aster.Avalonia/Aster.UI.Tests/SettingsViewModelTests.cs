@@ -106,12 +106,60 @@ public class SettingsViewModelTests
             ShortBreakMinutes: 7,
             LongBreakMinutes: 20,
             FocusChime: false);
+        var expected = new AppSettings(
+            SchemaVersion: SettingsSchema.CurrentVersion,
+            StartWithWindows: false,
+            MinimalNotch: false,
+            HideInFullscreen: true,
+            GlassBackground: true,
+            BouncySpring: true,
+            ShowMascot: true,
+            VolumeToast: true,
+            BrightnessToast: true,
+            LyricsEnabled: true,
+            LyricsHighlightColor: "#445566",
+            WaterReminderEnabled: false,
+            WaterIntervalMinutes: 90,
+            WaterActiveStartHour: 9,
+            WaterActiveEndHour: 20,
+            WaterDailyGoal: 6,
+            WaterGlassesToday: 1,
+            WaterDate: "2026-11-18",
+            CameraMirror: true,
+            FocusMinutes: 50,
+            ShortBreakMinutes: 10,
+            LongBreakMinutes: 30,
+            FocusChime: true);
         var store = new FakeStore(seeded);
-        var vm = new SettingsViewModel(store, new NullLog(), "Start with Windows");
+        var vm = new SettingsViewModel(store, new NullLog(), "Start with Windows")
+        {
+            StartWithWindows = expected.StartWithWindows,
+            MinimalNotch = expected.MinimalNotch,
+            HideInFullscreen = expected.HideInFullscreen,
+            GlassBackground = expected.GlassBackground,
+            BouncySpring = expected.BouncySpring,
+            ShowMascot = expected.ShowMascot,
+            VolumeToast = expected.VolumeToast,
+            BrightnessToast = expected.BrightnessToast,
+            LyricsEnabled = expected.LyricsEnabled,
+            LyricsHighlightColor = expected.LyricsHighlightColor,
+            WaterReminderEnabled = expected.WaterReminderEnabled,
+            WaterIntervalMinutes = expected.WaterIntervalMinutes,
+            WaterActiveStartHour = expected.WaterActiveStartHour,
+            WaterActiveEndHour = expected.WaterActiveEndHour,
+            WaterDailyGoal = expected.WaterDailyGoal,
+            WaterGlassesToday = expected.WaterGlassesToday,
+            WaterDate = expected.WaterDate,
+            CameraMirror = expected.CameraMirror,
+            FocusMinutes = expected.FocusMinutes,
+            ShortBreakMinutes = expected.ShortBreakMinutes,
+            LongBreakMinutes = expected.LongBreakMinutes,
+            FocusChime = expected.FocusChime
+        };
 
         await vm.SaveNowAsync();
 
-        Assert.Equal(seeded, store.Saved);
+        Assert.Equal(expected, store.Saved);
     }
 
     [Fact]
@@ -162,10 +210,12 @@ public class SettingsViewModelTests
         var vm = new SettingsViewModel(store, new NullLog(), "Start with Windows");
 
         var saving = vm.SaveNowAsync();
-        while (store.Saved is null)
+        var start = DateTime.UtcNow;
+        while (store.Saved is null && DateTime.UtcNow - start < TimeSpan.FromSeconds(2))
         {
             await Task.Yield();
         }
+        Assert.NotNull(store.Saved);
 
         vm.GlassBackground = false;
 
@@ -178,6 +228,40 @@ public class SettingsViewModelTests
 
         Assert.NotNull(store.Saved);
         Assert.False(store.Saved!.GlassBackground);
+    }
+
+    [Fact]
+    public async Task EditDuringFailedSaveSurvivesRevert()
+    {
+        var store = new FakeStore { PersistSaves = false };
+        var gate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        store.SaveGate = gate.Task;
+        var vm = new SettingsViewModel(store, new NullLog(), "Start with Windows");
+
+        vm.MinimalNotch = true;
+        var saving = vm.SaveNowAsync();
+
+        var start = DateTime.UtcNow;
+        while (store.Saved is null && DateTime.UtcNow - start < TimeSpan.FromSeconds(2))
+        {
+            await Task.Yield();
+        }
+
+        Assert.NotNull(store.Saved);
+        vm.GlassBackground = false;
+
+        gate.SetResult();
+        await saving;
+
+        Assert.False(vm.MinimalNotch);
+        Assert.False(vm.GlassBackground);
+
+        store.PersistSaves = true;
+        await vm.SaveNowAsync();
+
+        Assert.NotNull(store.Saved);
+        Assert.False(store.Saved!.MinimalNotch);
+        Assert.False(store.Saved.GlassBackground);
     }
 
     private sealed class FakeStore : ISettingsStore
