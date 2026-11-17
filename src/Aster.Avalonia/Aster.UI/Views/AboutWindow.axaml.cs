@@ -12,7 +12,10 @@ public partial class AboutWindow : Window
 
     public AboutWindow(IAppLog log) : this()
     {
-        DataContext = new { Version = Aster.UI.AppInfo.DisplayVersion, DataPath = AppPaths.BaseDirectory };
+        // Direct assignment keeps the XAML free of reflection bindings, which
+        // NativeAOT cannot trim safely.
+        VersionText.Text = AppInfo.DisplayVersion;
+        DataPathText.Text = AppPaths.BaseDirectory;
         log.Info("About dialog opened.");
     }
 

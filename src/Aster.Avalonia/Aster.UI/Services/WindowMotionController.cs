@@ -83,6 +83,19 @@ public sealed class WindowMotionController : IDisposable
 
     public void SuppressHover() => _hoverSuppressed = true;
 
+    /// <summary>
+    /// Hover expands the island in both normal and minimal-notch modes. The
+    /// suppression flag is only set after an explicit close action.
+    /// </summary>
+    public static bool ShouldExpandOnHover(bool cursorInside, bool hoverSuppressed) =>
+        cursorInside && !hoverSuppressed;
+
+    /// <summary>
+    /// A click expands the normal notch. The minimal notch is a hover-only
+    /// surface, so a click must not open the full island.
+    /// </summary>
+    public static bool ShouldExpandOnClick(bool minimalNotch) => !minimalNotch;
+
     public void Reapply()
     {
         if (_hwnd != IntPtr.Zero)
@@ -133,7 +146,7 @@ public sealed class WindowMotionController : IDisposable
         }
 
         var inside = _placement.IsCursorInside(_hwnd);
-        if (inside && !_hoverSuppressed)
+        if (ShouldExpandOnHover(inside, _hoverSuppressed))
         {
             _collapseTimer.Stop();
             SetExpanded(true);

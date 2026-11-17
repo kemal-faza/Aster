@@ -2,7 +2,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:automation="using:Avalonia.Automation"
         x:Class="Aster.UI.Views.AboutWindow"
-        x:CompileBindings="False"
         Title="About Aster"
         Width="420" Height="300"
         CanResize="False"
@@ -30,7 +29,7 @@
           <TextBlock Text="Version"
                      Foreground="{StaticResource TextTertiary}"
                      FontSize="12" />
-          <TextBlock Text="{Binding Version}"
+          <TextBlock x:Name="VersionText"
                      Foreground="{StaticResource TextSecondary}"
                      FontSize="12" />
         </StackPanel>
@@ -38,7 +37,7 @@
                    Foreground="{StaticResource TextTertiary}"
                    FontSize="12"
                    Margin="0,8,0,0" />
-        <TextBlock Text="{Binding DataPath}"
+        <TextBlock x:Name="DataPathText"
                    Foreground="{StaticResource TextSecondary}"
                    FontSize="12"
                    TextWrapping="NoWrap"

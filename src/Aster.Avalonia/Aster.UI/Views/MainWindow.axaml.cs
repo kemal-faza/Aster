@@ -4,6 +4,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using Aster.Core.Logic;
 using Aster.Core.Models;
+using Aster.UI.Services;
 using Aster.UI.ViewModels;
 
 namespace Aster.UI.Views;
@@ -46,12 +47,10 @@ public partial class MainWindow : Window
         };
         IslandShell.PointerPressed += (_, _) =>
         {
-            if (_services.Settings.Current.MinimalNotch)
+            if (WindowMotionController.ShouldExpandOnClick(_services.Settings.Current.MinimalNotch))
             {
-                return;
+                _services.Motion?.SetExpanded(true);
             }
-
-            _services.Motion?.SetExpanded(true);
         };
 
         _state.PropertyChanged += (_, e) =>
