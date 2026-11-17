@@ -44,6 +44,32 @@ public partial class MainWindow : Window
             _services.Motion?.SuppressHover();
             _services.Motion?.SetExpanded(false);
         };
+        IslandShell.PointerPressed += (_, _) =>
+        {
+            if (_services.Settings.Current.MinimalNotch)
+            {
+                return;
+            }
+
+            _services.Motion?.SetExpanded(true);
+        };
+
+        _state.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName is nameof(ShellViewModel.ExpansionProgress)
+                or nameof(ShellViewModel.IsExpanded)
+                or nameof(ShellViewModel.IsMinimal))
+            {
+                UpdateEffectLayer();
+            }
+        };
+
+        Screens.Changed += (_, _) =>
+        {
+            PositionAtTopCenter();
+            _services.Motion?.Reapply();
+            UpdateEffectLayer();
+        };
 
         _services.AttachWindow(this);
         _services.Chrome.Attach(this);
@@ -72,6 +98,7 @@ public partial class MainWindow : Window
             PositionAtTopCenter();
             WriteReadyFile();
             _services.EffectLayer.Attach(this);
+            UpdateEffectLayer();
             _services.Start();
         };
     }
@@ -88,6 +115,8 @@ public partial class MainWindow : Window
             _userHidden = false;
             ShowNoActivate();
         }
+
+        UpdateEffectLayer();
     }
 
     public void SetMinimalNotch(bool enabled)
@@ -193,24 +222,24 @@ public partial class MainWindow : Window
     {
         Dispatcher.UIThread.Post(() =>
         {
-            if (!_services.Settings.Current.HideInFullscreen)
+            if (_services.Settings.Current.HideInFullscreen)
             {
-                return;
-            }
-
-            if (fullscreen && !_userHidden && !_fullscreenHidden)
-            {
-                _fullscreenHidden = true;
-                Hide();
-            }
-            else if (!fullscreen && _fullscreenHidden)
-            {
-                _fullscreenHidden = false;
-                if (!_userHidden)
+                if (fullscreen && !_userHidden && !_fullscreenHidden)
                 {
-                    ShowNoActivate();
+                    _fullscreenHidden = true;
+                    Hide();
+                }
+                else if (!fullscreen && _fullscreenHidden)
+                {
+                    _fullscreenHidden = false;
+                    if (!_userHidden)
+                    {
+                        ShowNoActivate();
+                    }
                 }
             }
+
+            UpdateEffectLayer();
         });
     }
 
@@ -222,6 +251,7 @@ public partial class MainWindow : Window
         }
 
         PositionAtTopCenter();
+        UpdateEffectLayer();
     }
 
     private void ApplySettings(AppSettings settings)
@@ -250,13 +280,17 @@ public partial class MainWindow : Window
             _fullscreenHidden = true;
             Hide();
         }
+
+        UpdateEffectLayer();
     }
 
     public void ShowSettings()
     {
+        _state.IsSettingsOpen = true;
         if (_settingsWindow is { IsVisible: true })
         {
             _settingsWindow.Activate();
+            UpdateEffectLayer();
             return;
         }
 
@@ -276,7 +310,12 @@ public partial class MainWindow : Window
                 Math.Clamp(y, working.Y, maxY));
         }
 
-        _settingsWindow.Closed += (_, _) => _settingsWindow = null;
+        _settingsWindow.Closed += (_, _) =>
+        {
+            _settingsWindow = null;
+            _state.IsSettingsOpen = false;
+            UpdateEffectLayer();
+        };
         if (IsVisible)
         {
             _settingsWindow.Show(this);
@@ -285,5 +324,39 @@ public partial class MainWindow : Window
         {
             _settingsWindow.Show();
         }
+
+        UpdateEffectLayer();
+    }
+
+    private void UpdateEffectLayer()
+    {
+        var screen = Screens.Primary ?? Screens.All.FirstOrDefault();
+        if (screen is null)
+        {
+            return;
+        }
+
+        var scaling = screen.Scaling;
+        var pixelWidth = (int)Math.Round(Width * scaling);
+        var pixelHeight = (int)Math.Round(Height * scaling);
+        var current = _services.Settings.Current;
+        var visibility = new EffectLayerVisibility(
+            IslandVisible: IsVisible,
+            UserHidden: _userHidden,
+            FullscreenHidden: _fullscreenHidden,
+            SettingsOpen: _state.IsSettingsOpen,
+            GlassEnabled: current.GlassBackground);
+        var state = new EffectLayerState(
+            Visible: EffectLayerGeometry.IsVisible(visibility),
+            Minimal: current.MinimalNotch,
+            ExpansionProgress: _state.ExpansionProgress,
+            Scaling: scaling,
+            IslandX: Position.X,
+            IslandY: Position.Y,
+            IslandWidth: pixelWidth,
+            IslandHeight: pixelHeight,
+            AccentArgb: 0xFFF6A6C8);
+
+        _services.EffectLayer.Update(state);
     }
 }

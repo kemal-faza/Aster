@@ -70,11 +70,6 @@ public sealed class WindowMotionController : IDisposable
             return;
         }
 
-        if (expanded && _settings.Current.MinimalNotch)
-        {
-            return;
-        }
-
         _expanded = expanded;
         _state.IsExpanded = expanded;
         _targetWidth = expanded
@@ -138,7 +133,7 @@ public sealed class WindowMotionController : IDisposable
         }
 
         var inside = _placement.IsCursorInside(_hwnd);
-        if (inside && !_hoverSuppressed && !_settings.Current.MinimalNotch)
+        if (inside && !_hoverSuppressed)
         {
             _collapseTimer.Stop();
             SetExpanded(true);
