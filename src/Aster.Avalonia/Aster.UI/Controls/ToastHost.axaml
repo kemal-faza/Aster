@@ -1,0 +1,22 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Aster.UI.Controls.ToastHost">
+  <Border Name="PART_Toast"
+          Width="212"
+          Padding="12,6"
+          CornerRadius="17"
+          BorderThickness="1"
+          BorderBrush="{StaticResource ToastBorder}"
+          Background="{StaticResource IslandGlassToast}"
+          HorizontalAlignment="Center"
+          IsVisible="False">
+    <Grid ColumnDefinitions="Auto,8,*,Auto">
+      <TextBlock Name="PART_Glyph" FontFamily="{StaticResource GlyphFont}" FontSize="13" />
+      <TextBlock Name="PART_Text" Grid.Column="2" FontSize="11" VerticalAlignment="Center" />
+      <Border Name="PART_Progress" Grid.Column="3" Width="50" Height="3"
+              CornerRadius="1.5" Background="{StaticResource TrackBrush}">
+        <Border Name="PART_ProgressFill" HorizontalAlignment="Left" Background="{StaticResource AccentWater}" />
+      </Border>
+    </Grid>
+  </Border>
+</UserControl>

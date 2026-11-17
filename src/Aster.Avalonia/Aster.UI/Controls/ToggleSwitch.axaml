@@ -1,0 +1,28 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <ControlTheme x:Key="ToggleSwitch" TargetType="CheckBox">
+    <Setter Property="Height" Value="22" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Grid ColumnDefinitions="*,Auto">
+          <ContentPresenter VerticalAlignment="Center" Margin="0,0,10,0" />
+          <Border Grid.Column="1" Name="PART_Track" Width="40" Height="22"
+                  Background="#2C2C32" CornerRadius="11">
+            <Ellipse Name="PART_Thumb" Width="16" Height="16" Margin="3,0,0,0"
+                     HorizontalAlignment="Left" Fill="#FFFFFF" />
+          </Border>
+        </Grid>
+      </ControlTemplate>
+    </Setter>
+    <Style Selector="^:checked /template/ Border#PART_Track">
+      <Setter Property="Background" Value="{StaticResource AccentGreen}" />
+    </Style>
+    <Style Selector="^:checked /template/ Ellipse#PART_Thumb">
+      <Setter Property="HorizontalAlignment" Value="Right" />
+      <Setter Property="Margin" Value="0,0,3,0" />
+    </Style>
+    <Style Selector="^:disabled">
+      <Setter Property="Opacity" Value="0.4" />
+    </Style>
+  </ControlTheme>
+</ResourceDictionary>

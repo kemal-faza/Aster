@@ -24,4 +24,5 @@
   <Style Selector="ScrollBar">
     <Setter Property="Theme" Value="{StaticResource AsterScrollBar}" />
   </Style>
+  <StyleInclude Source="avares://Aster.UI/Controls/SettingsCard.axaml" />
 </Styles>
