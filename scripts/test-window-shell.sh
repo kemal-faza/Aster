@@ -301,8 +301,9 @@ growth="$(wait_for_growth "$wid" "$growth_threshold_width" $((expected_height + 
     fail "island did not expand on hover after moving under the pointer"
 note "island hovered to ${growth} (collapsed ${expected_width}x${expected_height}, expanded ${expanded_width}x${expanded_height})"
 
-# Return the island to the top center for the effect geometry and click checks.
-xdotool windowmove "$wid" $(((screen_width - expected_width) / 2)) 0 2>/dev/null || true
+# Return the expanded island to the top center for the effect geometry and
+# click checks. The motion controller centers the current (expanded) width.
+xdotool windowmove "$wid" $(((screen_width - expanded_width) / 2)) 0 2>/dev/null || true
 sleep 0.2
 
 effect_wid="$(wait_visible '^Aster Effect Layer$')" || fail "effect window not found"
