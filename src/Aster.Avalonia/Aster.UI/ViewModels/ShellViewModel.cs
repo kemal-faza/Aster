@@ -1,6 +1,7 @@
 using System.Globalization;
 using Aster.Core.Interfaces;
 using Aster.Core.Models;
+using Aster.UI.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Aster.UI.ViewModels;
@@ -23,6 +24,11 @@ public partial class ShellViewModel : ObservableObject
     [ObservableProperty] private string _batteryText = "";
     [ObservableProperty] private bool _isWifiConnected;
     [ObservableProperty] private bool _glassBackground = true;
+    [ObservableProperty] private PanelMode _panelMode = PanelMode.Music;
+    [ObservableProperty] private bool _isSettingsOpen;
+    [ObservableProperty] private string _toastText = string.Empty;
+    [ObservableProperty] private string _toastGlyph = string.Empty;
+    [ObservableProperty] private bool _isToastVisible;
 
     public ShellViewModel(
         IBatteryStatus? battery = null,
@@ -59,6 +65,11 @@ public partial class ShellViewModel : ObservableObject
                     OnPropertyChanged(nameof(HasMedia));
                     OnPropertyChanged(nameof(HasNoMedia));
                 }
+
+                if (e.PropertyName == nameof(MediaViewModel.IsPlaying))
+                {
+                    OnPropertyChanged(nameof(PlayGlyph));
+                }
             };
         }
     }
@@ -67,6 +78,22 @@ public partial class ShellViewModel : ObservableObject
     public double CollapsedOpacity => Math.Clamp(1 - ExpansionProgress * 3, 0, 1);
     public string WifiText => IsWifiConnected ? "Wi-Fi" : "Off";
     public double WifiOpacity => IsWifiConnected ? 1 : 0.35;
+
+    public int BatteryPercent => _battery?.Current.Percent ?? 0;
+    public bool IsCharging => _battery?.Current.IsCharging ?? false;
+    public bool HasBattery => _battery?.Current.HasBattery ?? false;
+    public string WifiGlyph => Glyph.Get(Glyph.Kind.Wifi);
+    public string ChevronGlyph => Glyph.Get(Glyph.Kind.ChevronUp);
+    public string PlayGlyph => Media?.IsPlaying == true
+        ? Glyph.Get(Glyph.Kind.Pause)
+        : Glyph.Get(Glyph.Kind.Play);
+    public string PreviousGlyph => Glyph.Get(Glyph.Kind.Previous);
+    public string NextGlyph => Glyph.Get(Glyph.Kind.Next);
+    public string MusicGlyph => Glyph.Get(Glyph.Kind.Music);
+    public string CameraGlyph => Glyph.Get(Glyph.Kind.Camera);
+    public string ShelfGlyph => Glyph.Get(Glyph.Kind.Shelf);
+    public string FocusGlyph => Glyph.Get(Glyph.Kind.Focus);
+    public string SettingsGlyph => Glyph.Get(Glyph.Kind.Settings);
 
     public CapabilityMatrix Capabilities { get; }
 
@@ -96,10 +123,16 @@ public partial class ShellViewModel : ObservableObject
         if (!snapshot.HasBattery)
         {
             BatteryText = string.Empty;
+            OnPropertyChanged(nameof(BatteryPercent));
+            OnPropertyChanged(nameof(IsCharging));
+            OnPropertyChanged(nameof(HasBattery));
             return;
         }
 
         BatteryText = snapshot.IsCharging ? $"{snapshot.Percent}%+" : $"{snapshot.Percent}%";
+        OnPropertyChanged(nameof(BatteryPercent));
+        OnPropertyChanged(nameof(IsCharging));
+        OnPropertyChanged(nameof(HasBattery));
     }
 
     public void UpdateClock(DateTimeOffset now)

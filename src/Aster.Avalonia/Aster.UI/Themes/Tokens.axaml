@@ -11,6 +11,7 @@
   </LinearGradientBrush>
   <SolidColorBrush x:Key="IslandSolidBackground" Color="#F2070708" />
   <SolidColorBrush x:Key="IslandGlassShadow" Color="#1A000000" />
+  <BoxShadows x:Key="IslandShadow">0 8 24 0 #8C000000</BoxShadows>
   <LinearGradientBrush x:Key="IslandRimBrush" StartPoint="0%,0%" EndPoint="0%,100%">
     <GradientStop Color="#40FFFFFF" Offset="0" />
     <GradientStop Color="#18FFFFFF" Offset="0.35" />

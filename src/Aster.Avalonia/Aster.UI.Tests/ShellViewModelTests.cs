@@ -38,6 +38,15 @@ public class ShellViewModelTests
     }
 
     [Fact]
+    public void PanelModeDefaultsToMusicAndCanChange()
+    {
+        var vm = new ShellViewModel();
+        Assert.Equal(PanelMode.Music, vm.PanelMode);
+        vm.PanelMode = PanelMode.Focus;
+        Assert.Equal(PanelMode.Focus, vm.PanelMode);
+    }
+
+    [Fact]
     public void ApplySettingsUpdatesMinimalAndGlass()
     {
         var vm = new ShellViewModel();

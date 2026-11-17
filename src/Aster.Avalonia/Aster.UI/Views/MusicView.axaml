@@ -1,0 +1,48 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Aster.UI.ViewModels"
+             xmlns:controls="using:Aster.UI.Controls"
+             x:Class="Aster.UI.Views.MusicView"
+             x:DataType="vm:ShellViewModel">
+  <Grid RowDefinitions="Auto,*" Margin="0,8,0,4">
+    <Grid ColumnDefinitions="92,16,*" IsVisible="{Binding HasMedia}">
+      <Border Width="92" Height="92" CornerRadius="20" ClipToBounds="True">
+        <Image Source="{Binding Media.ArtworkImage}" Stretch="UniformToFill" />
+      </Border>
+      <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="3">
+        <TextBlock Text="{Binding Media.Title}" Classes="title" />
+        <TextBlock Text="{Binding Media.Artist}" Classes="subtitle" />
+        <TextBlock Text="{Binding Media.SourceApp}" Classes="tertiary" />
+        <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto" Margin="0,7,0,0">
+          <Button Theme="{StaticResource GlyphButton}" Content="{Binding PreviousGlyph}"
+                  Command="{Binding Media.PreviousCommand}" />
+          <Button Grid.Column="1" Theme="{StaticResource PlayButton}" Margin="8,0"
+                  Content="{Binding PlayGlyph}" Command="{Binding Media.PlayPauseCommand}" />
+          <Button Grid.Column="2" Theme="{StaticResource GlyphButton}"
+                  Content="{Binding NextGlyph}" Command="{Binding Media.NextCommand}" />
+        </Grid>
+        <controls:SeekSlider x:Name="SeekSlider" Height="16" Margin="0,8,0,0"
+                             Value="{Binding Media.PositionSeconds}"
+                             Maximum="{Binding Media.DurationSeconds}"
+                             SeekStarted="OnSeekStarted"
+                             SeekCompleted="OnSeekCompleted" />
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Text="{Binding Media.PositionText}" Classes="tertiary" />
+          <TextBlock Grid.Column="1" Text="{Binding Media.DurationText}" Classes="tertiary" />
+        </Grid>
+        <Grid ColumnDefinitions="*,Auto" Margin="0,6,0,0">
+          <TextBlock Text="{Binding Media.SourceApp}" Classes="tertiary" />
+          <Button Grid.Column="1" Theme="{StaticResource GlyphButton}"
+                  Content="{Binding SettingsGlyph}" Click="OnSettingsClick" />
+        </Grid>
+      </StackPanel>
+    </Grid>
+    <StackPanel IsVisible="{Binding HasNoMedia}" VerticalAlignment="Center"
+                HorizontalAlignment="Center">
+      <TextBlock Text="Nothing playing" FontSize="20" FontWeight="SemiBold"
+                 HorizontalAlignment="Center" />
+      <TextBlock Text="Start something on Spotify, YouTube, or Apple Music"
+                 Classes="subtitle" Margin="0,4,0,0" HorizontalAlignment="Center" />
+    </StackPanel>
+  </Grid>
+</UserControl>

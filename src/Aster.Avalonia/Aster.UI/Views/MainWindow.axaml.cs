@@ -1,7 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Media;
 using Avalonia.Threading;
 using Aster.Core.Logic;
 using Aster.Core.Models;
@@ -11,19 +10,6 @@ namespace Aster.UI.Views;
 
 public partial class MainWindow : Window
 {
-    private static readonly IBrush GlassBrush = new LinearGradientBrush
-    {
-        StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
-        EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative),
-        GradientStops =
-        {
-            new GradientStop(Color.Parse("#DE14141B"), 0),
-            new GradientStop(Color.Parse("#F007070A"), 1)
-        }
-    };
-
-    private static readonly IBrush SolidBrush = new SolidColorBrush(Color.Parse("#F2070708"));
-
     private readonly AppServices _services;
     private readonly ShellViewModel _state;
     private readonly SettingsViewModel _settingsViewModel;
@@ -52,8 +38,8 @@ public partial class MainWindow : Window
         _clockTimer.Start();
 
         _services.Fullscreen.Changed += OnFullscreenChanged;
-        ExpandedMedia.SettingsRequested += (_, _) => ShowSettings();
-        ExpandedMedia.CloseRequested += (_, _) =>
+        IslandShell.SettingsRequested += (_, _) => ShowSettings();
+        IslandShell.CloseRequested += (_, _) =>
         {
             _services.Motion?.SuppressHover();
             _services.Motion?.SetExpanded(false);
@@ -230,8 +216,6 @@ public partial class MainWindow : Window
     private void ApplySettings(AppSettings settings)
     {
         _state.ApplySettings(settings);
-        Island.Background = settings.GlassBackground ? GlassBrush : SolidBrush;
-        GlassNoise.IsVisible = settings.GlassBackground;
         _services.Motion?.ApplySettings();
 
         if (!_services.Autostart.SetEnabled(settings.StartWithWindows))
