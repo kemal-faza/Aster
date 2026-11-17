@@ -117,7 +117,7 @@ find_app_visible() {
     local pattern="$1"
     local wid candidate
     for wid in $(xdotool search --onlyvisible --name "$pattern" 2>/dev/null); do
-        candidate="$(xprop -id "$wid" _NET_WM_PID 2>/dev/null | sed -n 's/.*= //p')"
+        candidate="$(xprop -id "$wid" _NET_WM_PID 2>/dev/null | sed -n 's/.*= //p' || true)"
         if [ "$candidate" = "${pid:-}" ]; then
             echo "$wid"
         fi
@@ -128,7 +128,7 @@ find_app_window() {
     local pattern="$1"
     local wid candidate
     for wid in $(xdotool search --name "$pattern" 2>/dev/null); do
-        candidate="$(xprop -id "$wid" _NET_WM_PID 2>/dev/null | sed -n 's/.*= //p')"
+        candidate="$(xprop -id "$wid" _NET_WM_PID 2>/dev/null | sed -n 's/.*= //p' || true)"
         if [ "$candidate" = "${pid:-}" ]; then
             echo "$wid"
         fi
@@ -231,16 +231,32 @@ wait_for_growth() {
     local wid="$1"
     local minimum_width="$2"
     local minimum_height="$3"
+    local held=0
     local max_width=0
     local max_height=0
-    for _ in $(seq 1 120); do
+    for _ in $(seq 1 150); do
         read_geometry "$wid" 2>/dev/null || break
+        # When KWin ignores XTest warps, keep the window under the real pointer
+        # while measuring; the motion controller recenters it every frame.
+        if [ "$pointer_warp" != "yes" ]; then
+            xdotool windowmove "$wid" $((PTR_X - WIDTH / 2)) $((PTR_Y - HEIGHT / 2)) 2>/dev/null || true
+            read_geometry "$wid" 2>/dev/null || break
+        fi
         [ "$WIDTH" -gt "$max_width" ] && max_width="$WIDTH"
         [ "$HEIGHT" -gt "$max_height" ] && max_height="$HEIGHT"
+        if [ "$WIDTH" -ge "$minimum_width" ] && [ "$HEIGHT" -ge "$minimum_height" ]; then
+            held=$((held + 1))
+            if [ "$held" -ge 15 ]; then
+                echo "$WIDTH $HEIGHT"
+                return 0
+            fi
+        else
+            held=0
+        fi
         sleep 0.02
     done
     echo "$max_width $max_height"
-    [ "$max_width" -ge "$minimum_width" ] && [ "$max_height" -ge "$minimum_height" ]
+    return 1
 }
 
 probe_pointer_warp
@@ -271,13 +287,23 @@ settle_away "$wid" "$screen_width" "$screen_height"
 expect_size "$wid" "$expected_width" "$expected_height" "island" ||
     fail "island did not collapse after moving off the pointer"
 
-# Return the collapsed island to the top center and let the real X pointer
-# hover it, which also re-checks the expanded target.
-xdotool windowmove "$wid" $(((screen_width - expected_width) / 2)) 0
+# Place the collapsed island under the real pointer, then wait for a held
+# expansion. On hosts that honor warps, move the pointer instead.
+pointer_position
+read_geometry "$wid"
+if [ "$pointer_warp" = "yes" ]; then
+    xdotool mousemove $((X + WIDTH / 2)) $((Y + HEIGHT / 2)) 2>/dev/null || true
+else
+    xdotool windowmove "$wid" $((PTR_X - WIDTH / 2)) $((PTR_Y - HEIGHT / 2)) 2>/dev/null || true
+fi
 growth_threshold_width=$((expected_width + (expanded_width - expected_width) / 4))
 growth="$(wait_for_growth "$wid" "$growth_threshold_width" $((expected_height + 10)))" ||
-    fail "island did not expand on hover after returning to the top center"
+    fail "island did not expand on hover after moving under the pointer"
 note "island hovered to ${growth} (collapsed ${expected_width}x${expected_height}, expanded ${expanded_width}x${expanded_height})"
+
+# Return the island to the top center for the effect geometry and click checks.
+xdotool windowmove "$wid" $(((screen_width - expected_width) / 2)) 0 2>/dev/null || true
+sleep 0.2
 
 effect_wid="$(wait_visible '^Aster Effect Layer$')" || fail "effect window not found"
 
@@ -300,14 +326,17 @@ if [ "$pill_click" = "yes" ]; then
 fi
 sleep 0.4
 after="$(xdotool getactivewindow 2>/dev/null || true)"
-if [ -n "$before" ] && [ "$before" != "$after" ]; then
+if [ -n "$after" ] && [ "$before" != "$after" ]; then
     if [ "$after" = "$wid" ] || [ "$after" = "$effect_wid" ]; then
         fail "pill click gave focus to the island or effect: $before -> $after"
     fi
-    # KWin can clear the active Xwayland window when a non-focusable dock is
-    # clicked. That is not focus theft by the shell, but it is not a PASS.
+    # A third window means the click leaked through the island. Only an empty
+    # active window is genuinely unobservable under XWayland/KWin.
+    fail "pill click moved focus to a third window: $before -> $after"
+fi
+if [ -z "$after" ]; then
     focus_check="PARTIAL"
-    echo "warning: pill click changed the active window: $before -> $after"
+    echo "warning: KWin cleared the active window after the pill click; focus hand-off not observable"
 fi
 if [ -z "$before" ]; then
     focus_check="PARTIAL"
@@ -323,7 +352,7 @@ expected_effect_x=$(((screen_width - effect_width) / 2))
 [ "$Y" -ge -3 ] && [ "$Y" -le 3 ] ||
     fail "effect y mismatch: got $Y expected 0"
 
-spectacle -b -n -o "docs/results/screenshots/phase2/linux-window-${scale}x.png"
+spectacle -b -n -o "docs/results/screenshots/phase2/linux-window-${scale}x.png" 2>/dev/null || true
 
 xmessage -geometry 300x200+50+300 -buttons OK "underneath" >/dev/null 2>&1 &
 under_pid=$!
@@ -349,10 +378,13 @@ if [ "$under_click" = "yes" ]; then
     sleep 0.4
     after_under="$(xdotool getactivewindow 2>/dev/null || true)"
     if [ "$after_under" != "$under_wid" ]; then
-        # KDE Wayland may not deliver synthetic XTest clicks to XWayland windows.
-        # That makes the focus hand-off unobservable; do not claim PASS.
+        if [ -n "$after_under" ]; then
+            fail "underlying click moved focus to $after_under instead of $under_wid"
+        fi
+        # KDE Wayland may clear the active window when a synthetic click is not
+        # delivered; only that case is unobservable.
         focus_check="PARTIAL"
-        echo "warning: synthetic click focus hand-off not observed: $after_under != $under_wid"
+        echo "warning: synthetic click left no active window; focus hand-off not observable"
     fi
 else
     focus_check="PARTIAL"

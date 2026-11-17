@@ -20,10 +20,11 @@ public sealed class X11EffectLayer : IEffectLayer
     private Ellipse? _accentGlow;
     private IntPtr _islandHandle;
     private uint _accentArgb = DefaultAccentArgb;
+    private bool _disabled;
 
     public X11EffectLayer(IAppLog log) => _log = log;
 
-    public bool IsAvailable => true;
+    public bool IsAvailable => !_disabled;
 
     public void Attach(AvaloniaWindow island)
     {
@@ -53,7 +54,9 @@ public sealed class X11EffectLayer : IEffectLayer
 
             // Apply the X11 hints on Opened so both handles are mapped; the
             // empty input shape is what makes the effect window click-through.
-            window.Opened += (_, _) => ApplyNativeHints(window);
+            // If the platform cannot provide transparency or the shape fails,
+            // hide the window instead of leaving an interactive overlay.
+            window.Opened += (_, _) => VerifyAndApply(window);
             _window = window;
             // Show(owner) sets Owner; the setter itself is not public.
             window.Show(island);
@@ -68,7 +71,7 @@ public sealed class X11EffectLayer : IEffectLayer
     public void Update(EffectLayerState state)
     {
         var window = _window;
-        if (window is null)
+        if (window is null || _disabled)
         {
             return;
         }
@@ -93,7 +96,11 @@ public sealed class X11EffectLayer : IEffectLayer
 
                 // Opened fires only for the first show. Re-apply the X11 hints
                 // whenever the effect returns, or KWin drops its dock state.
-                ApplyNativeHints(window);
+                VerifyAndApply(window);
+                if (_disabled)
+                {
+                    return;
+                }
             }
 
             var bounds = EffectLayerGeometry.BoundsFor(state);
@@ -108,6 +115,7 @@ public sealed class X11EffectLayer : IEffectLayer
         catch (Exception ex)
         {
             _log.Error("Failed to update the X11 effect window.", ex);
+            Disable("The X11 effect window failed during an update.");
         }
     }
 
@@ -131,21 +139,61 @@ public sealed class X11EffectLayer : IEffectLayer
         }
     }
 
-    private void ApplyNativeHints(AvaloniaWindow window)
+    private void VerifyAndApply(AvaloniaWindow window)
     {
+        if (_disabled)
+        {
+            return;
+        }
+
+        if (window.ActualTransparencyLevel == WindowTransparencyLevel.None)
+        {
+            Disable("The X11 effect window did not receive a transparent visual.");
+            return;
+        }
+
         try
         {
             var effectHandle = window.TryGetPlatformHandle()?.Handle ?? IntPtr.Zero;
             if (!X11EffectNative.Apply(_islandHandle, effectHandle))
             {
-                _log.Warn("X11 effect-layer hints were not applied; the glow stays a normal window.");
+                Disable("The X11 effect-layer hints could not be applied.");
             }
         }
         catch (Exception ex)
         {
             // Missing libXext, a destroyed display, or a closed window must not
-            // take the app down; the glow simply keeps normal window semantics.
+            // leave an interactive top-level overlay behind.
             _log.Error("Failed to apply X11 effect-layer hints.", ex);
+            Disable("The X11 effect-layer hints threw; disabling the effect window.");
+        }
+    }
+
+    private void Disable(string reason)
+    {
+        if (_disabled)
+        {
+            return;
+        }
+
+        _disabled = true;
+        _log.Warn(reason);
+        var window = _window;
+        _window = null;
+        _accentGlow = null;
+        if (window is null)
+        {
+            return;
+        }
+
+        try
+        {
+            window.Hide();
+            window.Close();
+        }
+        catch (Exception ex)
+        {
+            _log.Warn($"Failed to close the disabled effect window: {ex.Message}");
         }
     }
 
