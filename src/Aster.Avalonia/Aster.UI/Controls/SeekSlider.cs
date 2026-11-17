@@ -35,9 +35,15 @@ public sealed class SeekSlider : Control
 
     private bool _dragging;
 
-    public SeekSlider()
+    protected override Size MeasureOverride(Size availableSize) => new(0, 16);
+
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
-        Cursor = new Cursor(StandardCursorType.Hand);
+        base.OnAttachedToVisualTree(e);
+        if (Cursor is null)
+        {
+            Cursor = new Cursor(StandardCursorType.Hand);
+        }
     }
 
     public override void Render(DrawingContext context)
@@ -84,6 +90,17 @@ public sealed class SeekSlider : Control
         e.Pointer.Capture(null);
         SeekCompleted?.Invoke(this, Value);
         e.Handled = true;
+    }
+
+    protected override void OnPointerCaptureLost(PointerCaptureLostEventArgs e)
+    {
+        if (!_dragging)
+        {
+            return;
+        }
+
+        _dragging = false;
+        SeekCompleted?.Invoke(this, Value);
     }
 
     private void UpdateValue(double x)

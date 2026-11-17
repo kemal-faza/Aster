@@ -8,10 +8,21 @@
     <Setter Property="FontFamily" Value="{StaticResource GlyphFont}" />
     <Setter Property="Template">
       <ControlTemplate>
-        <Border Name="PART_Bg" Background="{TemplateBinding Background}" CornerRadius="18">
+        <Grid>
+          <Border Name="PART_PlayBg" Background="{TemplateBinding Background}" CornerRadius="18" />
+          <Border Name="PART_PlayOverlay" Background="Transparent" CornerRadius="18" />
           <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-        </Border>
+        </Grid>
       </ControlTemplate>
     </Setter>
+    <Style Selector="^:pointerover /template/ Border#PART_PlayOverlay">
+      <Setter Property="Background" Value="{StaticResource PlayButtonHover}" />
+    </Style>
+    <Style Selector="^:pressed /template/ Border#PART_PlayOverlay">
+      <Setter Property="Background" Value="{StaticResource PlayButtonPressed}" />
+    </Style>
+    <Style Selector="^:disabled">
+      <Setter Property="Opacity" Value="0.3" />
+    </Style>
   </ControlTheme>
 </ResourceDictionary>

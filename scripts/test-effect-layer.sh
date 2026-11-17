@@ -100,8 +100,26 @@ if [ ! -f "$ready" ]; then
   exit 1
 fi
 
-if ! xdotool search --onlyvisible --name "Effect Spike Effect" >/dev/null; then
-  echo "FAIL: effect window is missing"
+effect="$(xdotool search --onlyvisible --name "Effect Spike Effect" | head -1)"
+island="$(xdotool search --onlyvisible --name "Effect Spike Island" | head -1)"
+if [ -z "$effect" ] || [ -z "$island" ]; then
+  echo "FAIL: effect or island window is missing"
+  exit 1
+fi
+
+geometry() {
+  xdotool getwindowgeometry --shell "$1" |
+    awk -F= '/^(X|Y|WIDTH|HEIGHT)=/{printf "%s%s", sep, $2; sep=","} END{print ""}' |
+    awk -F, '{printf "%s,%s %sx%s\n", $1, $2, $3, $4}'
+}
+effect_geometry="$(geometry "$effect")"
+island_geometry="$(geometry "$island")"
+if [ "$effect_geometry" != "580,0 760x460" ]; then
+  echo "FAIL: effect geometry is $effect_geometry, expected 580,0 760x460"
+  exit 1
+fi
+if [ "$island_geometry" != "810,0 300x38" ]; then
+  echo "FAIL: island geometry is $island_geometry, expected 810,0 300x38"
   exit 1
 fi
 

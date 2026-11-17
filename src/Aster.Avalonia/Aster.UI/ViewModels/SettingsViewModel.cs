@@ -78,7 +78,7 @@ public partial class SettingsViewModel : ObservableObject
         };
 
         await _store.SaveAsync(settings);
-        Saved?.Invoke(this, settings);
+        Saved?.Invoke(this, _store.Current);
     }
 
     partial void OnStartWithWindowsChanged(bool value) => ScheduleSave();

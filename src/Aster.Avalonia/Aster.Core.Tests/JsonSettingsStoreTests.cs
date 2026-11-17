@@ -49,7 +49,7 @@ public class JsonSettingsStoreTests : IDisposable
         Assert.Equal(SettingsSchema.CurrentVersion, store.Current.SchemaVersion);
         var reloaded = new JsonSettingsStore(PathToSettings, _log);
         await reloaded.LoadAsync();
-        Assert.Equal(SettingsSchema.CurrentVersion, reloaded.Current.SchemaVersion);
+        Assert.Equal(SettingsTestData.NonDefault, reloaded.Current);
     }
 
     [Fact]

@@ -21,7 +21,7 @@
     <Setter Property="FontSize" Value="10" />
     <Setter Property="Foreground" Value="{StaticResource TextTertiary}" />
   </Style>
-  <Style Selector="ScrollBar">
+  <Style Selector="ScrollBar[Orientation=Vertical]">
     <Setter Property="Theme" Value="{StaticResource AsterScrollBar}" />
   </Style>
   <StyleInclude Source="avares://Aster.UI/Controls/SettingsCard.axaml" />

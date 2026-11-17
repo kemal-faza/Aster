@@ -38,6 +38,8 @@ public sealed class BatteryWidget : Control
         set => SetValue(HasBatteryProperty, value);
     }
 
+    protected override Size MeasureOverride(Size availableSize) => new(26, 12);
+
     public override void Render(DrawingContext context)
     {
         if (!HasBattery)

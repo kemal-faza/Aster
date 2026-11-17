@@ -19,5 +19,17 @@
         </Border>
       </ControlTemplate>
     </Setter>
+    <Style Selector="^:pointerover">
+      <Setter Property="Background" Value="#12FFFFFF" />
+      <Setter Property="BorderBrush" Value="#59FFFFFF" />
+      <Setter Property="Foreground" Value="#FFFFFFFF" />
+    </Style>
+    <Style Selector="^:pressed">
+      <Setter Property="Background" Value="#1FFFFFFF" />
+      <Setter Property="BorderBrush" Value="#59FFFFFF" />
+    </Style>
+    <Style Selector="^:disabled">
+      <Setter Property="Opacity" Value="0.4" />
+    </Style>
   </ControlTheme>
 </ResourceDictionary>
