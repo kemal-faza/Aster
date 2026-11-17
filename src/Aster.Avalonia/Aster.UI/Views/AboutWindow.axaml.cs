@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Aster.Core;
 using Aster.Core.Interfaces;
@@ -13,6 +14,18 @@ public partial class AboutWindow : Window
     {
         DataContext = new { Version = "0.12.0-dev", DataPath = AppPaths.BaseDirectory };
         log.Info("About dialog opened.");
+    }
+
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        if (e.Key == Key.Escape)
+        {
+            e.Handled = true;
+            Close();
+            return;
+        }
+
+        base.OnKeyDown(e);
     }
 
     private void OnCloseClick(object? sender, RoutedEventArgs e) => Close();

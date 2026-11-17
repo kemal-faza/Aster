@@ -27,9 +27,9 @@ public partial class MainWindow : Window
     private readonly AppServices _services;
     private readonly ShellViewModel _state;
     private readonly SettingsViewModel _settingsViewModel;
-    private readonly MediaViewModel _media;
     private readonly DispatcherTimer _clockTimer;
     private SettingsWindow? _settingsWindow;
+    private AboutWindow? _aboutWindow;
     private bool _userHidden;
     private bool _fullscreenHidden;
     private bool _initialized;
@@ -45,7 +45,6 @@ public partial class MainWindow : Window
         _services = services;
         _state = services.Shell;
         _settingsViewModel = services.SettingsViewModel;
-        _media = services.Shell.Media ?? throw new InvalidOperationException("Media view model missing.");
         DataContext = _state;
 
         _clockTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
@@ -105,19 +104,63 @@ public partial class MainWindow : Window
         }
     }
 
-    public void SetMinimalNotch(bool enabled) =>
-        ApplySettings(_services.Settings.Current with { MinimalNotch = enabled });
+    public void SetMinimalNotch(bool enabled) => _settingsViewModel.MinimalNotch = enabled;
 
-    public void SetShowMascot(bool enabled) =>
-        ApplySettings(_services.Settings.Current with { ShowMascot = enabled });
+    public void SetShowMascot(bool enabled)
+    {
+        if (_services.Settings.Current.ShowMascot == enabled)
+        {
+            return;
+        }
 
-    public void SetHideInFullscreen(bool enabled) =>
-        ApplySettings(_services.Settings.Current with { HideInFullscreen = enabled });
+        // SettingsViewModel gains ShowMascot in Task 9; persist through the store until then.
+        _ = SaveShowMascotAsync(_services.Settings.Current with { ShowMascot = enabled });
+    }
+
+    public void SetHideInFullscreen(bool enabled) => _settingsViewModel.HideInFullscreen = enabled;
 
     public void ShowAbout()
     {
+        if (_aboutWindow is { IsVisible: true })
+        {
+            _aboutWindow.Activate();
+            return;
+        }
+
         var dialog = new AboutWindow(_services.Log);
-        dialog.Show(this);
+        _aboutWindow = dialog;
+
+        var screen = Screens.Primary ?? Screens.All.FirstOrDefault();
+        if (screen is not null)
+        {
+            var width = (int)Math.Round(dialog.Width * screen.Scaling);
+            var height = (int)Math.Round(dialog.Height * screen.Scaling);
+            var working = screen.WorkingArea;
+            var x = working.X + (working.Width - width) / 2;
+            var y = working.Y + (working.Height - height) / 2;
+            var maxX = Math.Max(working.X, working.Right - width);
+            var maxY = Math.Max(working.Y, working.Bottom - height);
+            dialog.Position = new PixelPoint(
+                Math.Clamp(x, working.X, maxX),
+                Math.Clamp(y, working.Y, maxY));
+        }
+
+        dialog.Closed += (_, _) =>
+        {
+            if (ReferenceEquals(_aboutWindow, dialog))
+            {
+                _aboutWindow = null;
+            }
+        };
+
+        if (IsVisible)
+        {
+            dialog.Show(this);
+        }
+        else
+        {
+            dialog.Show();
+        }
     }
 
     public void Quit() =>
@@ -211,6 +254,18 @@ public partial class MainWindow : Window
         {
             _fullscreenHidden = true;
             Hide();
+        }
+    }
+
+    private async Task SaveShowMascotAsync(AppSettings settings)
+    {
+        try
+        {
+            await _services.Settings.SaveAsync(settings);
+        }
+        catch (Exception ex)
+        {
+            _services.Log.Error("Failed to save the mascot setting.", ex);
         }
     }
 

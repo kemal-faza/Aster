@@ -47,34 +47,54 @@ public partial class App : Application
     {
         try
         {
+            if (PlatformFactory is null)
+            {
+                LogCrash("Startup failed: no platform factory is configured.", null);
+                desktop.Shutdown(1);
+                return;
+            }
+
             var dispatcher = new AvaloniaUiDispatcher();
             _services = await AppServices.CreateAsync(PlatformFactory, dispatcher);
             var window = new MainWindow(_services);
             desktop.MainWindow = window;
             desktop.ShutdownRequested += OnShutdownRequested;
             window.Show();
-
-            if (desktop.Args?.Contains("--settings") == true)
-            {
-                Dispatcher.UIThread.Post(window.ShowSettings);
-            }
         }
         catch (Exception ex)
         {
             LogCrash("Startup failed.", ex);
+            if (_services is { } services)
+            {
+                _services = null;
+                try
+                {
+                    await services.ShutdownAsync(TimeSpan.FromSeconds(5));
+                }
+                catch (Exception shutdownEx)
+                {
+                    LogCrash("Startup cleanup failed.", shutdownEx);
+                }
+            }
+
             desktop.Shutdown(1);
         }
     }
 
     private async void OnShutdownRequested(object? sender, ShutdownRequestedEventArgs e)
     {
-        if (_shuttingDown || _services is null)
+        if (_services is null)
+        {
+            return;
+        }
+
+        e.Cancel = true;
+        if (_shuttingDown)
         {
             return;
         }
 
         _shuttingDown = true;
-        e.Cancel = true;
         try
         {
             await _services.ShutdownAsync(TimeSpan.FromSeconds(5));

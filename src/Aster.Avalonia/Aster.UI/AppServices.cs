@@ -1,4 +1,5 @@
 using Aster.Core.Interfaces;
+using Aster.Core.Models;
 using Aster.UI.Abstractions;
 using Aster.UI.Services;
 using Aster.UI.ViewModels;
@@ -8,6 +9,9 @@ namespace Aster.UI;
 
 public sealed class AppServices : IAsyncDisposable
 {
+    private readonly SemaphoreSlim _shutdownGate = new(1, 1);
+    private bool _shutdownComplete;
+
     public IAppLog Log { get; }
     public ISettingsStore Settings { get; }
     public IMediaSession Media { get; }
@@ -57,14 +61,19 @@ public sealed class AppServices : IAsyncDisposable
         await settings.LoadAsync(ct);
 
         var autostart = factory.CreateAutostart(log);
-        if (autostart.IsEnabled != settings.Current.StartWithWindows)
+        var reconciled = ReconcileAutostart(settings.Current, autostart.IsEnabled);
+        if (!ReferenceEquals(reconciled, settings.Current))
         {
-            var reconciled = settings.Current with { StartWithWindows = autostart.IsEnabled };
             await settings.SaveAsync(reconciled, ct);
         }
 
         return new AppServices(factory, dispatcher, log, settings, autostart);
     }
+
+    public static AppSettings ReconcileAutostart(AppSettings settings, bool autostartEnabled) =>
+        settings.StartWithWindows == autostartEnabled
+            ? settings
+            : settings with { StartWithWindows = autostartEnabled };
 
     public void AttachWindow(MainWindow window)
     {
@@ -107,14 +116,34 @@ public sealed class AppServices : IAsyncDisposable
 
     public async Task ShutdownAsync(TimeSpan timeout)
     {
-        Motion?.Dispose();
-        Tray?.Dispose();
-        EffectLayer.Dispose();
-        (Fullscreen as IDisposable)?.Dispose();
-        (Media as IDisposable)?.Dispose();
-        (Battery as IDisposable)?.Dispose();
-        (Network as IDisposable)?.Dispose();
+        await _shutdownGate.WaitAsync();
+        try
+        {
+            if (_shutdownComplete)
+            {
+                return;
+            }
 
+            await FlushSettingsAsync(timeout);
+
+            DisposeService(nameof(Motion), Motion, expectDisposable: true);
+            DisposeService(nameof(Tray), Tray, expectDisposable: true);
+            DisposeService(nameof(EffectLayer), EffectLayer, expectDisposable: true);
+            DisposeService(nameof(Fullscreen), Fullscreen);
+            DisposeService(nameof(Media), Media);
+            DisposeService(nameof(Battery), Battery);
+            DisposeService(nameof(Network), Network);
+
+            _shutdownComplete = true;
+        }
+        finally
+        {
+            _shutdownGate.Release();
+        }
+    }
+
+    private async Task FlushSettingsAsync(TimeSpan timeout)
+    {
         using var cts = new CancellationTokenSource(timeout);
         try
         {
@@ -123,6 +152,37 @@ public sealed class AppServices : IAsyncDisposable
         catch (OperationCanceledException)
         {
             Log.Warn("Settings flush timed out during shutdown.");
+        }
+        catch (Exception ex)
+        {
+            Log.Error("Settings flush failed during shutdown.", ex);
+        }
+    }
+
+    private void DisposeService(string name, object? service, bool expectDisposable = false)
+    {
+        if (service is null)
+        {
+            return;
+        }
+
+        if (service is IDisposable disposable)
+        {
+            try
+            {
+                disposable.Dispose();
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Failed to dispose {name}.", ex);
+            }
+
+            return;
+        }
+
+        if (expectDisposable)
+        {
+            Log.Warn($"{name} is not disposable; skipping disposal.");
         }
     }
 }
