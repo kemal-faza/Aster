@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:app="using:Aster.UI"
         xmlns:automation="using:Avalonia.Automation"
         xmlns:converters="using:Avalonia.Data.Converters"
         xmlns:vm="using:Aster.UI.ViewModels"
@@ -13,12 +14,11 @@
         TransparencyLevelHint="Transparent"
         Background="Transparent"
         KeyDown="OnKeyDown">
-  <Grid Margin="12">
+  <Grid>
     <Border CornerRadius="18"
             Background="{StaticResource IslandGlassBackground}"
             BorderBrush="{StaticResource IslandRimBrush}"
             BorderThickness="1"
-            BoxShadow="{StaticResource SettingsWindowShadow}"
             ClipToBounds="True">
       <Grid RowDefinitions="54,*">
         <Grid Grid.Row="0" Background="Transparent" PointerPressed="OnTitleBarPressed">
@@ -100,7 +100,7 @@
                       IsVisible="{Binding Warning, Converter={x:Static converters:ObjectConverters.IsNotNull}}">
                 <TextBlock Text="{Binding Warning}"
                            Classes="subtitle"
-                           Foreground="{StaticResource TextSecondary}"
+                           Foreground="{StaticResource TextWarning}"
                            TextWrapping="Wrap" />
               </Border>
 
@@ -280,7 +280,7 @@
                       <Grid ColumnDefinitions="Auto,*" Margin="0,14,0,0">
                         <TextBlock Text="Version" Classes="tertiary" />
                         <TextBlock Grid.Column="1"
-                                   Text="0.12.0-dev"
+                                   Text="{x:Static app:AppInfo.DisplayVersion}"
                                    Classes="tertiary"
                                    Margin="8,0,0,0" />
                       </Grid>

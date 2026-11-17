@@ -104,7 +104,12 @@ public sealed class AppServices : IAsyncDisposable
             Tray = new TrayService(
                 commands,
                 () => Autostart.IsEnabled,
-                () => Settings.Current,
+                () => Settings.Current with
+                {
+                    MinimalNotch = SettingsViewModel.MinimalNotch,
+                    ShowMascot = SettingsViewModel.ShowMascot,
+                    HideInFullscreen = SettingsViewModel.HideInFullscreen
+                },
                 () => window.IsVisible,
                 SettingsViewModel.AutostartLabel);
         }
@@ -113,7 +118,14 @@ public sealed class AppServices : IAsyncDisposable
             TrayFailed = true;
             Log.Error("Tray creation failed.", ex);
         }
+
+        SettingsViewModel.Saved += OnSettingsSaved;
+        window.Opened += OnWindowOpened;
     }
+
+    private void OnSettingsSaved(object? sender, AppSettings settings) => Tray?.Refresh();
+
+    private void OnWindowOpened(object? sender, EventArgs e) => Tray?.Refresh();
 
     public void Start()
     {
@@ -134,6 +146,7 @@ public sealed class AppServices : IAsyncDisposable
             }
 
             await FlushSettingsAsync(timeout);
+            SettingsViewModel.Saved -= OnSettingsSaved;
 
             DisposeService(nameof(Motion), Motion, expectDisposable: true);
             DisposeService(nameof(Tray), Tray, expectDisposable: true);

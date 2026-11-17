@@ -8,7 +8,14 @@ namespace Aster.UI.Services;
 public sealed class TrayService : IDisposable
 {
     private readonly TrayIcon _tray;
+    private readonly NativeMenuItem _toggle;
     private readonly NativeMenuItem _start;
+    private readonly NativeMenuItem _minimal;
+    private readonly NativeMenuItem _mascot;
+    private readonly NativeMenuItem _fullscreen;
+    private readonly Func<bool> _isAutostart;
+    private readonly Func<AppSettings> _settings;
+    private readonly Func<bool> _islandVisible;
 
     public TrayService(
         TrayCommandHandler commands,
@@ -17,59 +24,60 @@ public sealed class TrayService : IDisposable
         Func<bool> islandVisible,
         string autostartLabel)
     {
+        _isAutostart = isAutostart;
+        _settings = settings;
+        _islandVisible = islandVisible;
+
         var menu = new NativeMenu();
 
-        var toggle = new NativeMenuItem("Show/Hide");
-        toggle.Click += (_, _) =>
+        _toggle = new NativeMenuItem("Show/Hide");
+        _toggle.Click += (_, _) =>
         {
             commands.ToggleVisibility();
-            toggle.Header = islandVisible() ? "Hide Aster" : "Show Aster";
+            ApplyState();
         };
 
         _start = new NativeMenuItem(autostartLabel)
         {
-            ToggleType = MenuItemToggleType.CheckBox,
-            IsChecked = isAutostart()
+            ToggleType = MenuItemToggleType.CheckBox
         };
         _start.Click += (_, _) =>
         {
             _start.IsChecked = commands.ToggleAutostart();
+            ApplyState();
         };
 
-        var minimal = new NativeMenuItem("Minimal notch")
+        _minimal = new NativeMenuItem("Minimal notch")
         {
-            ToggleType = MenuItemToggleType.CheckBox,
-            IsChecked = settings().MinimalNotch
+            ToggleType = MenuItemToggleType.CheckBox
         };
-        minimal.Click += (_, _) =>
+        _minimal.Click += (_, _) =>
         {
-            var enabled = !settings().MinimalNotch;
+            var enabled = !_minimal.IsChecked;
             commands.SetMinimal(enabled);
-            minimal.IsChecked = enabled;
+            ApplyState();
         };
 
-        var mascot = new NativeMenuItem("Show mascot")
+        _mascot = new NativeMenuItem("Show mascot")
         {
-            ToggleType = MenuItemToggleType.CheckBox,
-            IsChecked = settings().ShowMascot
+            ToggleType = MenuItemToggleType.CheckBox
         };
-        mascot.Click += (_, _) =>
+        _mascot.Click += (_, _) =>
         {
-            var enabled = !settings().ShowMascot;
+            var enabled = !_mascot.IsChecked;
             commands.SetMascot(enabled);
-            mascot.IsChecked = enabled;
+            ApplyState();
         };
 
-        var fullscreen = new NativeMenuItem("Hide in fullscreen")
+        _fullscreen = new NativeMenuItem("Hide in fullscreen")
         {
-            ToggleType = MenuItemToggleType.CheckBox,
-            IsChecked = settings().HideInFullscreen
+            ToggleType = MenuItemToggleType.CheckBox
         };
-        fullscreen.Click += (_, _) =>
+        _fullscreen.Click += (_, _) =>
         {
-            var enabled = !settings().HideInFullscreen;
+            var enabled = !_fullscreen.IsChecked;
             commands.SetFullscreen(enabled);
-            fullscreen.IsChecked = enabled;
+            ApplyState();
         };
 
         var settingsItem = new NativeMenuItem("Settings...");
@@ -81,23 +89,17 @@ public sealed class TrayService : IDisposable
         var quit = new NativeMenuItem("Exit");
         quit.Click += (_, _) => commands.Quit();
 
-        menu.Items.Add(toggle);
+        menu.Items.Add(_toggle);
         menu.Items.Add(_start);
-        menu.Items.Add(minimal);
-        menu.Items.Add(mascot);
-        menu.Items.Add(fullscreen);
+        menu.Items.Add(_minimal);
+        menu.Items.Add(_mascot);
+        menu.Items.Add(_fullscreen);
         menu.Items.Add(settingsItem);
         menu.Items.Add(about);
         menu.Items.Add(quit);
 
-        menu.NeedsUpdate += (_, _) =>
-        {
-            toggle.Header = islandVisible() ? "Hide Aster" : "Show Aster";
-            _start.IsChecked = isAutostart();
-            minimal.IsChecked = settings().MinimalNotch;
-            mascot.IsChecked = settings().ShowMascot;
-            fullscreen.IsChecked = settings().HideInFullscreen;
-        };
+        menu.NeedsUpdate += (_, _) => ApplyState();
+        ApplyState();
 
         var iconPath = OperatingSystem.IsLinux()
             ? "avares://Aster.UI/Assets/tray.png"
@@ -117,7 +119,20 @@ public sealed class TrayService : IDisposable
         }
     }
 
+    public void Refresh() => ApplyState();
+
     public void SetAutostartChecked(bool value) => _start.IsChecked = value;
 
     public void Dispose() => _tray.Dispose();
+
+    private void ApplyState()
+    {
+        _toggle.Header = _islandVisible() ? "Hide Aster" : "Show Aster";
+        _start.IsChecked = _isAutostart();
+
+        var settings = _settings();
+        _minimal.IsChecked = settings.MinimalNotch;
+        _mascot.IsChecked = settings.ShowMascot;
+        _fullscreen.IsChecked = settings.HideInFullscreen;
+    }
 }

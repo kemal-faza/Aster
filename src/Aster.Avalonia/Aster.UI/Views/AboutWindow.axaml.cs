@@ -12,7 +12,7 @@ public partial class AboutWindow : Window
 
     public AboutWindow(IAppLog log) : this()
     {
-        DataContext = new { Version = "0.12.0-dev", DataPath = AppPaths.BaseDirectory };
+        DataContext = new { Version = Aster.UI.AppInfo.DisplayVersion, DataPath = AppPaths.BaseDirectory };
         log.Info("About dialog opened.");
     }
 

@@ -1,6 +1,3 @@
-using System.Diagnostics;
-using Aster.Core;
-using Aster.Core.Models;
 using Aster.UI.ViewModels;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -22,8 +19,6 @@ public partial class SettingsWindow : Window
     public SettingsWindow(SettingsViewModel viewModel) : this()
     {
         DataContext = viewModel;
-        viewModel.RefreshRequested += OnRefreshRequested;
-        Closed += (_, _) => viewModel.RefreshRequested -= OnRefreshRequested;
     }
 
     private void OnCloseClick(object? sender, RoutedEventArgs e) => Close();
@@ -74,28 +69,11 @@ public partial class SettingsWindow : Window
         AboutPage.IsVisible = page == "About";
     }
 
-    private void OnRefreshRequested(object? sender, AppSettings settings)
+    private void OnOpenDataFolderClick(object? sender, RoutedEventArgs e)
     {
-        ApplyUnlessFocused(AutostartToggle, settings.StartWithWindows);
-        ApplyUnlessFocused(HideFullscreenToggle, settings.HideInFullscreen);
-        ApplyUnlessFocused(MinimalNotchToggle, settings.MinimalNotch);
-        ApplyUnlessFocused(ShowMascotToggle, settings.ShowMascot);
-        ApplyUnlessFocused(GlassToggle, settings.GlassBackground);
-        ApplyUnlessFocused(BouncyToggle, settings.BouncySpring);
-        ApplyUnlessFocused(VolumeToggle, settings.VolumeToast);
-        ApplyUnlessFocused(BrightnessToggle, settings.BrightnessToast);
-    }
-
-    private static void ApplyUnlessFocused(CheckBox toggle, bool value)
-    {
-        if (toggle.IsKeyboardFocusWithin)
+        if (DataContext is SettingsViewModel viewModel)
         {
-            return;
+            viewModel.OpenDataFolder();
         }
-
-        toggle.IsChecked = value;
     }
-
-    private void OnOpenDataFolderClick(object? sender, RoutedEventArgs e) =>
-        Process.Start(new ProcessStartInfo(AppPaths.BaseDirectory) { UseShellExecute = true });
 }

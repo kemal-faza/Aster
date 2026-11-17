@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Aster.Core;
 using Aster.Core.Interfaces;
 using Aster.Core.Models;
@@ -12,6 +13,7 @@ public partial class SettingsViewModel : ObservableObject
     private readonly ISettingsStore _store;
     private readonly IAppLog _log;
     private readonly DispatcherTimer _saveTimer = new() { Interval = TimeSpan.FromMilliseconds(250) };
+    private readonly SemaphoreSlim _saveGate = new(1, 1);
     private AppSettings? _lastSaved;
     private bool _refreshing;
 
@@ -90,7 +92,6 @@ public partial class SettingsViewModel : ObservableObject
     public string CloseGlyph => Glyph.Get(Glyph.Kind.Close);
 
     public event EventHandler<AppSettings>? Saved;
-    public event EventHandler<AppSettings>? RefreshRequested;
 
     public async Task FlushAsync()
     {
@@ -105,35 +106,73 @@ public partial class SettingsViewModel : ObservableObject
             return;
         }
 
-        var next = _store.Current with
+        await _saveGate.WaitAsync();
+        try
         {
-            StartWithWindows = StartWithWindows,
-            MinimalNotch = MinimalNotch,
-            HideInFullscreen = HideInFullscreen,
-            GlassBackground = GlassBackground,
-            BouncySpring = BouncySpring,
-            ShowMascot = ShowMascot,
-            VolumeToast = VolumeToast,
-            BrightnessToast = BrightnessToast,
-            LyricsEnabled = LyricsEnabled,
-            LyricsHighlightColor = LyricsHighlightColor,
-            WaterReminderEnabled = WaterReminderEnabled,
-            WaterIntervalMinutes = WaterIntervalMinutes,
-            WaterActiveStartHour = WaterActiveStartHour,
-            WaterActiveEndHour = WaterActiveEndHour,
-            WaterDailyGoal = WaterDailyGoal,
-            WaterGlassesToday = WaterGlassesToday,
-            WaterDate = WaterDate,
-            CameraMirror = CameraMirror,
-            FocusMinutes = FocusMinutes,
-            ShortBreakMinutes = ShortBreakMinutes,
-            LongBreakMinutes = LongBreakMinutes,
-            FocusChime = FocusChime
-        };
+            var next = _store.Current with
+            {
+                StartWithWindows = StartWithWindows,
+                MinimalNotch = MinimalNotch,
+                HideInFullscreen = HideInFullscreen,
+                GlassBackground = GlassBackground,
+                BouncySpring = BouncySpring,
+                ShowMascot = ShowMascot,
+                VolumeToast = VolumeToast,
+                BrightnessToast = BrightnessToast,
+                LyricsEnabled = LyricsEnabled,
+                LyricsHighlightColor = LyricsHighlightColor,
+                WaterReminderEnabled = WaterReminderEnabled,
+                WaterIntervalMinutes = WaterIntervalMinutes,
+                WaterActiveStartHour = WaterActiveStartHour,
+                WaterActiveEndHour = WaterActiveEndHour,
+                WaterDailyGoal = WaterDailyGoal,
+                WaterGlassesToday = WaterGlassesToday,
+                WaterDate = WaterDate,
+                CameraMirror = CameraMirror,
+                FocusMinutes = FocusMinutes,
+                ShortBreakMinutes = ShortBreakMinutes,
+                LongBreakMinutes = LongBreakMinutes,
+                FocusChime = FocusChime
+            };
 
-        _lastSaved = next;
-        await _store.SaveAsync(next);
-        Saved?.Invoke(this, next);
+            _lastSaved = next;
+            try
+            {
+                await _store.SaveAsync(next);
+            }
+            catch
+            {
+                _lastSaved = null;
+                throw;
+            }
+
+            if (_store.Current != next)
+            {
+                _log.Warn("Settings save did not persist.");
+                _lastSaved = null;
+                RefreshFromStore(_store.Current);
+                return;
+            }
+
+            Saved?.Invoke(this, next);
+        }
+        finally
+        {
+            _saveGate.Release();
+        }
+    }
+
+    public void OpenDataFolder()
+    {
+        try
+        {
+            Directory.CreateDirectory(AppPaths.BaseDirectory);
+            Process.Start(new ProcessStartInfo(AppPaths.BaseDirectory) { UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            _log.Error("Failed to open the data folder.", ex);
+        }
     }
 
     partial void OnStartWithWindowsChanged(bool value) => ScheduleSave();
@@ -159,41 +198,72 @@ public partial class SettingsViewModel : ObservableObject
     partial void OnLongBreakMinutesChanged(int value) => ScheduleSave();
     partial void OnFocusChimeChanged(bool value) => ScheduleSave();
 
-    private void RefreshFromStore(AppSettings settings)
+    internal void RefreshFromStore(AppSettings settings)
     {
+        var baseline = _lastSaved ?? settings;
+
         _refreshing = true;
         try
         {
-            StartWithWindows = settings.StartWithWindows;
-            MinimalNotch = settings.MinimalNotch;
-            HideInFullscreen = settings.HideInFullscreen;
-            GlassBackground = settings.GlassBackground;
-            BouncySpring = settings.BouncySpring;
-            ShowMascot = settings.ShowMascot;
-            VolumeToast = settings.VolumeToast;
-            BrightnessToast = settings.BrightnessToast;
-            LyricsEnabled = settings.LyricsEnabled;
-            LyricsHighlightColor = settings.LyricsHighlightColor;
-            WaterReminderEnabled = settings.WaterReminderEnabled;
-            WaterIntervalMinutes = settings.WaterIntervalMinutes;
-            WaterActiveStartHour = settings.WaterActiveStartHour;
-            WaterActiveEndHour = settings.WaterActiveEndHour;
-            WaterDailyGoal = settings.WaterDailyGoal;
-            WaterGlassesToday = settings.WaterGlassesToday;
-            WaterDate = settings.WaterDate;
-            CameraMirror = settings.CameraMirror;
-            FocusMinutes = settings.FocusMinutes;
-            ShortBreakMinutes = settings.ShortBreakMinutes;
-            LongBreakMinutes = settings.LongBreakMinutes;
-            FocusChime = settings.FocusChime;
+            StartWithWindows = Reconcile(StartWithWindows, baseline.StartWithWindows, settings.StartWithWindows);
+            MinimalNotch = Reconcile(MinimalNotch, baseline.MinimalNotch, settings.MinimalNotch);
+            HideInFullscreen = Reconcile(HideInFullscreen, baseline.HideInFullscreen, settings.HideInFullscreen);
+            GlassBackground = Reconcile(GlassBackground, baseline.GlassBackground, settings.GlassBackground);
+            BouncySpring = Reconcile(BouncySpring, baseline.BouncySpring, settings.BouncySpring);
+            ShowMascot = Reconcile(ShowMascot, baseline.ShowMascot, settings.ShowMascot);
+            VolumeToast = Reconcile(VolumeToast, baseline.VolumeToast, settings.VolumeToast);
+            BrightnessToast = Reconcile(BrightnessToast, baseline.BrightnessToast, settings.BrightnessToast);
+            LyricsEnabled = Reconcile(LyricsEnabled, baseline.LyricsEnabled, settings.LyricsEnabled);
+            LyricsHighlightColor = Reconcile(
+                LyricsHighlightColor,
+                baseline.LyricsHighlightColor,
+                settings.LyricsHighlightColor);
+            WaterReminderEnabled = Reconcile(
+                WaterReminderEnabled,
+                baseline.WaterReminderEnabled,
+                settings.WaterReminderEnabled);
+            WaterIntervalMinutes = Reconcile(
+                WaterIntervalMinutes,
+                baseline.WaterIntervalMinutes,
+                settings.WaterIntervalMinutes);
+            WaterActiveStartHour = Reconcile(
+                WaterActiveStartHour,
+                baseline.WaterActiveStartHour,
+                settings.WaterActiveStartHour);
+            WaterActiveEndHour = Reconcile(
+                WaterActiveEndHour,
+                baseline.WaterActiveEndHour,
+                settings.WaterActiveEndHour);
+            WaterDailyGoal = Reconcile(WaterDailyGoal, baseline.WaterDailyGoal, settings.WaterDailyGoal);
+            WaterGlassesToday = Reconcile(
+                WaterGlassesToday,
+                baseline.WaterGlassesToday,
+                settings.WaterGlassesToday);
+            WaterDate = Reconcile(WaterDate, baseline.WaterDate, settings.WaterDate);
+            CameraMirror = Reconcile(CameraMirror, baseline.CameraMirror, settings.CameraMirror);
+            FocusMinutes = Reconcile(FocusMinutes, baseline.FocusMinutes, settings.FocusMinutes);
+            ShortBreakMinutes = Reconcile(
+                ShortBreakMinutes,
+                baseline.ShortBreakMinutes,
+                settings.ShortBreakMinutes);
+            LongBreakMinutes = Reconcile(
+                LongBreakMinutes,
+                baseline.LongBreakMinutes,
+                settings.LongBreakMinutes);
+            FocusChime = Reconcile(FocusChime, baseline.FocusChime, settings.FocusChime);
         }
         finally
         {
             _refreshing = false;
         }
 
-        RefreshRequested?.Invoke(this, settings);
+        _lastSaved = settings;
     }
+
+    private T Reconcile<T>(T current, T persisted, T incoming) =>
+        _lastSaved is null || EqualityComparer<T>.Default.Equals(current, persisted)
+            ? incoming
+            : current;
 
     private void ScheduleSave()
     {
