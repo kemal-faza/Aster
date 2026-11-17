@@ -90,20 +90,31 @@ public partial class MainWindow : Window
         }
     }
 
-    public void SetMinimalNotch(bool enabled) => _settingsViewModel.MinimalNotch = enabled;
+    public void SetMinimalNotch(bool enabled)
+    {
+        _settingsViewModel.MinimalNotch = enabled;
+        ApplyIfSettingsReadOnly(_services.Settings.Current with { MinimalNotch = enabled });
+    }
 
     public void SetShowMascot(bool enabled)
     {
-        if (_services.Settings.Current.ShowMascot == enabled)
-        {
-            return;
-        }
-
-        // SettingsViewModel gains ShowMascot in Task 9; persist through the store until then.
-        _ = SaveShowMascotAsync(_services.Settings.Current with { ShowMascot = enabled });
+        _settingsViewModel.ShowMascot = enabled;
+        ApplyIfSettingsReadOnly(_services.Settings.Current with { ShowMascot = enabled });
     }
 
-    public void SetHideInFullscreen(bool enabled) => _settingsViewModel.HideInFullscreen = enabled;
+    public void SetHideInFullscreen(bool enabled)
+    {
+        _settingsViewModel.HideInFullscreen = enabled;
+        ApplyIfSettingsReadOnly(_services.Settings.Current with { HideInFullscreen = enabled });
+    }
+
+    private void ApplyIfSettingsReadOnly(AppSettings settings)
+    {
+        if (!_settingsViewModel.CanSave)
+        {
+            ApplySettings(settings);
+        }
+    }
 
     public void ShowAbout()
     {
@@ -241,18 +252,6 @@ public partial class MainWindow : Window
         }
     }
 
-    private async Task SaveShowMascotAsync(AppSettings settings)
-    {
-        try
-        {
-            await _services.Settings.SaveAsync(settings);
-        }
-        catch (Exception ex)
-        {
-            _services.Log.Error("Failed to save the mascot setting.", ex);
-        }
-    }
-
     public void ShowSettings()
     {
         if (_settingsWindow is { IsVisible: true })
@@ -267,10 +266,14 @@ public partial class MainWindow : Window
         {
             var width = (int)Math.Round(_settingsWindow.Width * screen.Scaling);
             var height = (int)Math.Round(_settingsWindow.Height * screen.Scaling);
-            var x = screen.Bounds.X + (screen.Bounds.Width - width) / 2;
+            var working = screen.WorkingArea;
+            var x = working.X + (working.Width - width) / 2;
             var y = screen.Bounds.Y + (int)Math.Round((WindowGeometry.ExpandedHeight + 8) * screen.Scaling);
-            var maxY = screen.WorkingArea.Bottom - height;
-            _settingsWindow.Position = new PixelPoint(x, Math.Min(y, maxY));
+            var maxX = Math.Max(working.X, working.Right - width);
+            var maxY = Math.Max(working.Y, working.Bottom - height);
+            _settingsWindow.Position = new PixelPoint(
+                Math.Clamp(x, working.X, maxX),
+                Math.Clamp(y, working.Y, maxY));
         }
 
         _settingsWindow.Closed += (_, _) => _settingsWindow = null;

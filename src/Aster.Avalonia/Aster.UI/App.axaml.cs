@@ -66,7 +66,6 @@ public partial class App : Application
             LogCrash("Startup failed.", ex);
             if (_services is { } services)
             {
-                _services = null;
                 try
                 {
                     await services.ShutdownAsync(TimeSpan.FromSeconds(5));
@@ -74,6 +73,10 @@ public partial class App : Application
                 catch (Exception shutdownEx)
                 {
                     LogCrash("Startup cleanup failed.", shutdownEx);
+                }
+                finally
+                {
+                    _services = null;
                 }
             }
 

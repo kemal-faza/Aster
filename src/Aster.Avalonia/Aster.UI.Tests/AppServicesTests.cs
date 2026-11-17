@@ -49,6 +49,20 @@ public class AppServicesTests
     }
 
     [Fact]
+    public async Task ShutdownFlushesSettingsBeforeDisposingServices()
+    {
+        var factory = new FakePlatformFactory();
+        var services = await AppServices.CreateAsync(factory, new ImmediateDispatcher());
+        services.SettingsViewModel.MinimalNotch = true;
+
+        await services.ShutdownAsync(TimeSpan.FromSeconds(1));
+
+        Assert.Equal("save", factory.Order[0]);
+        Assert.True(factory.Order.IndexOf("effect") > 0);
+        Assert.True(factory.Order.IndexOf("media") > 0);
+    }
+
+    [Fact]
     public async Task ShutdownIsIdempotent()
     {
         var factory = new FakePlatformFactory();
@@ -136,6 +150,7 @@ public class AppServicesTests
         public int SaveCount { get; private set; }
         public List<AppSettings> Saves { get; } = new();
         public bool ThrowOnSave { get; set; }
+        public List<string>? Order { get; set; }
 
         public event EventHandler<AppSettings>? Changed;
 
@@ -148,6 +163,7 @@ public class AppServicesTests
         public Task SaveAsync(AppSettings settings, CancellationToken ct = default)
         {
             SaveCount++;
+            Order?.Add("save");
             if (ThrowOnSave)
             {
                 throw new InvalidOperationException("Settings save failed.");
@@ -176,6 +192,7 @@ public class AppServicesTests
         public MediaSnapshot Current { get; set; } = MediaSnapshot.Empty;
         public int StartCount { get; private set; }
         public int DisposeCount { get; private set; }
+        public List<string>? Order { get; set; }
 
         public event EventHandler<MediaSnapshot>? Changed
         {
@@ -195,7 +212,11 @@ public class AppServicesTests
 
         public void Start() => StartCount++;
 
-        public void Dispose() => DisposeCount++;
+        public void Dispose()
+        {
+            Order?.Add("media");
+            DisposeCount++;
+        }
     }
 
     private sealed class FakeBatteryStatus : IBatteryStatus, IDisposable
@@ -245,6 +266,7 @@ public class AppServicesTests
         public bool IsAvailable => true;
         public int DisposeCount { get; private set; }
         public bool ThrowOnDispose { get; set; }
+        public List<string>? Order { get; set; }
 
         public void Attach(Window island)
         {
@@ -256,6 +278,7 @@ public class AppServicesTests
 
         public void Dispose()
         {
+            Order?.Add("effect");
             DisposeCount++;
             if (ThrowOnDispose)
             {
@@ -293,7 +316,15 @@ public class AppServicesTests
 
     private sealed class FakePlatformFactory : IPlatformFactory
     {
-        public FakePlatformFactory(FakeSettingsStore? store = null) => Store = store ?? new FakeSettingsStore();
+        public FakePlatformFactory(FakeSettingsStore? store = null)
+        {
+            Store = store ?? new FakeSettingsStore();
+            Store.Order = Order;
+            Media.Order = Order;
+            EffectLayer.Order = Order;
+        }
+
+        public List<string> Order { get; } = new();
 
         public string PlatformName => "Test";
         public string AutostartLabel => "Start with Aster";

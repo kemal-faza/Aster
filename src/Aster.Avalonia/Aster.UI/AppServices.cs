@@ -145,18 +145,20 @@ public sealed class AppServices : IAsyncDisposable
                 return;
             }
 
+            // Mark complete before flushing so a throwing logger cannot make a
+            // second shutdown replay flush and disposal.
+            _shutdownComplete = true;
+
             await FlushSettingsAsync(timeout);
             SettingsViewModel.Saved -= OnSettingsSaved;
 
             DisposeService(nameof(Motion), Motion, expectDisposable: true);
             DisposeService(nameof(Tray), Tray, expectDisposable: true);
             DisposeService(nameof(EffectLayer), EffectLayer, expectDisposable: true);
-            DisposeService(nameof(Fullscreen), Fullscreen);
+            DisposeService(nameof(Fullscreen), Fullscreen, expectDisposable: true);
             DisposeService(nameof(Media), Media);
-            DisposeService(nameof(Battery), Battery);
-            DisposeService(nameof(Network), Network);
-
-            _shutdownComplete = true;
+            DisposeService(nameof(Battery), Battery, expectDisposable: true);
+            DisposeService(nameof(Network), Network, expectDisposable: true);
         }
         finally
         {

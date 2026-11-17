@@ -28,7 +28,7 @@
                   automation:AutomationProperties.Name="Next track"
                   ToolTip.Tip="Next" />
         </Grid>
-        <controls:SeekSlider x:Name="SeekSlider" Height="16" Margin="0,4,0,0"
+        <controls:SeekSlider x:Name="SeekSlider" Height="16" Margin="5,4,5,0"
                              Value="{Binding Media.PositionSeconds}"
                              Maximum="{Binding Media.DurationSeconds}"
                              SeekStarted="OnSeekStarted"
