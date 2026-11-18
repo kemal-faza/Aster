@@ -19,7 +19,7 @@
             Background="{StaticResource SettingsWindowSurface}"
             BorderBrush="{StaticResource SettingsWindowBorder}"
             BorderThickness="1"
-            BoxShadow="0 9 30 0 #8C000000"
+            BoxShadow="{StaticResource SettingsWindowShadow}"
             ClipToBounds="True">
       <Grid RowDefinitions="54,*">
         <Grid Grid.Row="0" Background="Transparent" PointerPressed="OnTitleBarPressed">
