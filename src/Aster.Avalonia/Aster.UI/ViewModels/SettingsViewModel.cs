@@ -98,6 +98,12 @@ public partial class SettingsViewModel : ObservableObject
     public string? Warning => _store.LoadWarning;
     public string DataPath => AppPaths.BaseDirectory;
     public string CloseGlyph => Glyph.Get(Glyph.Kind.Close);
+    public string VersionText => $"v{AppInfo.DisplayVersion}";
+    public string GeneralGlyph => Glyph.Get(Glyph.Kind.Settings);
+    public string AppearanceGlyph => Glyph.Get(Glyph.Kind.Appearance);
+    public string LyricsGlyph => Glyph.Get(Glyph.Kind.Lyrics);
+    public string FocusGlyph => Glyph.Get(Glyph.Kind.Focus);
+    public string AboutGlyph => Glyph.Get(Glyph.Kind.Info);
 
     public event EventHandler<AppSettings>? Saved;
 

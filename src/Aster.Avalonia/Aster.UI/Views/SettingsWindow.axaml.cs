@@ -61,6 +61,16 @@ public partial class SettingsWindow : Window
             return;
         }
 
+        (PageTitle.Text, PageSubtitle.Text) = page switch
+        {
+            "Appearance" => ("Appearance", "Glass, motion, and island behavior."),
+            "Lyrics" => ("Lyrics", "Source, highlight color, and local cache."),
+            "Focus" => ("Focus", "Session lengths and completion sound."),
+            "Water" => ("Water", "Reminders, active hours, and daily goal."),
+            "About" => ("About", "Data, credits, and app information."),
+            _ => ("General", "Startup and fullscreen behavior.")
+        };
+
         GeneralPage.IsVisible = page == "General";
         AppearancePage.IsVisible = page == "Appearance";
         LyricsPage.IsVisible = page == "Lyrics";

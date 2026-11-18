@@ -4,6 +4,8 @@
     <Setter Property="Height" Value="38" />
     <Setter Property="Margin" Value="0,0,0,3" />
     <Setter Property="Padding" Value="10,0" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="FontWeight" Value="Medium" />
     <Setter Property="Foreground" Value="{StaticResource TextSecondary}" />
     <Setter Property="FocusAdorner" Value="{x:Null}" />
     <Setter Property="Template">
@@ -20,7 +22,7 @@
       </ControlTemplate>
     </Setter>
     <Style Selector="^:checked /template/ Border#PART_Bg">
-      <Setter Property="Background" Value="#12FFFFFF" />
+      <Setter Property="Background" Value="{StaticResource SettingsNavChecked}" />
     </Style>
     <Style Selector="^:checked">
       <Setter Property="Foreground" Value="{StaticResource TextPrimary}" />
