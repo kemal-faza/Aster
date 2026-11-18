@@ -388,10 +388,6 @@ elif [ "$pointer_warp" = "yes" ]; then
     pointer_move $((X + WIDTH / 2)) $((Y + HEIGHT / 2))
     pointer_click
     pill_click="yes"
-elif [ "$PTR_X" -ge "$X" ] && [ "$PTR_X" -le $((X + WIDTH)) ] &&
-     [ "$PTR_Y" -ge "$Y" ] && [ "$PTR_Y" -le $((Y + HEIGHT)) ]; then
-    pointer_click
-    pill_click="yes"
 else
     pill_click="no"
     focus_check="PARTIAL"
@@ -449,10 +445,6 @@ if [ -n "$uinput_fd" ]; then
     under_click="yes"
 elif [ "$pointer_warp" = "yes" ]; then
     pointer_move $((X + WIDTH / 2)) $((Y + HEIGHT / 2))
-    pointer_click
-    under_click="yes"
-elif [ "$PTR_X" -ge "$X" ] && [ "$PTR_X" -le $((X + WIDTH)) ] &&
-     [ "$PTR_Y" -ge "$Y" ] && [ "$PTR_Y" -le $((Y + HEIGHT)) ]; then
     pointer_click
     under_click="yes"
 fi
