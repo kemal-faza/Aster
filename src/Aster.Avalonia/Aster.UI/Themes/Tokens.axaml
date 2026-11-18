@@ -16,6 +16,17 @@
     <GradientStop Color="#18FFFFFF" Offset="0.35" />
     <GradientStop Color="#08FFFFFF" Offset="1" />
   </LinearGradientBrush>
+  <LinearGradientBrush x:Key="SettingsWindowSurface" StartPoint="0%,0%" EndPoint="80%,100%">
+    <GradientStop Color="#FF15151B" Offset="0" />
+    <GradientStop Color="#FF0C0C11" Offset="0.58" />
+    <GradientStop Color="#FF07070A" Offset="1" />
+  </LinearGradientBrush>
+  <SolidColorBrush x:Key="SettingsWindowBorder" Color="#1FFFFFFF" />
+  <SolidColorBrush x:Key="SettingsNavFill" Color="#06FFFFFF" />
+  <SolidColorBrush x:Key="SettingsNavBorder" Color="#0FFFFFFF" />
+  <SolidColorBrush x:Key="SettingsNavChecked" Color="#16FFFFFF" />
+  <SolidColorBrush x:Key="SettingsHeaderTileFill" Color="#12FFFFFF" />
+  <SolidColorBrush x:Key="SettingsHeaderTileBorder" Color="#22FFFFFF" />
   <LinearGradientBrush x:Key="IslandTopGlow" StartPoint="0%,0%" EndPoint="0%,100%">
     <GradientStop Color="#14FFFFFF" Offset="0" />
     <GradientStop Color="#00FFFFFF" Offset="1" />
