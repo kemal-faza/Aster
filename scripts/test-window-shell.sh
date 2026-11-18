@@ -8,11 +8,14 @@ ready=""
 log=""
 pid=""
 under_pid=""
+sentinel_pid=""
 case_dir=""
 focus_check="PASS"
 pointer_warp="no"
 away_x=10
 away_y=10
+uinput_fifo="${ASTER_UINPUT_FIFO:-}"
+uinput_fd=""
 
 mkdir -p docs/results/screenshots/phase2
 
@@ -25,11 +28,69 @@ note() {
     echo "note: $*"
 }
 
-# KWin ignores XWayland pointer warps (XTest motion), so on this host the probe
-# cannot move the real pointer. It still exercises the same XQueryPointer hover
-# path by moving the island window away from the real pointer, then under it.
+# KWin ignores XWayland pointer warps (XTest motion), so xdotool alone cannot
+# move the real pointer. When ASTER_UINPUT_FIFO points at the root-run
+# uinput-pointer helper, these helpers move/click a real virtual mouse instead.
+# The fallback still moves the island window under the real pointer.
+pointer_move() {
+    local target_x="$1" target_y="$2" attempt dx dy PTR_X PTR_Y
+    if [ -n "$uinput_fd" ]; then
+        for attempt in $(seq 1 60); do
+            eval "$(xdotool getmouselocation --shell | sed 's/^/PTR_/')"
+            dx=$((target_x - PTR_X))
+            dy=$((target_y - PTR_Y))
+            if [ "$dx" -ge -2 ] && [ "$dx" -le 2 ] &&
+               [ "$dy" -ge -2 ] && [ "$dy" -le 2 ]; then
+                return 0
+            fi
+            [ "$dx" -gt 200 ] && dx=200
+            [ "$dx" -lt -200 ] && dx=-200
+            [ "$dy" -gt 200 ] && dy=200
+            [ "$dy" -lt -200 ] && dy=-200
+            printf 'rel %s %s\n' "$dx" "$dy" >&"${uinput_fd}"
+            sleep 0.05
+        done
+        echo "warning: pointer did not reach $target_x,$target_y" >&2
+        return 0
+    fi
+
+    xdotool mousemove "$target_x" "$target_y" 2>/dev/null || true
+}
+
+pointer_click() {
+    if [ -n "$uinput_fd" ]; then
+        printf 'click\n' >&"${uinput_fd}"
+        sleep 0.2
+    else
+        xdotool click 1 2>/dev/null || true
+    fi
+}
+
+pointer_click_at() {
+    if [ -n "$uinput_fd" ]; then
+        printf 'move-click %s %s\n' "$1" "$2" >&"${uinput_fd}"
+        sleep 0.4
+    else
+        xdotool mousemove "$1" "$2" 2>/dev/null || true
+        pointer_click
+    fi
+}
+
+init_uinput() {
+    if [ -n "$uinput_fifo" ]; then
+        [ -p "$uinput_fifo" ] || fail "uinput FIFO not found: $uinput_fifo"
+        exec {uinput_fd}>"$uinput_fifo" || fail "could not open uinput FIFO"
+    fi
+}
+
 probe_pointer_warp() {
     local before after
+    # The uinput helper is used for the two absolute focus clicks only; hover
+    # still uses the window-under-pointer fallback, so leave pointer_warp=no.
+    if [ -n "$uinput_fd" ]; then
+        return
+    fi
+
     before="$(xdotool getmouselocation --shell | tr '\n' ' ')"
     xdotool mousemove 10 10 2>/dev/null || true
     sleep 0.1
@@ -61,7 +122,15 @@ cleanup() {
         kill "$under_pid" 2>/dev/null || true
         wait "$under_pid" 2>/dev/null || true
     fi
+    if [ -n "${sentinel_pid:-}" ]; then
+        kill "$sentinel_pid" 2>/dev/null || true
+        wait "$sentinel_pid" 2>/dev/null || true
+    fi
     stop_app
+    if [ -n "${uinput_fd:-}" ]; then
+        printf 'quit\n' >&"${uinput_fd}" 2>/dev/null || true
+        exec {uinput_fd}>&- 2>/dev/null || true
+    fi
     rm -rf "$work"
 }
 trap cleanup EXIT
@@ -259,6 +328,7 @@ wait_for_growth() {
     return 1
 }
 
+init_uinput
 probe_pointer_warp
 if [ "$pointer_warp" = "yes" ]; then
     note "XTest pointer warps are honored; moving the real pointer."
@@ -292,7 +362,7 @@ expect_size "$wid" "$expected_width" "$expected_height" "island" ||
 pointer_position
 read_geometry "$wid"
 if [ "$pointer_warp" = "yes" ]; then
-    xdotool mousemove $((X + WIDTH / 2)) $((Y + HEIGHT / 2)) 2>/dev/null || true
+    pointer_move $((X + WIDTH / 2)) $((Y + HEIGHT / 2))
 else
     xdotool windowmove "$wid" $((PTR_X - WIDTH / 2)) $((PTR_Y - HEIGHT / 2)) 2>/dev/null || true
 fi
@@ -308,22 +378,39 @@ sleep 0.2
 
 effect_wid="$(wait_visible '^Aster Effect Layer$')" || fail "effect window not found"
 
+# An active X11 window makes the focus hand-off observable even when KWin's
+# active surface is a native Wayland window that xdotool cannot report.
+xmessage -name AsterFocusSentinel -geometry 300x150+50+600 -buttons OK \
+    "focus sentinel" >/dev/null 2>&1 &
+sentinel_pid=$!
+sentinel_wid=""
+for _ in $(seq 1 50); do
+    sentinel_wid="$(xdotool search --name '^AsterFocusSentinel$' 2>/dev/null | tail -1 || true)"
+    [ -n "$sentinel_wid" ] && break
+    sleep 0.1
+done
+[ -n "$sentinel_wid" ] || fail "focus sentinel window not found"
+xdotool windowactivate --sync "$sentinel_wid" 2>/dev/null || true
+sleep 0.3
+
 before="$(xdotool getactivewindow 2>/dev/null || true)"
 pointer_position
 read_geometry "$wid"
-if [ "$pointer_warp" = "yes" ]; then
-    xdotool mousemove $((X + WIDTH / 2)) $((Y + HEIGHT / 2))
+if [ -n "$uinput_fd" ]; then
+    pointer_click_at $((X + WIDTH / 2)) $((Y + HEIGHT / 2))
+    pill_click="yes"
+elif [ "$pointer_warp" = "yes" ]; then
+    pointer_move $((X + WIDTH / 2)) $((Y + HEIGHT / 2))
+    pointer_click
     pill_click="yes"
 elif [ "$PTR_X" -ge "$X" ] && [ "$PTR_X" -le $((X + WIDTH)) ] &&
      [ "$PTR_Y" -ge "$Y" ] && [ "$PTR_Y" -le $((Y + HEIGHT)) ]; then
+    pointer_click
     pill_click="yes"
 else
     pill_click="no"
     focus_check="PARTIAL"
     echo "warning: the XTest pointer is not over the island; pill focus is not observable"
-fi
-if [ "$pill_click" = "yes" ]; then
-    xdotool click 1 2>/dev/null || true
 fi
 sleep 0.4
 after="$(xdotool getactivewindow 2>/dev/null || true)"
@@ -355,27 +442,36 @@ expected_effect_x=$(((screen_width - effect_width) / 2))
 
 spectacle -b -n -o "docs/results/screenshots/phase2/linux-window-${scale}x.png" 2>/dev/null || true
 
-xmessage -geometry 300x200+50+300 -buttons OK "underneath" >/dev/null 2>&1 &
+xmessage -name AsterUnderReceiver -geometry 300x200+50+300 -buttons OK \
+    "underneath" >/dev/null 2>&1 &
 under_pid=$!
 under_wid=""
 for _ in $(seq 1 50); do
-    under_wid="$(xdotool search --class Xmessage 2>/dev/null | tail -1 || true)"
+    under_wid="$(xdotool search --name '^AsterUnderReceiver$' 2>/dev/null | tail -1 || true)"
     [ -n "$under_wid" ] && break
     sleep 0.1
 done
 [ -n "$under_wid" ] || fail "underlying xmessage window not found"
+# Keep the receiver above unrelated desktop windows; the island/effect layer
+# at the top centre does not overlap this position.
+xdotool windowraise "$under_wid" 2>/dev/null || true
+sleep 0.2
 pointer_position
 read_geometry "$under_wid"
 under_click="no"
-if [ "$pointer_warp" = "yes" ]; then
-    xdotool mousemove $((X + WIDTH / 2)) $((Y + HEIGHT / 2))
+if [ -n "$uinput_fd" ]; then
+    pointer_click_at $((X + WIDTH / 2)) $((Y + HEIGHT / 2))
+    under_click="yes"
+elif [ "$pointer_warp" = "yes" ]; then
+    pointer_move $((X + WIDTH / 2)) $((Y + HEIGHT / 2))
+    pointer_click
     under_click="yes"
 elif [ "$PTR_X" -ge "$X" ] && [ "$PTR_X" -le $((X + WIDTH)) ] &&
      [ "$PTR_Y" -ge "$Y" ] && [ "$PTR_Y" -le $((Y + HEIGHT)) ]; then
+    pointer_click
     under_click="yes"
 fi
 if [ "$under_click" = "yes" ]; then
-    xdotool click 1 2>/dev/null || true
     sleep 0.4
     after_under="$(xdotool getactivewindow 2>/dev/null || true)"
     if [ "$after_under" != "$under_wid" ]; then
@@ -407,7 +503,7 @@ effect_wid="$(wait_visible '^Aster Effect Layer$')" || fail "minimal effect wind
 
 if [ "$pointer_warp" = "yes" ]; then
     read_geometry "$wid"
-    xdotool mousemove $((X + WIDTH / 2)) $((Y + HEIGHT / 2))
+    pointer_move $((X + WIDTH / 2)) $((Y + HEIGHT / 2))
 else
     read_geometry "$wid"
     pointer_position
