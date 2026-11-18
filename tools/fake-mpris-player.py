@@ -31,7 +31,8 @@ class Player(ServiceInterface):
     @dbus_property(access=PropertyAccess.READ)
     def Metadata(self) -> "a{sv}":
         return {
-            "xesam:title": Variant("s", args.title.format(n=self.track)),
+            "xesam:title": Variant(
+                "s", args.title.replace("{n}", str(self.track))),
             "xesam:artist": Variant("as", [args.artist]),
             "xesam:album": Variant("s", args.album),
             "mpris:length": Variant("x", int(args.duration * 1_000_000)),

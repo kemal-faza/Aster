@@ -97,15 +97,21 @@ xdotool windowactivate --sync "$wid" 2>/dev/null || true
 sleep 0.3
 
 shot_path=""
+capture_method=""
 capture() {
     local name="$1"
     shot_path="$out_dir/$name"
+    rm -f "$shot_path"
     if command -v import >/dev/null 2>&1; then
         if import -window "$wid" "$shot_path" 2>/dev/null && [ -s "$shot_path" ]; then
+            capture_method="import"
             return 0
         fi
     fi
-    # Active-window capture through KWin; OCR still works, just at 1x.
+    # Active-window capture through KWin; OCR still works, just at 1x. The
+    # transparent window margin is composited over the desktop in this mode,
+    # so the surface-inset assertion below is skipped.
+    capture_method="spectacle"
     if command -v spectacle >/dev/null 2>&1; then
         spectacle -a -b -n -o "$shot_path" >/dev/null 2>&1 || true
     fi
@@ -166,6 +172,10 @@ show_page() {
     return 1
 }
 
+version="$(sed -n 's/.*DisplayVersion = "\([^"]*\)".*/\1/p' \
+    "$root/src/Aster.Avalonia/Aster.UI/AppInfo.cs")"
+[ -n "$version" ] || fail "could not read AppInfo.DisplayVersion"
+
 # --- General (startup page). ---
 capture settings-general.png
 general_text="$(ocr "$shot_path")"
@@ -181,9 +191,10 @@ require_text "$general_text" "General toggles" \
 require_text "$general_text" "General descriptions" \
     "Launch Aster automatically when you sign in." \
     "Step out of the way while games or videos are fullscreen." \
-    "v0.12.0-dev"
+    "v$version"
 
-python3 - "$out_dir/settings-general.png" <<'PY' || fail "settings surface inset is missing"
+if [ "$capture_method" = "import" ]; then
+    python3 - "$out_dir/settings-general.png" <<'PY' || fail "settings surface inset is missing"
 import sys
 from PIL import Image
 
@@ -199,6 +210,9 @@ if sum(surface) < 15:
     raise SystemExit(f"expected surface at ({x},{y}), got {surface}")
 print(f"surface: inset={inset} body={surface} scale={scale:g}")
 PY
+else
+    echo "warning: window import unavailable; skipping the surface inset assertion" >&2
+fi
 
 # --- Appearance. ---
 appearance_text="$(show_page "Glass, motion, and island behavior." settings-appearance.png 6)" ||

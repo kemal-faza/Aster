@@ -20,8 +20,8 @@ bus_pid=""
     exit 2
 }
 
-for tool in kscreen-doctor spectacle plasma-apply-wallpaperimage \
-            import identify convert xdotool gdbus dbus-daemon python3; do
+for tool in kscreen-doctor plasma-apply-wallpaperimage \
+            import xdotool gdbus dbus-daemon python3; do
     command -v "$tool" >/dev/null || { echo "missing: $tool" >&2; exit 2; }
 done
 python3 -c 'import dbus_next' >/dev/null 2>&1 ||
@@ -39,7 +39,11 @@ while read -r name scale; do
     [ -n "$name" ] && [ -n "$scale" ] || continue
     outputs+=("$name")
     scales+=("$scale")
-done < <(awk '/^Output:/{name=$3} /^[[:space:]]*Scale:/{if(name!="") print name, $2; name=""}' <<<"$screen")
+done < <(awk '
+    /^Output:/{name=$3; enabled=0}
+    /^[[:space:]]*enabled$/{enabled=1}
+    /^[[:space:]]*Scale:/{if(name!="" && enabled) print name, $2; name=""}
+' <<<"$screen")
 [ "${#outputs[@]}" -gt 0 ] ||
     { echo "could not parse kscreen-doctor output" >&2; exit 2; }
 wallpaper_before="$(python3 - "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" <<'PY'
@@ -80,8 +84,8 @@ trap cleanup EXIT
 # Isolate MPRIS from the desktop's real players (browser, music apps). The app
 # and fake player share this private bus; KDE services keep the real one.
 mapfile -t bus < <(dbus-daemon --session --fork --print-address=1 --print-pid=1)
-private_bus="${bus[0]}"
-bus_pid="${bus[1]}"
+private_bus="${bus[0]:-}"
+bus_pid="${bus[1]:-}"
 [ -n "$private_bus" ] && [ -n "$bus_pid" ] ||
     { echo "could not start a private DBus session" >&2; exit 2; }
 
@@ -90,7 +94,13 @@ for name in "${outputs[@]}"; do
     kscreen-doctor "output.${name}.scale.1.25" >/dev/null
 done
 sleep 2
-plasma-apply-wallpaperimage "$wallpaper" >/dev/null
+if [ -n "$wallpaper_before" ]; then
+    plasma-apply-wallpaperimage "$wallpaper" >/dev/null
+else
+    # The captures composite against the wallpaper file, so the live desktop
+    # does not need to change when the current wallpaper cannot be restored.
+    echo "warning: current wallpaper unreadable; leaving the desktop unchanged" >&2
+fi
 
 dotnet_root="${DOTNET_ROOT:-}"
 if [ -z "$dotnet_root" ] && [ -d "$HOME/.dotnet" ]; then
@@ -162,8 +172,16 @@ expand_island() {
 }
 
 capture_island() {
-    local name="$1" raw="$work/window.png"
-    local target="$out/avalonia-125-${name}.png"
+    local name="$1" expect_w="$2" expect_h="$3" tolerance="${4:-2}"
+    local raw="$work/window.png" target="$out/avalonia-125-${name}.png"
+    eval "$(xdotool getwindowgeometry --shell "$wid")"
+    if [ "$WIDTH" -lt $((expect_w - tolerance)) ] ||
+       [ "$WIDTH" -gt $((expect_w + tolerance)) ] ||
+       [ "$HEIGHT" -lt $((expect_h - tolerance)) ] ||
+       [ "$HEIGHT" -gt $((expect_h + tolerance)) ]; then
+        echo "$name: got ${WIDTH}x${HEIGHT}, expected ${expect_w}x${expect_h} ±${tolerance}" >&2
+        exit 1
+    fi
     rm -f "$raw"
     import -window "$wid" "$raw" || { echo "window capture failed" >&2; exit 1; }
     python3 - "$raw" "$wallpaper" "$target" <<'PY'
@@ -224,9 +242,9 @@ player_call() {
 
 # Clock (no media).
 start_app
-wid="$(find_island)" || { echo "island window 950x575 not found" >&2; exit 1; }
+wid="$(find_island)" || { echo "island window not found at the expected 125% size" >&2; exit 1; }
 park_pointer
-capture_island "compact-clock"
+capture_island "compact-clock" 375 48
 
 # Compact media playing.
 DBUS_SESSION_BUS_ADDRESS="$private_bus" \
@@ -237,24 +255,24 @@ python3 "$root/tools/fake-mpris-player.py" \
 fake=$!
 kill -0 "$fake" 2>/dev/null || { cat "$work/fake.log" >&2; exit 1; }
 sleep 1.5
-capture_island "compact-media-playing"
+capture_island "compact-media-playing" 375 48
 
 # Compact media paused.
 player_call
 sleep 1.0
-capture_island "compact-media-paused"
+capture_island "compact-media-paused" 375 48
 
 # Expanded playing.
 player_call
 sleep 0.4
 expand_island "$wid"
-capture_island "expanded-playing"
+capture_island "expanded-playing" 625 315 8
 
 # Expanded paused.
 player_call
 sleep 0.4
 expand_island "$wid"
-capture_island "expanded-paused"
+capture_island "expanded-paused" 625 315 8
 
 # Expanded empty.
 kill "$fake" 2>/dev/null || true
@@ -262,7 +280,7 @@ wait "$fake" 2>/dev/null || true
 fake=""
 sleep 0.6
 expand_island "$wid"
-capture_island "expanded-empty"
+capture_island "expanded-empty" 625 315 8
 
 # Minimal notch: restart with a seeded schema-2 settings file.
 kill "$pid" 2>/dev/null || true
@@ -273,7 +291,7 @@ printf '{"schemaVersion":2,"minimalNotch":true}' >"$work/data/AsterLab/Avalonia/
 start_app
 wid="$(find_island)" || { echo "minimal island window not found" >&2; exit 1; }
 park_pointer
-capture_island "minimal-notch"
+capture_island "minimal-notch" 200 15 2
 
 echo "Captured:"
 ls -1 "$out"/avalonia-125-*.png
