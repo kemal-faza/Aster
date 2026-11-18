@@ -67,6 +67,22 @@ public class ShellStatusTests
         Assert.Contains(nameof(ShellViewModel.PlayGlyph), changed);
     }
 
+    [Fact]
+    public void WifiGlyphAndOpacityFollowConnection()
+    {
+        var network = new FakeNetwork();
+        var vm = new ShellViewModel(new FakeBattery(), network);
+
+        network.Update(false);
+
+        Assert.Equal(Glyph.Get(Glyph.Kind.Wifi), vm.WifiGlyph);
+        Assert.Equal(0.25, vm.WifiOpacity);
+
+        network.Update(true);
+
+        Assert.Equal(1, vm.WifiOpacity);
+    }
+
     private static MediaSnapshot Snapshot(PlaybackState playback) => new(
         "Track", "Artist", string.Empty, null, "key", playback,
         TimeSpan.Zero, TimeSpan.FromMinutes(3), "Spotify", DateTimeOffset.Now);

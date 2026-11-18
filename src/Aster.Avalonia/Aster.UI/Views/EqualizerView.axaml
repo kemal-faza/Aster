@@ -2,8 +2,30 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="Aster.UI.Views.EqualizerView">
   <StackPanel Orientation="Horizontal" Spacing="2" VerticalAlignment="Center">
-    <Border x:Name="Bar1" Width="2" Height="6" Background="{StaticResource TextPrimary}" CornerRadius="1" />
-    <Border x:Name="Bar2" Width="2" Height="10" Background="{StaticResource TextPrimary}" CornerRadius="1" />
-    <Border x:Name="Bar3" Width="2" Height="4" Background="{StaticResource TextPrimary}" CornerRadius="1" />
+    <Border x:Name="Bar1" Width="3" Height="6" CornerRadius="1.5"
+            Background="{StaticResource ArtworkAccentFallback}"
+            RenderTransformOrigin="0.5,1">
+      <Border.RenderTransform><ScaleTransform ScaleY="0.3" /></Border.RenderTransform>
+    </Border>
+    <Border x:Name="Bar2" Width="3" Height="10" CornerRadius="1.5"
+            Background="{StaticResource ArtworkAccentFallback}"
+            RenderTransformOrigin="0.5,1">
+      <Border.RenderTransform><ScaleTransform ScaleY="0.3" /></Border.RenderTransform>
+    </Border>
+    <Border x:Name="Bar3" Width="3" Height="14" CornerRadius="1.5"
+            Background="{StaticResource ArtworkAccentFallback}"
+            RenderTransformOrigin="0.5,1">
+      <Border.RenderTransform><ScaleTransform ScaleY="0.3" /></Border.RenderTransform>
+    </Border>
+    <Border x:Name="Bar4" Width="3" Height="9" CornerRadius="1.5"
+            Background="{StaticResource ArtworkAccentFallback}"
+            RenderTransformOrigin="0.5,1">
+      <Border.RenderTransform><ScaleTransform ScaleY="0.3" /></Border.RenderTransform>
+    </Border>
+    <Border x:Name="Bar5" Width="3" Height="12" CornerRadius="1.5"
+            Background="{StaticResource ArtworkAccentFallback}"
+            RenderTransformOrigin="0.5,1">
+      <Border.RenderTransform><ScaleTransform ScaleY="0.3" /></Border.RenderTransform>
+    </Border>
   </StackPanel>
 </UserControl>

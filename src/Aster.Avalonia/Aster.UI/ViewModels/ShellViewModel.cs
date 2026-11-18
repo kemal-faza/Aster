@@ -77,7 +77,7 @@ public partial class ShellViewModel : ObservableObject
     public double ExpandedOpacity => Math.Clamp((ExpansionProgress - 0.18) / 0.82, 0, 1);
     public double CollapsedOpacity => Math.Clamp(1 - ExpansionProgress * 3, 0, 1);
     public string WifiText => IsWifiConnected ? "Wi-Fi" : "Off";
-    public double WifiOpacity => IsWifiConnected ? 1 : 0.35;
+    public double WifiOpacity => IsWifiConnected ? 1 : 0.25;
 
     public int BatteryPercent => _battery?.Current.Percent ?? 0;
     public bool IsCharging => _battery?.Current.IsCharging ?? false;
