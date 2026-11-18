@@ -25,7 +25,7 @@ published as a NativeAOT portable preview.
 
 ## What is in this release
 
-- Compact pill with clock, battery, Wi-Fi, and now-playing.
+- Compact pill with clock and now-playing; battery and Wi-Fi in the expanded header.
 - Expanded media panel with artwork, title, artist, source,
   previous/play-pause/next, seek, settings, and close.
 - Windows: SMTC media session.
@@ -77,7 +77,7 @@ autostart off and on again.
 
 | Feature | Windows | Linux | Notes |
 |---|---|---|---|
-| Compact pill (clock, battery, Wi-Fi, media) | Yes | Yes | |
+| Compact pill (clock, media) | Yes | Yes | |
 | Expanded media + controls + seek | Yes | Yes | Windows SMTC / Linux MPRIS |
 | Settings window | Yes | Yes | autostart, minimal notch, fullscreen hide, glass, bouncy |
 | Tray | Yes | Yes | KDE SNI validated |
