@@ -33,28 +33,13 @@ note() {
 # uinput-pointer helper, these helpers move/click a real virtual mouse instead.
 # The fallback still moves the island window under the real pointer.
 pointer_move() {
-    local target_x="$1" target_y="$2" attempt dx dy PTR_X PTR_Y
+    local target_x="$1" target_y="$2"
     if [ -n "$uinput_fd" ]; then
-        for attempt in $(seq 1 60); do
-            eval "$(xdotool getmouselocation --shell | sed 's/^/PTR_/')"
-            dx=$((target_x - PTR_X))
-            dy=$((target_y - PTR_Y))
-            if [ "$dx" -ge -2 ] && [ "$dx" -le 2 ] &&
-               [ "$dy" -ge -2 ] && [ "$dy" -le 2 ]; then
-                return 0
-            fi
-            [ "$dx" -gt 200 ] && dx=200
-            [ "$dx" -lt -200 ] && dx=-200
-            [ "$dy" -gt 200 ] && dy=200
-            [ "$dy" -lt -200 ] && dy=-200
-            printf 'rel %s %s\n' "$dx" "$dy" >&"${uinput_fd}"
-            sleep 0.05
-        done
-        echo "warning: pointer did not reach $target_x,$target_y" >&2
-        return 0
+        printf 'move %s %s\n' "$target_x" "$target_y" >&"${uinput_fd}"
+        sleep 0.2
+    else
+        xdotool mousemove "$target_x" "$target_y" 2>/dev/null || true
     fi
-
-    xdotool mousemove "$target_x" "$target_y" 2>/dev/null || true
 }
 
 pointer_click() {
