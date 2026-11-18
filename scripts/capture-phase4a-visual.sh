@@ -176,7 +176,9 @@ window = Image.open(sys.argv[1]).convert("RGB")
 # those rows/columns, but never trim the all-black minimal notch.
 black = Image.new("RGB", window.size, (0, 0, 0))
 bbox = ImageChops.difference(window, black).getbbox()
-if bbox and (bbox[2] - bbox[0]) >= 10 and (bbox[3] - bbox[1]) >= 5:
+if bbox is None:
+    raise SystemExit("window capture is entirely black")
+if (bbox[2] - bbox[0]) >= 10 and (bbox[3] - bbox[1]) >= 5:
     window = window.crop(bbox)
 
 background = Image.open(sys.argv[2]).convert("RGB")
