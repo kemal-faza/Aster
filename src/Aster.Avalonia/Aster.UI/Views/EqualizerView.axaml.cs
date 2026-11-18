@@ -38,6 +38,12 @@ public partial class EqualizerView : UserControl
         set => SetValue(IsPlayingProperty, value);
     }
 
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        _timer.Stop();
+        base.OnDetachedFromVisualTree(e);
+    }
+
     private void UpdateTimer()
     {
         if (IsPlaying)
