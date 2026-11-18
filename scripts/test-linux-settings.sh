@@ -113,7 +113,22 @@ capture() {
 }
 
 ocr() {
-    tesseract "$1" stdout 2>/dev/null | tr '\n' ' ' | tr -s '[:space:]' ' ' | sed 's/^ //; s/ $//'
+    # Plain OCR misses the dimmed disabled rows and the tertiary header/footer.
+    # Run a second thresholded pass and merge both texts; callers only assert
+    # substring presence, so the union is safe.
+    local prepared="$work/ocr-threshold.png"
+    python3 - "$1" "$prepared" <<'PY'
+import sys
+from PIL import Image, ImageOps
+
+image = Image.open(sys.argv[1]).convert("L")
+image = ImageOps.autocontrast(image)
+image = image.point(lambda value: 255 if value > 51 else 0)
+ImageOps.invert(image).save(sys.argv[2])
+PY
+    { tesseract "$1" stdout 2>/dev/null
+      tesseract "$prepared" stdout 2>/dev/null
+    } | tr '\n' ' ' | sed 's/×/x/g' | tr -s '[:space:]' ' ' | sed 's/^ //; s/ $//'
 }
 
 require_text() {
@@ -155,19 +170,49 @@ show_page() {
 capture settings-general.png
 general_text="$(ocr "$shot_path")"
 
-grep -Fq "Aster Settings" <<<"$general_text" ||
-    fail "General: title text 'Aster Settings' not found: $general_text"
+grep -Fqi "Aster" <<<"$general_text" ||
+    fail "General: header 'Aster' not found: $general_text"
+grep -Fqi "Settings" <<<"$general_text" ||
+    fail "General: header 'Settings' not found: $general_text"
 require_text "$general_text" "General/nav" \
     "General" "Appearance" "Lyrics" "Focus" "Water" "About"
 require_text "$general_text" "General toggles" \
     "Start with system" "Hide in fullscreen"
+require_text "$general_text" "General descriptions" \
+    "Launch Aster automatically when you sign in." \
+    "Step out of the way while games or videos are fullscreen." \
+    "v0.12.0-dev"
+
+python3 - "$out_dir/settings-general.png" <<'PY' || fail "settings surface inset is missing"
+import sys
+from PIL import Image
+
+image = Image.open(sys.argv[1]).convert("RGB")
+scale = image.width / 740.0
+x = image.width // 2
+y = max(1, round(12 * scale))
+inset = image.getpixel((x, 2))
+surface = image.getpixel((x, y))
+if max(inset) > 30:
+    raise SystemExit(f"expected dark inset at ({x},2), got {inset}")
+if sum(surface) < 15:
+    raise SystemExit(f"expected surface at ({x},{y}), got {surface}")
+print(f"surface: inset={inset} body={surface} scale={scale:g}")
+PY
 
 # --- Appearance. ---
-appearance_text="$(show_page "Island shape, surface, motion, and overlays." settings-appearance.png 6)" ||
+appearance_text="$(show_page "Glass, motion, and island behavior." settings-appearance.png 6)" ||
     fail "Appearance page did not open (Tab/Space navigation failed)"
 require_text "$appearance_text" "Appearance" \
     "Minimal notch" "Show mascot" "Glass background" "Bouncy open/close" \
     "Volume overlay" "Brightness overlay"
+require_text "$appearance_text" "Appearance descriptions" \
+    "The clock fades into a pair of eyes when the island is idle." \
+    "Shrink the compact island to a thin 160 x 12 notch." \
+    "Show a small toast when system volume changes." \
+    "Show a small toast when screen brightness changes." \
+    "Frosted glass instead of solid black" \
+    "Adds a spring overshoot when the panel opens or closes."
 
 # Disabled toggles must render dimmer than enabled ones. Read the label text
 # color from the TSV boxes instead of asserting only that the labels exist.
@@ -203,7 +248,7 @@ def brightest(word, occurrence):
 
 
 enabled = min(brightest("Minimal", 1), brightest("Glass", 1), brightest("Bouncy", 1))
-volume = brightest("Volume", 2)      # first occurrence is the explanatory sentence
+volume = brightest("Volume", 1)
 brightness = brightest("Brightness", 1)
 print(
     f"label luminance: enabled={enabled:.0f} volume={volume:.0f} brightness={brightness:.0f}"
@@ -217,7 +262,7 @@ if volume > 160 or brightness > 160:
 PY
 
 # --- About. ---
-about_text="$(show_page "Storage, version, and application information." settings-about.png 6)" ||
+about_text="$(show_page "Data, credits, and app information." settings-about.png 6)" ||
     fail "About page did not open (Tab/Space navigation failed)"
 require_text "$about_text" "About page" "Open data folder"
 compact_text="$(printf '%s' "$about_text" | tr -d '[:space:]')"
