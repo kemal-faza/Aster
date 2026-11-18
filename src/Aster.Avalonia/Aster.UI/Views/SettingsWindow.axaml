@@ -19,8 +19,7 @@
             Background="{StaticResource SettingsWindowSurface}"
             BorderBrush="{StaticResource SettingsWindowBorder}"
             BorderThickness="1"
-            BoxShadow="{StaticResource SettingsWindowShadow}"
-            ClipToBounds="True">
+            BoxShadow="{StaticResource SettingsWindowShadow}">
       <Grid RowDefinitions="54,*">
         <Grid Grid.Row="0" Background="Transparent" PointerPressed="OnTitleBarPressed">
           <StackPanel Orientation="Horizontal"
