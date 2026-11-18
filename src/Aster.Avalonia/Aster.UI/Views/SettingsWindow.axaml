@@ -1,6 +1,5 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:app="using:Aster.UI"
         xmlns:automation="using:Avalonia.Automation"
         xmlns:converters="using:Avalonia.Data.Converters"
         xmlns:vm="using:Aster.UI.ViewModels"
@@ -177,160 +176,172 @@
                   </Border>
 
                   <Grid>
-                <StackPanel x:Name="GeneralPage">
-                  <Border Classes="settings-card">
-                    <StackPanel>
-                      <TextBlock Classes="settings-card-title" Text="STARTUP" />
-                      <CheckBox x:Name="AutostartToggle"
-                                Theme="{StaticResource ToggleSwitch}"
-                                Content="{Binding AutostartLabel}"
-                                IsChecked="{Binding StartWithWindows, Mode=TwoWay}"
-                                IsEnabled="{Binding CanSave}"
-                                automation:AutomationProperties.Name="{Binding AutostartLabel}"
-                                automation:AutomationProperties.HelpText="Start Aster when you sign in." />
+                    <StackPanel x:Name="GeneralPage">
+                      <Border Classes="settings-card">
+                        <StackPanel>
+                          <TextBlock Classes="settings-card-title" Text="STARTUP" />
+                          <CheckBox x:Name="AutostartToggle"
+                                    Theme="{StaticResource ToggleSwitch}"
+                                    IsChecked="{Binding StartWithWindows, Mode=TwoWay}"
+                                    IsEnabled="{Binding CanSave}"
+                                    automation:AutomationProperties.Name="{Binding AutostartLabel}"
+                                    automation:AutomationProperties.HelpText="Start Aster when you sign in.">
+                            <StackPanel>
+                              <TextBlock Classes="settings-label" Text="{Binding AutostartLabel}" />
+                              <TextBlock Classes="settings-description"
+                                         Text="Launch Aster automatically when you sign in." />
+                            </StackPanel>
+                          </CheckBox>
+                        </StackPanel>
+                      </Border>
+
+                      <Border Classes="settings-card">
+                        <StackPanel>
+                          <TextBlock Classes="settings-card-title" Text="FULLSCREEN" />
+                          <CheckBox x:Name="HideFullscreenToggle"
+                                    Theme="{StaticResource ToggleSwitch}"
+                                    IsChecked="{Binding HideInFullscreen, Mode=TwoWay}"
+                                    IsEnabled="{Binding CanSave}"
+                                    automation:AutomationProperties.Name="Hide in fullscreen"
+                                    automation:AutomationProperties.HelpText="Hide the island while a fullscreen app is active.">
+                            <StackPanel>
+                              <TextBlock Classes="settings-label" Text="Hide in fullscreen" />
+                              <TextBlock Classes="settings-description"
+                                         Text="Step out of the way while games or videos are fullscreen." />
+                            </StackPanel>
+                          </CheckBox>
+                        </StackPanel>
+                      </Border>
                     </StackPanel>
-                  </Border>
 
-                  <Border Classes="settings-card">
-                    <StackPanel>
-                      <TextBlock Classes="settings-card-title" Text="FULLSCREEN" />
-                      <CheckBox x:Name="HideFullscreenToggle"
-                                Theme="{StaticResource ToggleSwitch}"
-                                Content="Hide in fullscreen"
-                                IsChecked="{Binding HideInFullscreen, Mode=TwoWay}"
-                                IsEnabled="{Binding CanSave}"
-                                automation:AutomationProperties.Name="Hide in fullscreen"
-                                automation:AutomationProperties.HelpText="Hide the island while a fullscreen app is active." />
+                    <StackPanel x:Name="AppearancePage" IsVisible="False">
+                      <Border Classes="settings-card">
+                        <StackPanel>
+                          <TextBlock Classes="settings-card-title" Text="ISLAND" />
+                          <CheckBox x:Name="ShowMascotToggle"
+                                    Theme="{StaticResource ToggleSwitch}"
+                                    Margin="0,0,0,14"
+                                    IsChecked="{Binding ShowMascot, Mode=TwoWay}"
+                                    IsEnabled="{Binding CanSave}"
+                                    automation:AutomationProperties.Name="Show mascot when idle"
+                                    automation:AutomationProperties.HelpText="Show the mascot placeholder in the idle island.">
+                            <StackPanel>
+                              <TextBlock Classes="settings-label" Text="Show mascot when idle" />
+                              <TextBlock Classes="settings-description"
+                                         Text="The clock fades into a pair of eyes when the island is idle." />
+                            </StackPanel>
+                          </CheckBox>
+                          <CheckBox x:Name="MinimalNotchToggle"
+                                    Theme="{StaticResource ToggleSwitch}"
+                                    IsChecked="{Binding MinimalNotch, Mode=TwoWay}"
+                                    IsEnabled="{Binding CanSave}"
+                                    automation:AutomationProperties.Name="Minimal notch"
+                                    automation:AutomationProperties.HelpText="Show only a small blank notch.">
+                            <StackPanel>
+                              <TextBlock Classes="settings-label" Text="Minimal notch" />
+                              <TextBlock Classes="settings-description"
+                                         Text="Shrink the compact island to a thin 160 × 12 notch." />
+                            </StackPanel>
+                          </CheckBox>
+                        </StackPanel>
+                      </Border>
+
+                      <Border Classes="settings-card">
+                        <StackPanel>
+                          <TextBlock Classes="settings-card-title" Text="OVERLAYS" />
+                          <CheckBox x:Name="VolumeToggle"
+                                    Theme="{StaticResource ToggleSwitch}"
+                                    Margin="0,0,0,14"
+                                    IsChecked="{Binding VolumeToast, Mode=TwoWay}"
+                                    IsEnabled="False"
+                                    automation:AutomationProperties.Name="Volume overlay"
+                                    automation:AutomationProperties.HelpText="Not available in this build.">
+                            <StackPanel>
+                              <TextBlock Classes="settings-label" Text="Volume overlay" />
+                              <TextBlock Classes="settings-description"
+                                         Text="Show a small toast when system volume changes." />
+                            </StackPanel>
+                          </CheckBox>
+                          <CheckBox x:Name="BrightnessToggle"
+                                    Theme="{StaticResource ToggleSwitch}"
+                                    IsChecked="{Binding BrightnessToast, Mode=TwoWay}"
+                                    IsEnabled="False"
+                                    automation:AutomationProperties.Name="Brightness overlay"
+                                    automation:AutomationProperties.HelpText="Not available in this build.">
+                            <StackPanel>
+                              <TextBlock Classes="settings-label" Text="Brightness overlay" />
+                              <TextBlock Classes="settings-description"
+                                         Text="Show a small toast when screen brightness changes." />
+                            </StackPanel>
+                          </CheckBox>
+                        </StackPanel>
+                      </Border>
+
+                      <Border Classes="settings-card">
+                        <StackPanel>
+                          <TextBlock Classes="settings-card-title" Text="GLASS &amp; MOTION" />
+                          <CheckBox x:Name="GlassToggle"
+                                    Theme="{StaticResource ToggleSwitch}"
+                                    Margin="0,0,0,14"
+                                    IsChecked="{Binding GlassBackground, Mode=TwoWay}"
+                                    IsEnabled="{Binding CanSave}"
+                                    automation:AutomationProperties.Name="Glass background"
+                                    automation:AutomationProperties.HelpText="Use the glass gradient instead of a solid background.">
+                            <StackPanel>
+                              <TextBlock Classes="settings-label" Text="Glass background" />
+                              <TextBlock Classes="settings-description"
+                                         Text="Frosted glass instead of solid black. No backdrop blur, just layered glass." />
+                            </StackPanel>
+                          </CheckBox>
+                          <CheckBox x:Name="BouncyToggle"
+                                    Theme="{StaticResource ToggleSwitch}"
+                                    IsChecked="{Binding BouncySpring, Mode=TwoWay}"
+                                    IsEnabled="{Binding CanSave}"
+                                    automation:AutomationProperties.Name="Bouncy open/close"
+                                    automation:AutomationProperties.HelpText="Use the bouncy damping for expand and collapse.">
+                            <StackPanel>
+                              <TextBlock Classes="settings-label" Text="Bouncy open/close" />
+                              <TextBlock Classes="settings-description"
+                                         Text="Adds a spring overshoot when the panel opens or closes." />
+                            </StackPanel>
+                          </CheckBox>
+                        </StackPanel>
+                      </Border>
                     </StackPanel>
-                  </Border>
-                </StackPanel>
 
-                <StackPanel x:Name="AppearancePage" IsVisible="False">
-                  <Border Classes="settings-card">
-                    <StackPanel>
-                      <TextBlock Classes="settings-card-title" Text="ISLAND" />
-                      <CheckBox x:Name="MinimalNotchToggle"
-                                Theme="{StaticResource ToggleSwitch}"
-                                Content="Minimal notch"
-                                IsChecked="{Binding MinimalNotch, Mode=TwoWay}"
-                                IsEnabled="{Binding CanSave}"
-                                automation:AutomationProperties.Name="Minimal notch"
-                                automation:AutomationProperties.HelpText="Show only a small blank notch." />
-                      <CheckBox x:Name="ShowMascotToggle"
-                                Theme="{StaticResource ToggleSwitch}"
-                                Content="Show mascot"
-                                IsChecked="{Binding ShowMascot, Mode=TwoWay}"
-                                IsEnabled="{Binding CanSave}"
-                                automation:AutomationProperties.Name="Show mascot"
-                                automation:AutomationProperties.HelpText="Show the mascot placeholder in the idle island." />
-                    </StackPanel>
-                  </Border>
+                    <StackPanel x:Name="LyricsPage" IsVisible="False" />
+                    <StackPanel x:Name="FocusPage" IsVisible="False" />
+                    <StackPanel x:Name="WaterPage" IsVisible="False" />
 
-                  <Border Classes="settings-card">
-                    <StackPanel>
-                      <TextBlock Classes="settings-card-title" Text="GLASS &amp; MOTION" />
-                      <CheckBox x:Name="GlassToggle"
-                                Theme="{StaticResource ToggleSwitch}"
-                                Content="Glass background"
-                                IsChecked="{Binding GlassBackground, Mode=TwoWay}"
-                                IsEnabled="{Binding CanSave}"
-                                automation:AutomationProperties.Name="Glass background"
-                                automation:AutomationProperties.HelpText="Use the glass gradient instead of a solid background." />
-                      <CheckBox x:Name="BouncyToggle"
-                                Theme="{StaticResource ToggleSwitch}"
-                                Content="Bouncy open/close"
-                                IsChecked="{Binding BouncySpring, Mode=TwoWay}"
-                                IsEnabled="{Binding CanSave}"
-                                automation:AutomationProperties.Name="Bouncy open and close"
-                                automation:AutomationProperties.HelpText="Use the bouncy damping for expand and collapse." />
-                    </StackPanel>
-                  </Border>
+                    <StackPanel x:Name="AboutPage" IsVisible="False">
+                      <Border Classes="settings-card">
+                        <StackPanel>
+                          <TextBlock Classes="settings-card-title" Text="STORAGE" />
+                          <Button Theme="{StaticResource SettingsGhostButton}"
+                                  Content="Open data folder"
+                                  HorizontalAlignment="Left"
+                                  Click="OnOpenDataFolderClick"
+                                  automation:AutomationProperties.Name="Open data folder"
+                                  automation:AutomationProperties.HelpText="Open the Aster data folder in your file manager." />
+                          <TextBlock Text="{Binding DataPath}"
+                                     Classes="tertiary"
+                                     Margin="0,8,0,0"
+                                     TextWrapping="Wrap" />
+                        </StackPanel>
+                      </Border>
 
-                  <Border Classes="settings-card">
-                    <StackPanel>
-                      <TextBlock Classes="settings-card-title" Text="OVERLAYS (4E)" />
-                      <TextBlock Classes="subtitle"
-                                 Text="Volume and brightness overlays arrive in Phase 4E."
-                                 Margin="0,0,0,10"
-                                 TextWrapping="Wrap" />
-                      <CheckBox x:Name="VolumeToggle"
-                                Theme="{StaticResource ToggleSwitch}"
-                                Content="Volume overlay"
-                                IsChecked="{Binding VolumeToast, Mode=TwoWay}"
-                                IsEnabled="False"
-                                automation:AutomationProperties.Name="Volume overlay"
-                                automation:AutomationProperties.HelpText="Not available in this build. Volume overlays arrive in Phase 4E." />
-                      <CheckBox x:Name="BrightnessToggle"
-                                Theme="{StaticResource ToggleSwitch}"
-                                Content="Brightness overlay"
-                                IsChecked="{Binding BrightnessToast, Mode=TwoWay}"
-                                IsEnabled="False"
-                                automation:AutomationProperties.Name="Brightness overlay"
-                                automation:AutomationProperties.HelpText="Not available in this build. Brightness overlays arrive in Phase 4E." />
-                    </StackPanel>
-                  </Border>
-                </StackPanel>
-
-                <StackPanel x:Name="LyricsPage" IsVisible="False">
-                  <Border Classes="settings-card">
-                    <TextBlock Classes="subtitle"
-                               Text="Lyric sync, highlighting, and color controls arrive in Phase 4B."
-                               TextWrapping="Wrap" />
-                  </Border>
-                </StackPanel>
-
-                <StackPanel x:Name="FocusPage" IsVisible="False">
-                  <Border Classes="settings-card">
-                    <TextBlock Classes="subtitle"
-                               Text="Durations, breaks, and the chime control arrive in Phase 4C."
-                               TextWrapping="Wrap" />
-                  </Border>
-                </StackPanel>
-
-                <StackPanel x:Name="WaterPage" IsVisible="False">
-                  <Border Classes="settings-card">
-                    <TextBlock Classes="subtitle"
-                               Text="Interval, active hours, and daily goal controls arrive in Phase 4C."
-                               TextWrapping="Wrap" />
-                  </Border>
-                </StackPanel>
-
-                <StackPanel x:Name="AboutPage" IsVisible="False">
-                  <Border Classes="settings-card">
-                    <StackPanel>
-                      <TextBlock Classes="settings-card-title" Text="STORAGE" />
-                      <Button Theme="{StaticResource SettingsGhostButton}"
-                              Content="Open data folder"
-                              HorizontalAlignment="Left"
-                              Click="OnOpenDataFolderClick"
-                              automation:AutomationProperties.Name="Open data folder"
-                              automation:AutomationProperties.HelpText="Open the Aster data folder in your file manager." />
-                      <TextBlock Text="{Binding DataPath}"
-                                 Classes="tertiary"
-                                 Margin="0,8,0,0"
-                                 TextWrapping="Wrap" />
-                    </StackPanel>
-                  </Border>
-
-                  <Border Classes="settings-card">
-                    <StackPanel>
-                      <TextBlock Classes="settings-card-title" Text="ABOUT" />
-                      <TextBlock Text="Aster for Linux"
-                                 FontSize="17"
-                                 FontWeight="SemiBold" />
-                      <TextBlock Text="A tiny island for your desktop. Built with C# / Avalonia (.NET 10)."
-                                 Classes="subtitle"
-                                 Margin="0,6,0,0"
-                                 TextWrapping="Wrap" />
-                      <Grid ColumnDefinitions="Auto,*" Margin="0,14,0,0">
-                        <TextBlock Text="Version" Classes="tertiary" />
-                        <TextBlock Grid.Column="1"
-                                   Text="{x:Static app:AppInfo.DisplayVersion}"
-                                   Classes="tertiary"
-                                   Margin="8,0,0,0" />
-                      </Grid>
-                    </StackPanel>
-                  </Border>
+                      <Border Classes="settings-card">
+                        <StackPanel>
+                          <TextBlock Classes="settings-card-title" Text="ABOUT" />
+                          <TextBlock Text="Aster for Linux"
+                                     FontSize="17"
+                                     FontWeight="SemiBold" />
+                          <TextBlock Text="A tiny island for your desktop. Built with C# / Avalonia (.NET 10)."
+                                     Classes="subtitle"
+                                     Margin="0,6,0,0"
+                                     TextWrapping="Wrap" />
+                        </StackPanel>
+                      </Border>
                     </StackPanel>
                   </Grid>
                 </StackPanel>
