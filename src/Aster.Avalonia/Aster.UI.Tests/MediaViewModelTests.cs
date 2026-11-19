@@ -1,5 +1,6 @@
 using Aster.UI.ViewModels;
 using Aster.Core.Interfaces;
+using Aster.Core.Logic;
 using Aster.Core.Models;
 
 #pragma warning disable CS0067 // FakeMedia never raises Changed; the interface requires the event.
@@ -8,6 +9,35 @@ namespace Aster.UI.Tests;
 
 public class MediaViewModelTests
 {
+    [Fact]
+    public void SnapshotExposesIdentityCapabilitiesAndSeed()
+    {
+        var snapshot = new MediaSnapshot(
+            "Track", "Artist", "", null, "key", PlaybackState.Playing,
+            TimeSpan.Zero, TimeSpan.FromMinutes(3), "Spotify",
+            "track-1", false, true, false, DateTimeOffset.Now);
+        var vm = new MediaViewModel(new FakeMedia(snapshot), new InlineDispatcher(), new NullLog());
+
+        Assert.Equal("track-1", vm.TrackKey);
+        Assert.Equal(TrackHash.Of("Track|Artist|"), vm.WaveformSeed);
+        Assert.False(vm.CanSeek);
+        Assert.True(vm.CanGoNext);
+        Assert.False(vm.CanGoPrevious);
+        Assert.Equal("Track", vm.DisplayTitle);
+        Assert.Equal("Artist", vm.DisplayArtist);
+    }
+
+    [Fact]
+    public void EmptySnapshotUsesEmptyStateCopy()
+    {
+        var vm = new MediaViewModel(new FakeMedia(MediaSnapshot.Empty),
+            new InlineDispatcher(), new NullLog());
+
+        Assert.Equal("Nothing playing", vm.DisplayTitle);
+        Assert.Equal("Start something on Spotify, YouTube, or Apple Music", vm.DisplayArtist);
+        Assert.Equal(0, vm.WaveformSeed);
+    }
+
     [Fact]
     public void EmptySnapshotShowsNoSession()
     {
