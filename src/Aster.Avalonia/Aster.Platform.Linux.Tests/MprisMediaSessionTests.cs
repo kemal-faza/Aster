@@ -94,6 +94,41 @@ public class MprisMediaSessionTests
         Assert.Equal("/1", session.Current.TrackId);
     }
 
+    [Fact]
+    public async Task RecoversAfterPlayerDisappears()
+    {
+        var client = new FakeClient
+        {
+            States =
+            {
+                new MprisPlayerState("org.mpris.MediaPlayer2.vlc", "VLC",
+                    new MprisMetadata("Tone", "Aster Lab", "Phase 2",
+                        TimeSpan.FromMinutes(2), null, "/1"),
+                    PlaybackState.Playing, TimeSpan.Zero, true, true, true,
+                    DateTimeOffset.UtcNow)
+            }
+        };
+        using var session = new MprisMediaSession(client, new InlineDispatcher(), new NullLog());
+        session.Start();
+
+        await WaitUntilAsync(() => session.Current.HasSession);
+
+        client.States.Clear();
+        await Task.Delay(1200);
+        Assert.False(session.Current.HasSession);
+
+        client.States.Add(new MprisPlayerState(
+            "org.mpris.MediaPlayer2.vlc", "VLC",
+            new MprisMetadata("Back", "Aster Lab", "Phase 2",
+                TimeSpan.FromMinutes(2), null, "/2"),
+            PlaybackState.Playing, TimeSpan.Zero, true, true, true,
+            DateTimeOffset.UtcNow));
+        await Task.Delay(1200);
+
+        Assert.True(session.Current.HasSession);
+        Assert.Equal("Back", session.Current.Title);
+    }
+
     private static async Task WaitUntilAsync(Func<bool> condition)
     {
         var deadline = DateTimeOffset.UtcNow.AddSeconds(2);
