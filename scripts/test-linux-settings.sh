@@ -285,6 +285,12 @@ compact_text="$(printf '%s' "$about_text" | tr -d '[:space:]')"
 grep -Fq "AsterLab/Avalonia" <<<"$compact_text" ||
     fail "About: data path suffix 'AsterLab/Avalonia' not found in OCR text: $about_text"
 
+# --- Lyrics. ---
+lyrics_text="$(show_page "Source, highlight color, and local cache." settings-lyrics.png 10)" ||
+    fail "Lyrics page did not open (Tab/Space navigation failed)"
+require_text "$lyrics_text" "Lyrics settings" \
+    "Fetch lyrics from LRCLIB" "Active lyric line" "Hex #RRGGBB"
+
 echo "Linux settings probe PASS"
 echo "  title: $title"
-echo "  screenshots: $out_dir/settings-{general,appearance,about}.png"
+echo "  screenshots: $out_dir/settings-{general,appearance,about,lyrics}.png"
