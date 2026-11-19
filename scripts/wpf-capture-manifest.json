@@ -1,0 +1,1146 @@
+{
+  "schemaVersion": 1,
+  "canvasSizes": {
+    "100": [
+      760,
+      460
+    ],
+    "125": [
+      950,
+      575
+    ],
+    "150": [
+      1140,
+      690
+    ],
+    "200": [
+      1520,
+      920
+    ]
+  },
+  "settingsSizes": {
+    "100": [
+      740,
+      580
+    ],
+    "125": [
+      925,
+      725
+    ],
+    "150": [
+      1110,
+      870
+    ],
+    "200": [
+      1480,
+      1160
+    ]
+  },
+  "minSize": {
+    "width": 300,
+    "height": 300
+  },
+  "requiredInfoFields": [
+    "Windows build",
+    "GPU / driver",
+    "Primary display / scale",
+    "Wallpaper",
+    "WPF commit / version",
+    "Binary",
+    "Capture tool",
+    "Date",
+    "Operator"
+  ],
+  "settingsKeys": [
+    "StartWithWindows",
+    "MinimalNotch",
+    "ShowMascot",
+    "HideInFullscreen",
+    "VolumeToast",
+    "BrightnessToast",
+    "LyricsEnabled",
+    "LyricsHighlightColor",
+    "WaterReminderEnabled",
+    "WaterIntervalMinutes",
+    "WaterActiveStartHour",
+    "WaterActiveEndHour",
+    "WaterDailyGoal",
+    "WaterGlassesToday",
+    "WaterDate",
+    "CameraMirror",
+    "GlassBackground",
+    "BouncySpring",
+    "FocusMinutes",
+    "ShortBreakMinutes",
+    "LongBreakMinutes",
+    "FocusChime"
+  ],
+  "artifacts": [
+    {
+      "id": "P0-01",
+      "set": "p0",
+      "group": "p0",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/compact-clock.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "P0-02",
+      "set": "p0",
+      "group": "p0",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/compact-eyes.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "P0-03",
+      "set": "p0",
+      "group": "p0",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/compact-media-playing.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "P0-04",
+      "set": "p0",
+      "group": "p0",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/compact-media-paused.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "P0-05",
+      "set": "p0",
+      "group": "p0",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/expanded-music-playing.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "P0-06",
+      "set": "p0",
+      "group": "p0",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/expanded-music-paused.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "P0-07",
+      "set": "p0",
+      "group": "p0",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/expanded-music-empty.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "P0-08",
+      "set": "p0",
+      "group": "p0",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/settings-general.png",
+      "capture": "settings",
+      "required": true
+    },
+    {
+      "id": "P0-09",
+      "set": "p0",
+      "group": "p0",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/settings-appearance.png",
+      "capture": "settings",
+      "required": true
+    },
+    {
+      "id": "P0-10",
+      "set": "p0",
+      "group": "p0",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/settings-about.png",
+      "capture": "settings",
+      "required": true
+    },
+    {
+      "id": "P0-11",
+      "set": "p0",
+      "group": "p0",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/tray-open.png",
+      "capture": "min",
+      "required": true,
+      "note": "tray region or full screen; not the island canvas"
+    },
+    {
+      "id": "P0-12",
+      "set": "p0",
+      "group": "p0",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/minimal-notch.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "P0-13",
+      "set": "p0",
+      "group": "p0",
+      "kind": "screenshot",
+      "path": "screenshots/200-dark/compact-clock.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "P0-14",
+      "set": "p0",
+      "group": "p0",
+      "kind": "screenshot",
+      "path": "screenshots/200-dark/compact-media-playing.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "P0-15",
+      "set": "p0",
+      "group": "p0",
+      "kind": "screenshot",
+      "path": "screenshots/200-dark/expanded-music-playing.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "P0-16",
+      "set": "p0",
+      "group": "p0",
+      "kind": "screenshot",
+      "path": "screenshots/200-dark/settings-general.png",
+      "capture": "settings",
+      "required": true
+    },
+    {
+      "id": "P0-17",
+      "set": "p0",
+      "group": "p0",
+      "kind": "screenshot",
+      "path": "screenshots/125-light/compact-clock.png",
+      "capture": "canvas",
+      "required": false,
+      "condition": "light wallpaper available"
+    },
+    {
+      "id": "P0-18",
+      "set": "p0",
+      "group": "p0",
+      "kind": "screenshot",
+      "path": "screenshots/125-light/expanded-music-playing.png",
+      "capture": "canvas",
+      "required": false,
+      "condition": "light wallpaper available"
+    },
+    {
+      "id": "P0-19",
+      "set": "p0",
+      "group": "p0",
+      "kind": "screenshot",
+      "path": "screenshots/125-light/settings-general.png",
+      "capture": "settings",
+      "required": false
+    },
+    {
+      "id": "P0-V1",
+      "set": "p0",
+      "group": "p0",
+      "kind": "video",
+      "path": "videos/125-dark/expand-hover.mp4",
+      "duration": [
+        4,
+        20
+      ],
+      "required": true
+    },
+    {
+      "id": "P0-V2",
+      "set": "p0",
+      "group": "p0",
+      "kind": "video",
+      "path": "videos/125-dark/expand-click.mp4",
+      "duration": [
+        4,
+        20
+      ],
+      "required": true
+    },
+    {
+      "id": "P0-V3",
+      "set": "p0",
+      "group": "p0",
+      "kind": "video",
+      "path": "videos/125-dark/collapse-chevron.mp4",
+      "duration": [
+        4,
+        20
+      ],
+      "required": true
+    },
+    {
+      "id": "P0-V4",
+      "set": "p0",
+      "group": "p0",
+      "kind": "video",
+      "path": "videos/125-dark/minimal-notch-hover.mp4",
+      "duration": [
+        4,
+        20
+      ],
+      "required": true
+    },
+    {
+      "id": "P0-V5",
+      "set": "p0",
+      "group": "p0",
+      "kind": "video",
+      "path": "videos/125-dark/tab-switch.mp4",
+      "duration": [
+        8,
+        20
+      ],
+      "required": true
+    },
+    {
+      "id": "P0-S1",
+      "set": "p0",
+      "group": "p0",
+      "kind": "preset",
+      "path": "settings/01-default.json",
+      "required": true
+    },
+    {
+      "id": "P0-S2",
+      "set": "p0",
+      "group": "p0",
+      "kind": "preset",
+      "path": "settings/02-minimal-notch.json",
+      "required": true
+    },
+    {
+      "id": "B-01",
+      "set": "p1",
+      "group": "4b",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/music-lyrics-synced.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "B-02",
+      "set": "p1",
+      "group": "4b",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/music-lyrics-plain.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "B-03",
+      "set": "p1",
+      "group": "4b",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/music-lyrics-instrumental.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "B-04",
+      "set": "p1",
+      "group": "4b",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/music-lyrics-loading.png",
+      "capture": "canvas",
+      "required": false,
+      "condition": "requires a timed capture during lookup"
+    },
+    {
+      "id": "B-05",
+      "set": "p1",
+      "group": "4b",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/music-lyrics-offline.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "B-06",
+      "set": "p1",
+      "group": "4b",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/music-lyrics-disabled.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "B-07",
+      "set": "p1",
+      "group": "4b",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/music-no-artwork.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "B-08",
+      "set": "p1",
+      "group": "4b",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/music-long-title.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "B-09",
+      "set": "p1",
+      "group": "4b",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/music-accent-warm.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "B-10",
+      "set": "p1",
+      "group": "4b",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/music-accent-cool.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "B-11",
+      "set": "p1",
+      "group": "4b",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/music-seek-mid.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "B-12",
+      "set": "p1",
+      "group": "4b",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/settings-lyrics.png",
+      "capture": "settings",
+      "required": true
+    },
+    {
+      "id": "B-13",
+      "set": "p1",
+      "group": "4b",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/settings-lyrics-invalid.png",
+      "capture": "settings",
+      "required": true
+    },
+    {
+      "id": "B-V1",
+      "set": "p1",
+      "group": "4b",
+      "kind": "video",
+      "path": "videos/125-dark/lyrics-scroll.mp4",
+      "duration": [
+        6,
+        20
+      ],
+      "required": true
+    },
+    {
+      "id": "B-V2",
+      "set": "p1",
+      "group": "4b",
+      "kind": "video",
+      "path": "videos/125-dark/lyrics-morph.mp4",
+      "duration": [
+        4,
+        20
+      ],
+      "required": true
+    },
+    {
+      "id": "B-V3",
+      "set": "p1",
+      "group": "4b",
+      "kind": "video",
+      "path": "videos/125-dark/track-change.mp4",
+      "duration": [
+        8,
+        20
+      ],
+      "required": true
+    },
+    {
+      "id": "B-V4",
+      "set": "p1",
+      "group": "4b",
+      "kind": "video",
+      "path": "videos/125-dark/media-restart.mp4",
+      "duration": [
+        10,
+        30
+      ],
+      "required": true
+    },
+    {
+      "id": "B-S1",
+      "set": "p1",
+      "group": "4b",
+      "kind": "preset",
+      "path": "settings/11-lyrics-custom.json",
+      "required": true
+    },
+    {
+      "id": "C-01",
+      "set": "p1",
+      "group": "4c",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/focus-idle.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "C-02",
+      "set": "p1",
+      "group": "4c",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/focus-running.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "C-03",
+      "set": "p1",
+      "group": "4c",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/focus-paused.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "C-04",
+      "set": "p1",
+      "group": "4c",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/focus-complete.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "C-05",
+      "set": "p1",
+      "group": "4c",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/focus-short-break.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "C-06",
+      "set": "p1",
+      "group": "4c",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/focus-long-break.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "C-07",
+      "set": "p1",
+      "group": "4c",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/focus-pill-countdown.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "C-08",
+      "set": "p1",
+      "group": "4c",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/focus-pill-paused.png",
+      "capture": "canvas",
+      "required": false,
+      "condition": "overlaps C-07; capture if the paused colour is reachable in compact"
+    },
+    {
+      "id": "C-09",
+      "set": "p1",
+      "group": "4c",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/water-header-0.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "C-10",
+      "set": "p1",
+      "group": "4c",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/water-header-3.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "C-11",
+      "set": "p1",
+      "group": "4c",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/water-header-goal.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "C-12",
+      "set": "p1",
+      "group": "4c",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/toast-water-reminder.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "C-13",
+      "set": "p1",
+      "group": "4c",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/toast-water-logged.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "C-14",
+      "set": "p1",
+      "group": "4c",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/toast-water-goal.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "C-15",
+      "set": "p1",
+      "group": "4c",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/settings-focus.png",
+      "capture": "settings",
+      "required": true
+    },
+    {
+      "id": "C-16",
+      "set": "p1",
+      "group": "4c",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/settings-water.png",
+      "capture": "settings",
+      "required": true
+    },
+    {
+      "id": "C-V1",
+      "set": "p1",
+      "group": "4c",
+      "kind": "video",
+      "path": "videos/125-dark/water-log-click.mp4",
+      "duration": [
+        4,
+        20
+      ],
+      "required": true
+    },
+    {
+      "id": "C-V2",
+      "set": "p1",
+      "group": "4c",
+      "kind": "video",
+      "path": "videos/125-dark/focus-complete-run.mp4",
+      "duration": [
+        55,
+        120
+      ],
+      "required": true
+    },
+    {
+      "id": "C-S1",
+      "set": "p1",
+      "group": "4c",
+      "kind": "preset",
+      "path": "settings/07-focus-1min.json",
+      "required": true
+    },
+    {
+      "id": "C-S2",
+      "set": "p1",
+      "group": "4c",
+      "kind": "preset",
+      "path": "settings/08-focus-default.json",
+      "required": true
+    },
+    {
+      "id": "C-S3",
+      "set": "p1",
+      "group": "4c",
+      "kind": "preset",
+      "path": "settings/09-water-active.json",
+      "required": true
+    },
+    {
+      "id": "C-S4",
+      "set": "p1",
+      "group": "4c",
+      "kind": "preset",
+      "path": "settings/10-water-suppressed.json",
+      "required": true
+    },
+    {
+      "id": "C-S5",
+      "set": "p1",
+      "group": "4c",
+      "kind": "preset",
+      "path": "settings/13-water-near-goal.json",
+      "required": true
+    },
+    {
+      "id": "D-01",
+      "set": "p1",
+      "group": "4d",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/shelf-empty.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "D-02",
+      "set": "p1",
+      "group": "4d",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/shelf-3.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "D-03",
+      "set": "p1",
+      "group": "4d",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/shelf-8.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "D-04",
+      "set": "p1",
+      "group": "4d",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/shelf-badges.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "D-05",
+      "set": "p1",
+      "group": "4d",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/shelf-missing.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "D-06",
+      "set": "p1",
+      "group": "4d",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/shelf-blue-dot.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "D-07",
+      "set": "p1",
+      "group": "4d",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/shelf-drag-overlay.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "D-08",
+      "set": "p1",
+      "group": "4d",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/toast-shelf-added.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "D-09",
+      "set": "p1",
+      "group": "4d",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/toast-shelf-full.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "D-10",
+      "set": "p1",
+      "group": "4d",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/toast-shelf-duplicate.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "D-11",
+      "set": "p1",
+      "group": "4d",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/toast-shelf-multi.png",
+      "capture": "canvas",
+      "required": false,
+      "condition": "optional variant of D-08"
+    },
+    {
+      "id": "D-V1",
+      "set": "p1",
+      "group": "4d",
+      "kind": "video",
+      "path": "videos/125-dark/shelf-drag-in.mp4",
+      "duration": [
+        6,
+        20
+      ],
+      "required": true
+    },
+    {
+      "id": "D-V2",
+      "set": "p1",
+      "group": "4d",
+      "kind": "video",
+      "path": "videos/125-dark/shelf-drag-out.mp4",
+      "duration": [
+        6,
+        20
+      ],
+      "required": true
+    },
+    {
+      "id": "E-01",
+      "set": "p1",
+      "group": "4e",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/toast-volume-45.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "E-02",
+      "set": "p1",
+      "group": "4e",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/toast-volume-muted.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "E-03",
+      "set": "p1",
+      "group": "4e",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/toast-brightness-70.png",
+      "capture": "canvas",
+      "required": false,
+      "condition": "internal panel only"
+    },
+    {
+      "id": "E-04",
+      "set": "p1",
+      "group": "4e",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/toast-charging.png",
+      "capture": "canvas",
+      "required": false,
+      "condition": "laptop battery only"
+    },
+    {
+      "id": "E-05",
+      "set": "p1",
+      "group": "4e",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/settings-appearance-off.png",
+      "capture": "settings",
+      "required": true
+    },
+    {
+      "id": "E-V1",
+      "set": "p1",
+      "group": "4e",
+      "kind": "video",
+      "path": "videos/125-dark/mascot-idle-40s.mp4",
+      "duration": [
+        35,
+        60
+      ],
+      "required": true
+    },
+    {
+      "id": "E-V2",
+      "set": "p1",
+      "group": "4e",
+      "kind": "video",
+      "path": "videos/125-dark/mascot-wake.mp4",
+      "duration": [
+        4,
+        20
+      ],
+      "required": true
+    },
+    {
+      "id": "E-V3",
+      "set": "p1",
+      "group": "4e",
+      "kind": "video",
+      "path": "videos/125-dark/overlay-volume-sweep.mp4",
+      "duration": [
+        5,
+        20
+      ],
+      "required": true
+    },
+    {
+      "id": "E-V4",
+      "set": "p1",
+      "group": "4e",
+      "kind": "video",
+      "path": "videos/125-dark/overlay-brightness-sweep.mp4",
+      "duration": [
+        5,
+        20
+      ],
+      "required": false,
+      "condition": "internal panel only"
+    },
+    {
+      "id": "E-V5",
+      "set": "p1",
+      "group": "4e",
+      "kind": "video",
+      "path": "videos/125-dark/bouncy-on.mp4",
+      "duration": [
+        4,
+        20
+      ],
+      "required": true
+    },
+    {
+      "id": "E-V6",
+      "set": "p1",
+      "group": "4e",
+      "kind": "video",
+      "path": "videos/125-dark/bouncy-off.mp4",
+      "duration": [
+        4,
+        20
+      ],
+      "required": true
+    },
+    {
+      "id": "E-V7",
+      "set": "p1",
+      "group": "4e",
+      "kind": "video",
+      "path": "videos/125-dark/glass-off.mp4",
+      "duration": [
+        4,
+        20
+      ],
+      "required": true
+    },
+    {
+      "id": "E-V8",
+      "set": "p1",
+      "group": "4e",
+      "kind": "video",
+      "path": "videos/125-dark/fullscreen-hide.mp4",
+      "duration": [
+        8,
+        25
+      ],
+      "required": true
+    },
+    {
+      "id": "E-S1",
+      "set": "p1",
+      "group": "4e",
+      "kind": "preset",
+      "path": "settings/03-glass-off.json",
+      "required": true
+    },
+    {
+      "id": "E-S2",
+      "set": "p1",
+      "group": "4e",
+      "kind": "preset",
+      "path": "settings/04-bouncy-off.json",
+      "required": true
+    },
+    {
+      "id": "E-S3",
+      "set": "p1",
+      "group": "4e",
+      "kind": "preset",
+      "path": "settings/05-mascot-off.json",
+      "required": true
+    },
+    {
+      "id": "E-S4",
+      "set": "p1",
+      "group": "4e",
+      "kind": "preset",
+      "path": "settings/06-overlays-off.json",
+      "required": true
+    },
+    {
+      "id": "F-01",
+      "set": "p1",
+      "group": "4f",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/camera-live.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "F-02",
+      "set": "p1",
+      "group": "4f",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/camera-mirror-on.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "F-03",
+      "set": "p1",
+      "group": "4f",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/camera-mirror-off.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "F-04",
+      "set": "p1",
+      "group": "4f",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/camera-saving.png",
+      "capture": "canvas",
+      "required": false,
+      "condition": "transient; recover from a video frame"
+    },
+    {
+      "id": "F-05",
+      "set": "p1",
+      "group": "4f",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/camera-after-shot.png",
+      "capture": "canvas",
+      "required": false,
+      "condition": "transient; recover from a video frame"
+    },
+    {
+      "id": "F-06",
+      "set": "p1",
+      "group": "4f",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/camera-no-device.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "F-07",
+      "set": "p1",
+      "group": "4f",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/camera-blocked.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "F-08",
+      "set": "p1",
+      "group": "4f",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/camera-busy.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "F-09",
+      "set": "p1",
+      "group": "4f",
+      "kind": "screenshot",
+      "path": "screenshots/125-dark/camera-collapsed.png",
+      "capture": "canvas",
+      "required": true
+    },
+    {
+      "id": "F-V1",
+      "set": "p1",
+      "group": "4f",
+      "kind": "video",
+      "path": "videos/125-dark/camera-shutter-flash.mp4",
+      "duration": [
+        4,
+        20
+      ],
+      "required": true
+    },
+    {
+      "id": "F-V2",
+      "set": "p1",
+      "group": "4f",
+      "kind": "video",
+      "path": "videos/125-dark/camera-switch.mp4",
+      "duration": [
+        6,
+        20
+      ],
+      "required": false,
+      "condition": "two camera devices"
+    },
+    {
+      "id": "F-S1",
+      "set": "p1",
+      "group": "4f",
+      "kind": "sample",
+      "path": "samples/camera/*.jpg",
+      "count": 3,
+      "required": true
+    },
+    {
+      "id": "F-S2",
+      "set": "p1",
+      "group": "4f",
+      "kind": "preset",
+      "path": "settings/12-camera-mirror-off.json",
+      "required": true
+    },
+    {
+      "id": "E-S5",
+      "set": "p1",
+      "group": "4e",
+      "kind": "preset",
+      "path": "settings/14-appearance-off.json",
+      "required": true
+    }
+  ]
+}
