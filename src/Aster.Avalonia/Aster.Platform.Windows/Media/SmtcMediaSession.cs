@@ -31,6 +31,7 @@ public sealed class SmtcMediaSession : IMediaSession, IDisposable
 
     public MediaSnapshot Current => Volatile.Read(ref _current);
     public event EventHandler<MediaSnapshot>? Changed;
+    public event EventHandler<MediaSnapshot>? PropertiesChanged;
 
     public void Start()
     {
@@ -271,6 +272,10 @@ public sealed class SmtcMediaSession : IMediaSession, IDisposable
             MediaProgress.ClampSeek(position, duration),
             duration,
             source,
+            trackKey,
+            true,
+            playback.Controls?.IsNextEnabled ?? false,
+            playback.Controls?.IsPreviousEnabled ?? false,
             DateTimeOffset.Now);
 
         Publish(snapshot);
@@ -290,9 +295,28 @@ public sealed class SmtcMediaSession : IMediaSession, IDisposable
 
     private void Publish(MediaSnapshot snapshot)
     {
+        var previous = Volatile.Read(ref _current);
         Volatile.Write(ref _current, snapshot);
-        _dispatcher.Post(() => Changed?.Invoke(this, snapshot));
+        _dispatcher.Post(() =>
+        {
+            Changed?.Invoke(this, snapshot);
+            if (IdentityChanged(previous, snapshot))
+            {
+                PropertiesChanged?.Invoke(this, snapshot);
+            }
+        });
     }
+
+    private static bool IdentityChanged(MediaSnapshot previous, MediaSnapshot current) =>
+        !string.Equals(previous.TrackId, current.TrackId, StringComparison.Ordinal) ||
+        !string.Equals(previous.Title, current.Title, StringComparison.Ordinal) ||
+        !string.Equals(previous.Artist, current.Artist, StringComparison.Ordinal) ||
+        !string.Equals(previous.Album, current.Album, StringComparison.Ordinal) ||
+        previous.Duration != current.Duration ||
+        previous.Playback != current.Playback ||
+        previous.CanSeek != current.CanSeek ||
+        previous.CanGoNext != current.CanGoNext ||
+        previous.CanGoPrevious != current.CanGoPrevious;
 
     public void Dispose()
     {

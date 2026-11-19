@@ -22,7 +22,8 @@ public class MediaViewModelTests
     {
         var snapshot = new MediaSnapshot(
             "Track", "Artist", "", null, "key", PlaybackState.Stopped,
-            TimeSpan.Zero, TimeSpan.FromMinutes(3), "Spotify", DateTimeOffset.Now);
+            TimeSpan.Zero, TimeSpan.FromMinutes(3), "Spotify",
+            "track-1", true, true, true, DateTimeOffset.Now);
         var vm = new MediaViewModel(new FakeMedia(snapshot), new InlineDispatcher(), new NullLog());
 
         Assert.False(vm.HasSession);
@@ -33,7 +34,8 @@ public class MediaViewModelTests
     {
         var snapshot = new MediaSnapshot(
             "Track", "", "Album", null, "key", PlaybackState.Paused,
-            TimeSpan.FromSeconds(10), TimeSpan.FromMinutes(3), "Spotify", DateTimeOffset.Now);
+            TimeSpan.FromSeconds(10), TimeSpan.FromMinutes(3), "Spotify",
+            "track-1", true, true, true, DateTimeOffset.Now);
         var vm = new MediaViewModel(new FakeMedia(snapshot), new InlineDispatcher(), new NullLog());
 
         Assert.True(vm.HasSession);
@@ -47,6 +49,11 @@ public class MediaViewModelTests
         public FakeMedia(MediaSnapshot snapshot) => Current = snapshot;
         public MediaSnapshot Current { get; private set; }
         public event EventHandler<MediaSnapshot>? Changed;
+        public event EventHandler<MediaSnapshot>? PropertiesChanged
+        {
+            add { }
+            remove { }
+        }
         public Task PlayPauseAsync(CancellationToken ct = default) => Task.CompletedTask;
         public Task NextAsync(CancellationToken ct = default) => Task.CompletedTask;
         public Task PreviousAsync(CancellationToken ct = default) => Task.CompletedTask;

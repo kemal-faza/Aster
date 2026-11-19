@@ -200,6 +200,12 @@ public class AppServicesTests
             remove { }
         }
 
+        public event EventHandler<MediaSnapshot>? PropertiesChanged
+        {
+            add { }
+            remove { }
+        }
+
         public Task PlayPauseAsync(CancellationToken ct = default) => Task.CompletedTask;
 
         public Task NextAsync(CancellationToken ct = default) => Task.CompletedTask;

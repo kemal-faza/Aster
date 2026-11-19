@@ -85,7 +85,8 @@ public class ShellStatusTests
 
     private static MediaSnapshot Snapshot(PlaybackState playback) => new(
         "Track", "Artist", string.Empty, null, "key", playback,
-        TimeSpan.Zero, TimeSpan.FromMinutes(3), "Spotify", DateTimeOffset.Now);
+        TimeSpan.Zero, TimeSpan.FromMinutes(3), "Spotify",
+        "track-1", true, true, true, DateTimeOffset.Now);
 
     private sealed class FakeMedia : IMediaSession
     {
@@ -93,6 +94,11 @@ public class ShellStatusTests
 
         public MediaSnapshot Current { get; private set; }
         public event EventHandler<MediaSnapshot>? Changed;
+        public event EventHandler<MediaSnapshot>? PropertiesChanged
+        {
+            add { }
+            remove { }
+        }
         public Task PlayPauseAsync(CancellationToken ct = default) => Task.CompletedTask;
         public Task NextAsync(CancellationToken ct = default) => Task.CompletedTask;
         public Task PreviousAsync(CancellationToken ct = default) => Task.CompletedTask;

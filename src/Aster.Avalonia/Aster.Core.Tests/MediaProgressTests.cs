@@ -10,7 +10,19 @@ public class MediaProgressTests
         TimeSpan position,
         TimeSpan duration,
         DateTimeOffset updatedAt) =>
-        new("T", "A", "", null, "k", state, position, duration, "test", updatedAt);
+        new("T", "A", "", null, "k", state, position, duration, "test",
+            "track-1", true, true, false, updatedAt);
+
+    [Fact]
+    public void SnapshotCarriesIdentityAndCapabilities()
+    {
+        var snapshot = Snapshot(PlaybackState.Playing, TimeSpan.Zero, TimeSpan.FromMinutes(3), DateTimeOffset.UtcNow);
+
+        Assert.Equal("track-1", snapshot.TrackId);
+        Assert.True(snapshot.CanSeek);
+        Assert.True(snapshot.CanGoNext);
+        Assert.False(snapshot.CanGoPrevious);
+    }
 
     [Fact]
     public void PlayingAddsElapsedTime()

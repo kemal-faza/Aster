@@ -18,6 +18,10 @@ public sealed record MediaSnapshot(
     TimeSpan Position,
     TimeSpan Duration,
     string SourceApp,
+    string TrackId,
+    bool CanSeek,
+    bool CanGoNext,
+    bool CanGoPrevious,
     DateTimeOffset UpdatedAt)
 {
     public static MediaSnapshot Empty { get; } = new(
@@ -30,6 +34,10 @@ public sealed record MediaSnapshot(
         TimeSpan.Zero,
         TimeSpan.Zero,
         string.Empty,
+        string.Empty,
+        false,
+        false,
+        false,
         DateTimeOffset.MinValue);
 
     public bool HasSession => Playback is PlaybackState.Playing or PlaybackState.Paused;

@@ -6,6 +6,7 @@ public interface IMediaSession
 {
     MediaSnapshot Current { get; }
     event EventHandler<MediaSnapshot>? Changed;
+    event EventHandler<MediaSnapshot>? PropertiesChanged;
     Task PlayPauseAsync(CancellationToken ct = default);
     Task NextAsync(CancellationToken ct = default);
     Task PreviousAsync(CancellationToken ct = default);
