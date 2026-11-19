@@ -308,7 +308,73 @@
                       </Border>
                     </StackPanel>
 
-                    <StackPanel x:Name="LyricsPage" IsVisible="False" />
+                    <StackPanel x:Name="LyricsPage" IsVisible="False">
+                      <Border Classes="settings-card">
+                        <StackPanel>
+                          <TextBlock Classes="settings-card-title" Text="SOURCE" />
+                          <CheckBox x:Name="LyricsEnabledToggle"
+                                    Theme="{StaticResource ToggleSwitch}"
+                                    IsChecked="{Binding LyricsEnabled, Mode=TwoWay}"
+                                    IsEnabled="{Binding CanSave}"
+                                    automation:AutomationProperties.Name="Fetch lyrics from LRCLIB"
+                                    automation:AutomationProperties.HelpText="Only title, artist, album, and duration are sent.">
+                            <StackPanel>
+                              <TextBlock Classes="settings-label" Text="Fetch lyrics from LRCLIB" />
+                              <TextBlock Classes="settings-description"
+                                         Text="Only title, artist, album, and duration are sent. The cache stays local." />
+                            </StackPanel>
+                          </CheckBox>
+                        </StackPanel>
+                      </Border>
+
+                      <Border Classes="settings-card">
+                        <StackPanel>
+                          <TextBlock Classes="settings-card-title" Text="HIGHLIGHT COLOR" />
+                          <Grid Margin="0,0,0,10" ColumnDefinitions="*,Auto">
+                            <StackPanel>
+                              <TextBlock Classes="settings-label" Text="Active lyric line" />
+                              <TextBlock Classes="settings-description"
+                                         Text="Used for the highlighted line in the lyrics card." />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                              <Border Width="26" Height="26" CornerRadius="8"
+                                      Background="{Binding LyricsHighlightBrush}"
+                                      BorderBrush="#33FFFFFF" BorderThickness="1"
+                                      Margin="0,0,8,0" />
+                              <TextBox x:Name="LyricsColorBox" Classes="settings-textbox"
+                                       Width="90" MaxLength="7"
+                                       Text="{Binding LyricsHighlightColor, Mode=OneWay}"
+                                       TextAlignment="Center"
+                                       LostFocus="OnLyricsColorCommitted"
+                                       KeyDown="OnLyricsColorKeyDown" />
+                            </StackPanel>
+                          </Grid>
+
+                          <Border CornerRadius="10" Padding="10,8" Margin="0,0,0,12"
+                                  Background="{Binding LyricsPreviewBrush}">
+                            <TextBlock Text="Active lyric line" FontSize="12" FontWeight="Medium" />
+                          </Border>
+
+                          <WrapPanel Margin="0,0,0,2">
+                            <Button Width="24" Height="24" CornerRadius="7" Margin="0,0,8,8"
+                                    Background="#7C9CFF" Tag="#7C9CFF" Click="OnLyricsSwatchClick" ToolTip.Tip="Blue" />
+                            <Button Width="24" Height="24" CornerRadius="7" Margin="0,0,8,8"
+                                    Background="#32D74B" Tag="#32D74B" Click="OnLyricsSwatchClick" ToolTip.Tip="Green" />
+                            <Button Width="24" Height="24" CornerRadius="7" Margin="0,0,8,8"
+                                    Background="#FFB86B" Tag="#FFB86B" Click="OnLyricsSwatchClick" ToolTip.Tip="Amber" />
+                            <Button Width="24" Height="24" CornerRadius="7" Margin="0,0,8,8"
+                                    Background="#FF6B9D" Tag="#FF6B9D" Click="OnLyricsSwatchClick" ToolTip.Tip="Pink" />
+                            <Button Width="24" Height="24" CornerRadius="7" Margin="0,0,8,8"
+                                    Background="#C08CFF" Tag="#C08CFF" Click="OnLyricsSwatchClick" ToolTip.Tip="Purple" />
+                            <Button Width="24" Height="24" CornerRadius="7" Margin="0,0,8,8"
+                                    Background="#F5F5F7" Tag="#F5F5F7" Click="OnLyricsSwatchClick" ToolTip.Tip="White" />
+                          </WrapPanel>
+
+                          <TextBlock Classes="settings-description"
+                                     Text="Hex #RRGGBB · default #7C9CFF" />
+                        </StackPanel>
+                      </Border>
+                    </StackPanel>
                     <StackPanel x:Name="FocusPage" IsVisible="False" />
                     <StackPanel x:Name="WaterPage" IsVisible="False" />
 
@@ -322,6 +388,15 @@
                                   Click="OnOpenDataFolderClick"
                                   automation:AutomationProperties.Name="Open data folder"
                                   automation:AutomationProperties.HelpText="Open the Aster data folder in your file manager." />
+                          <Button Theme="{StaticResource SettingsGhostButton}"
+                                  Content="Clear lyrics cache"
+                                  HorizontalAlignment="Left"
+                                  Margin="0,8,0,0"
+                                  Click="OnClearLyricsCacheClick"
+                                  automation:AutomationProperties.Name="Clear lyrics cache"
+                                  automation:AutomationProperties.HelpText="Remove cached lyrics. The next song is fetched again." />
+                          <TextBlock x:Name="LyricsCacheStatus" Classes="tertiary"
+                                     Margin="0,6,0,0" />
                           <TextBlock Text="{Binding DataPath}"
                                      Classes="tertiary"
                                      Margin="0,8,0,0"

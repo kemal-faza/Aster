@@ -26,4 +26,15 @@
     <Setter Property="LineHeight" Value="15" />
     <Setter Property="TextWrapping" Value="Wrap" />
   </Style>
+  <Style Selector="TextBox.settings-textbox">
+    <Setter Property="Background" Value="#16161A" />
+    <Setter Property="Foreground" Value="{StaticResource TextPrimary}" />
+    <Setter Property="CaretBrush" Value="{StaticResource TextPrimary}" />
+    <Setter Property="BorderBrush" Value="#2A2A32" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Padding" Value="8,6" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="TextAlignment" Value="Center" />
+  </Style>
 </Styles>

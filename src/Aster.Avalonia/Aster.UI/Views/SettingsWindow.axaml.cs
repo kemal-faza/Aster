@@ -86,4 +86,45 @@ public partial class SettingsWindow : Window
             viewModel.OpenDataFolder();
         }
     }
+
+    private void OnClearLyricsCacheClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is SettingsViewModel vm && vm.ClearLyricsCache?.Invoke() == true)
+        {
+            LyricsCacheStatus.Text = "Lyrics cache cleared.";
+        }
+    }
+
+    private void OnLyricsColorCommitted(object? sender, RoutedEventArgs e) =>
+        CommitLyricsColor();
+
+    private void OnLyricsColorKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter)
+        {
+            CommitLyricsColor();
+            e.Handled = true;
+        }
+    }
+
+    private void CommitLyricsColor()
+    {
+        if (DataContext is not SettingsViewModel vm)
+        {
+            return;
+        }
+
+        vm.TrySetLyricsColor(LyricsColorBox.Text);
+        LyricsColorBox.Text = vm.LyricsHighlightColor;
+    }
+
+    private void OnLyricsSwatchClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is SettingsViewModel vm &&
+            sender is Button { Tag: string hex })
+        {
+            vm.TrySetLyricsColor(hex);
+            LyricsColorBox.Text = vm.LyricsHighlightColor;
+        }
+    }
 }

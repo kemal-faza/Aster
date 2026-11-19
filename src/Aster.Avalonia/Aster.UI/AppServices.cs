@@ -58,6 +58,11 @@ public sealed class AppServices : IAsyncDisposable
         Lyrics = new LyricsService(
             settings, new LrclibLyricsProvider(), cache, dispatcher, log);
         LyricsViewModel = new LyricsViewModel(Lyrics, media, SettingsViewModel);
+        SettingsViewModel.ClearLyricsCache = () =>
+        {
+            Lyrics.ClearCache();
+            return true;
+        };
         Media.PropertiesChanged += (_, snapshot) => _ = Lyrics.LoadAsync(snapshot);
 
         Shell = new ShellViewModel(Battery, Network, media, factory.Capabilities)

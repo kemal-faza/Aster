@@ -70,6 +70,18 @@ public class SettingsViewModelTests
     }
 
     [Fact]
+    public void LyricsColorRejectsInvalidAndNormalizesValid()
+    {
+        var vm = new SettingsViewModel(new FakeStore(), new NullLog(), "Start with system");
+
+        Assert.True(vm.TrySetLyricsColor("#32d74b"));
+        Assert.Equal("#32D74B", vm.LyricsHighlightColor);
+
+        Assert.False(vm.TrySetLyricsColor("nope"));
+        Assert.Equal("#32D74B", vm.LyricsHighlightColor);
+    }
+
+    [Fact]
     public void NewerSchemaDisablesSave()
     {
         var store = new FakeStore { CanSave = false, Warning = "newer" };
