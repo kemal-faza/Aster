@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using Aster.Core.Logic;
 using Aster.Core.Lyrics;
+using Aster.UI.Controls;
 using Avalonia;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -48,6 +49,17 @@ public partial class LyricsViewModel : ObservableObject, IDisposable
 
     public bool HasMedia => _media.HasSession;
     public bool CanRefresh => _media.HasSession && !_lyrics.IsLoading && _settings.LyricsEnabled;
+    public bool HasLines => Lines.Count > 0;
+    public bool ShowMessage => !HasLines;
+    public string MessageText =>
+        !_media.HasSession
+            ? "Play something to see lyrics"
+            : _lyrics.IsLoading
+                ? "Searching lyrics..."
+                : _lyrics.Current?.IsInstrumental == true
+                    ? "Instrumental track"
+                    : _lyrics.StatusMessage ?? "No lyrics found for this track";
+    public string RefreshGlyph => Glyph.Get(Glyph.Kind.Refresh);
 
     private void OnLyricsChanged(object? sender, EventArgs e)
     {
@@ -67,6 +79,7 @@ public partial class LyricsViewModel : ObservableObject, IDisposable
             ? AccentBrush
             : MutedBrush;
         Rebuild();
+        OnPropertyChanged(nameof(MessageText));
     }
 
     private void Rebuild()
@@ -94,6 +107,9 @@ public partial class LyricsViewModel : ObservableObject, IDisposable
 
         UpdateActiveIndex();
         UpdateLineStyles();
+        OnPropertyChanged(nameof(HasLines));
+        OnPropertyChanged(nameof(ShowMessage));
+        OnPropertyChanged(nameof(MessageText));
     }
 
     private void OnMediaPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)

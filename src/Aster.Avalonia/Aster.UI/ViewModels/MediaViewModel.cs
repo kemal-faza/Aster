@@ -63,6 +63,23 @@ public partial class MediaViewModel : ObservableObject
         }
     };
 
+    public IBrush LyricsGlowBrush => CreateGlowBrush(AccentColor);
+
+    private static IBrush CreateGlowBrush(Color color) =>
+        new RadialGradientBrush
+        {
+            GradientOrigin = new RelativePoint(0.82, 0.04, RelativeUnit.Relative),
+            Center = new RelativePoint(0.82, 0.04, RelativeUnit.Relative),
+            RadiusX = new RelativeScalar(0.9, RelativeUnit.Relative),
+            RadiusY = new RelativeScalar(1.0, RelativeUnit.Relative),
+            GradientStops = new GradientStops
+            {
+                new(Color.FromArgb(36, color.R, color.G, color.B), 0),
+                new(Color.FromArgb(12, color.R, color.G, color.B), 0.55),
+                new(Color.FromArgb(0, color.R, color.G, color.B), 1)
+            }
+        };
+
     public MediaViewModel(IMediaSession media, IUiDispatcher dispatcher, IAppLog log)
     {
         _media = media;
@@ -91,8 +108,11 @@ public partial class MediaViewModel : ObservableObject
     partial void OnCanGoNextChanged(bool value) => NextCommand.NotifyCanExecuteChanged();
     partial void OnCanGoPreviousChanged(bool value) => PreviousCommand.NotifyCanExecuteChanged();
     partial void OnIsPlayingChanged(bool value) => OnPropertyChanged(nameof(PlayingDotOpacity));
-    partial void OnAccentColorChanged(Color value) =>
+    partial void OnAccentColorChanged(Color value)
+    {
         OnPropertyChanged(nameof(AccentGlowBrush));
+        OnPropertyChanged(nameof(LyricsGlowBrush));
+    }
 
     private void OnMediaChanged(object? sender, MediaSnapshot snapshot) =>
         _dispatcher.Post(() => Apply(snapshot));

@@ -2,12 +2,20 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:automation="using:Avalonia.Automation"
              xmlns:vm="using:Aster.UI.ViewModels"
+             xmlns:views="using:Aster.UI.Views"
              xmlns:controls="using:Aster.UI.Controls"
              x:Class="Aster.UI.Views.MusicView"
              x:DataType="vm:ShellViewModel">
   <Grid RowDefinitions="152,18" ClipToBounds="True">
     <StackPanel Orientation="Horizontal" ClipToBounds="True">
       <Grid x:Name="MusicMedia" Width="464" Margin="0,8,0,4" ColumnDefinitions="92,16,*">
+        <Grid.Transitions>
+          <Transitions>
+            <DoubleTransition Property="Width" Duration="0:0:0.3">
+              <DoubleTransition.Easing><CubicEaseOut /></DoubleTransition.Easing>
+            </DoubleTransition>
+          </Transitions>
+        </Grid.Transitions>
         <Grid Width="92" Height="92" VerticalAlignment="Center">
           <Ellipse x:Name="Vinyl" Width="100" Height="100"
                    HorizontalAlignment="Left" VerticalAlignment="Center"
@@ -86,12 +94,44 @@
                     IsEnabled="{Binding Media.CanGoNext}"
                     automation:AutomationProperties.Name="Next track"
                     ToolTip.Tip="Next" />
-            <Button Grid.Column="4" Theme="{StaticResource GlyphButton}"
-                    Content="{Binding LyricsGlyph}" IsEnabled="False"
+            <Button x:Name="LyricsButton" Grid.Column="4" Theme="{StaticResource GlyphButton}"
+                    Content="{Binding LyricsGlyph}" IsEnabled="{Binding Media.HasSession}"
+                    Click="OnLyricsClick"
                     automation:AutomationProperties.Name="Lyrics"
-                    ToolTip.Tip="Lyrics" />
+                    ToolTip.Tip="Show lyrics" />
           </Grid>
         </Grid>
+      </Grid>
+
+      <Grid x:Name="LyricsPane" Width="0" ClipToBounds="True">
+        <Grid.Transitions>
+          <Transitions>
+            <DoubleTransition Property="Width" Duration="0:0:0.3">
+              <DoubleTransition.Easing><CubicEaseOut /></DoubleTransition.Easing>
+            </DoubleTransition>
+          </Transitions>
+        </Grid.Transitions>
+        <Border Margin="8,2,6,6" CornerRadius="18" ClipToBounds="True"
+                BorderBrush="{StaticResource LyricsCardStroke}" BorderThickness="1">
+          <Grid>
+            <Border CornerRadius="18" IsVisible="{Binding GlassBackground}"
+                    Background="{StaticResource IslandGlassLyrics}" />
+            <Border CornerRadius="18" IsVisible="{Binding !GlassBackground}"
+                    Background="{StaticResource IslandSolidLyrics}" />
+            <Border CornerRadius="18" IsHitTestVisible="False"
+                    Background="{Binding Media.LyricsGlowBrush}" />
+            <Border Height="58" VerticalAlignment="Top" CornerRadius="18"
+                    IsHitTestVisible="False">
+              <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                  <GradientStop Color="#1AFFFFFF" Offset="0" />
+                  <GradientStop Color="#00FFFFFF" Offset="1" />
+                </LinearGradientBrush>
+              </Border.Background>
+            </Border>
+            <views:LyricsView x:Name="LyricsView" DataContext="{Binding Lyrics}" />
+          </Grid>
+        </Border>
       </Grid>
     </StackPanel>
 
