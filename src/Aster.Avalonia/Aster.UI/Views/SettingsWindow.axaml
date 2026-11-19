@@ -6,7 +6,7 @@
         x:Class="Aster.UI.Views.SettingsWindow"
         x:DataType="vm:SettingsViewModel"
         Title="Aster Settings"
-        Width="740" Height="580"
+        Width="752" Height="592"
         CanResize="False"
         WindowStartupLocation="Manual"
         WindowDecorations="None"
@@ -14,7 +14,7 @@
         Background="Transparent"
         KeyDown="OnKeyDown">
   <Grid>
-    <Border Margin="10"
+    <Border Margin="16"
             CornerRadius="22"
             Background="{StaticResource SettingsWindowSurface}"
             BorderBrush="{StaticResource SettingsWindowBorder}"

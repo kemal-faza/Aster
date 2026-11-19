@@ -199,9 +199,9 @@ import sys
 from PIL import Image
 
 image = Image.open(sys.argv[1]).convert("RGB")
-scale = image.width / 740.0
+scale = image.width / 752.0
 x = image.width // 2
-y = max(1, round(12 * scale))
+y = max(1, round(18 * scale))
 inset = image.getpixel((x, 2))
 surface = image.getpixel((x, y))
 if max(inset) > 30:
