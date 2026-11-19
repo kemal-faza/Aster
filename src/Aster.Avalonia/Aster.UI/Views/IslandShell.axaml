@@ -20,6 +20,7 @@
                HorizontalAlignment="Left" VerticalAlignment="Top"
                Margin="-70,-74,0,0"
                IsHitTestVisible="False"
+               Opacity="{Binding ExpandedOpacity}"
                Fill="{Binding Media.AccentGlowBrush}" />
       <Grid x:Name="CollapsedLayer" Opacity="{Binding CollapsedOpacity}"
             IsVisible="{Binding !IsMinimal}">

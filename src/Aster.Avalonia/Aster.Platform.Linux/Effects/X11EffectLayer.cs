@@ -4,8 +4,6 @@ using Aster.Core.Models;
 using Aster.UI.Abstractions;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Shapes;
-using Avalonia.Layout;
 using Avalonia.Media;
 using AvaloniaWindow = Avalonia.Controls.Window;
 
@@ -17,10 +15,12 @@ public sealed class X11EffectLayer : IEffectLayer
 
     private readonly IAppLog _log;
     private AvaloniaWindow? _window;
-    private Ellipse? _accentGlow;
+    private Border? _shadowCarrier;
+    private Border? _accentGlow;
     private IntPtr _islandHandle;
     private uint _accentArgb = DefaultAccentArgb;
     private bool _disabled;
+    private bool _visible;
 
     public X11EffectLayer(IAppLog log) => _log = log;
 
@@ -47,6 +47,7 @@ public sealed class X11EffectLayer : IEffectLayer
                 Topmost = true,
                 ShowInTaskbar = false,
                 ShowActivated = false,
+                Opacity = 0,
                 CanResize = false,
                 WindowStartupLocation = WindowStartupLocation.Manual,
                 Content = BuildContent()
@@ -56,7 +57,14 @@ public sealed class X11EffectLayer : IEffectLayer
             // empty input shape is what makes the effect window click-through.
             // If the platform cannot provide transparency or the shape fails,
             // hide the window instead of leaving an interactive overlay.
-            window.Opened += (_, _) => VerifyAndApply(window);
+            window.Opened += (_, _) =>
+            {
+                VerifyAndApply(window);
+                if (!_visible)
+                {
+                    window.Hide();
+                }
+            };
             _window = window;
             // Show(owner) sets Owner; the setter itself is not public.
             window.Show(island);
@@ -78,17 +86,27 @@ public sealed class X11EffectLayer : IEffectLayer
 
         try
         {
-            if (!state.Visible)
+            // The effect layer stays mapped in the collapsed state so the
+            // panel keeps a neutral shadow. Only the accent glow is gated by
+            // expansion; otherwise a collapsed pill would get a pink halo.
+            var shouldShow = state.Visible;
+            if (!shouldShow)
             {
-                if (window.IsVisible)
-                {
-                    window.Hide();
-                }
-
+                _visible = false;
+                // Attach maps the effect window before the first hidden-state
+                // update, and the pending Show may finish after this update.
+                // Opened re-checks _visible and hides it again.
+                window.Hide();
                 return;
             }
 
+            _visible = true;
             ApplyAccent(state.AccentArgb);
+            UpdateContent(EffectLayerGeometry.ContentFor(state));
+            if (_accentGlow is not null)
+            {
+                _accentGlow.Opacity = Math.Clamp(state.ExpansionProgress, 0, 1);
+            }
 
             if (!window.IsVisible)
             {
@@ -108,9 +126,7 @@ public sealed class X11EffectLayer : IEffectLayer
             window.Position = new PixelPoint(bounds.X, bounds.Y);
             window.Width = bounds.Width / scaling;
             window.Height = bounds.Height / scaling;
-            window.Opacity = state.Minimal
-                ? 0.55
-                : 0.9 * Math.Clamp(state.ExpansionProgress, 0, 1);
+            window.Opacity = state.Minimal ? 0.55 : 0.9;
         }
         catch (Exception ex)
         {
@@ -123,7 +139,9 @@ public sealed class X11EffectLayer : IEffectLayer
     {
         var window = _window;
         _window = null;
+        _shadowCarrier = null;
         _accentGlow = null;
+        _visible = false;
         if (window is null)
         {
             return;
@@ -180,7 +198,9 @@ public sealed class X11EffectLayer : IEffectLayer
         _log.Warn(reason);
         var window = _window;
         _window = null;
+        _shadowCarrier = null;
         _accentGlow = null;
+        _visible = false;
         if (window is null)
         {
             return;
@@ -199,29 +219,48 @@ public sealed class X11EffectLayer : IEffectLayer
 
     private Control BuildContent()
     {
-        _accentGlow = new Ellipse
+        _shadowCarrier = new Border
         {
-            Width = 540,
-            Height = 150,
-            Margin = new Thickness(0, 142, 0, 0),
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Top,
-            Fill = BuildGlowBrush(_accentArgb)
+            CornerRadius = new CornerRadius(0, 0, 22, 22),
+            BoxShadow = BoxShadows.Parse("0 8 32 0 #8C000000"),
+            IsHitTestVisible = false
+        };
+
+        // A Border background is clipped by CornerRadius, so the glow can never
+        // leak past the island shape even while the island is animating.
+        _accentGlow = new Border
+        {
+            CornerRadius = new CornerRadius(0, 0, 22, 22),
+            Background = BuildGlowBrush(_accentArgb),
+            IsHitTestVisible = false
         };
 
         return new Grid
         {
             Children =
             {
-                new Border
-                {
-                    Margin = new Thickness(120, 0, 120, 200),
-                    CornerRadius = new CornerRadius(0, 0, 22, 22),
-                    BoxShadow = BoxShadows.Parse("0 8 32 0 #8C000000")
-                },
+                _shadowCarrier,
                 _accentGlow
             }
         };
+    }
+
+    private void UpdateContent(EffectLayerContent content)
+    {
+        if (_shadowCarrier is null || _accentGlow is null)
+        {
+            return;
+        }
+
+        var right = Math.Max(
+            0,
+            EffectLayerGeometry.EffectWidth - content.Left - content.Width);
+        var bottom = Math.Max(
+            0,
+            EffectLayerGeometry.EffectHeight - content.Top - content.Height);
+        var margin = new Thickness(content.Left, content.Top, right, bottom);
+        _shadowCarrier.Margin = margin;
+        _accentGlow.Margin = margin;
     }
 
     private void ApplyAccent(uint argb)
@@ -232,12 +271,18 @@ public sealed class X11EffectLayer : IEffectLayer
         }
 
         _accentArgb = argb;
-        _accentGlow.Fill = BuildGlowBrush(argb);
+        _accentGlow.Background = BuildGlowBrush(argb);
     }
 
     private static RadialGradientBrush BuildGlowBrush(uint argb)
     {
-        var brush = new RadialGradientBrush();
+        var brush = new RadialGradientBrush
+        {
+            GradientOrigin = new RelativePoint(0.5, 0.86, RelativeUnit.Relative),
+            Center = new RelativePoint(0.5, 0.86, RelativeUnit.Relative),
+            RadiusX = new RelativeScalar(1.05, RelativeUnit.Relative),
+            RadiusY = new RelativeScalar(0.3, RelativeUnit.Relative)
+        };
         brush.GradientStops.Add(new GradientStop(WithAlpha(argb, 0x88), 0));
         brush.GradientStops.Add(new GradientStop(WithAlpha(argb, 0x00), 1));
         return brush;

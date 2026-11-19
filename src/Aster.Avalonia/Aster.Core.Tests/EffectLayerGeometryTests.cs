@@ -29,6 +29,61 @@ public class EffectLayerGeometryTests
     }
 
     [Fact]
+    public void ContentTracksTheExpandedIsland()
+    {
+        var state = new EffectLayerState(
+            Visible: true,
+            Minimal: false,
+            ExpansionProgress: 1,
+            Scaling: 2.0,
+            IslandX: 500,
+            IslandY: 0,
+            IslandWidth: 1000,
+            IslandHeight: 504,
+            AccentArgb: 0xFFF6A6C8);
+
+        var content = EffectLayerGeometry.ContentFor(state);
+
+        Assert.Equal(130.0, content.Left, 3);
+        Assert.Equal(0.0, content.Top, 3);
+        Assert.Equal(500.0, content.Width, 3);
+        Assert.Equal(252.0, content.Height, 3);
+        Assert.InRange(content.Left, 0, EffectLayerGeometry.EffectWidth - content.Width);
+        Assert.InRange(
+            content.Top,
+            0,
+            EffectLayerGeometry.EffectHeight - content.Height);
+    }
+
+    [Theory]
+    [InlineData(600, 76, 230.0, 300.0, 38.0)]
+    [InlineData(320, 24, 300.0, 160.0, 12.0)]
+    public void ContentTracksCollapsedAndMinimalIslands(
+        int islandWidth,
+        int islandHeight,
+        double expectedLeft,
+        double expectedWidth,
+        double expectedHeight)
+    {
+        var state = new EffectLayerState(
+            Visible: true,
+            Minimal: false,
+            ExpansionProgress: 0,
+            Scaling: 2.0,
+            IslandX: 1140,
+            IslandY: 0,
+            IslandWidth: islandWidth,
+            IslandHeight: islandHeight,
+            AccentArgb: 0xFFF6A6C8);
+
+        var content = EffectLayerGeometry.ContentFor(state);
+
+        Assert.Equal(expectedLeft, content.Left, 3);
+        Assert.Equal(expectedWidth, content.Width, 3);
+        Assert.Equal(expectedHeight, content.Height, 3);
+    }
+
+    [Fact]
     public void VisibilityHonorsAllGates()
     {
         var visible = new EffectLayerVisibility(

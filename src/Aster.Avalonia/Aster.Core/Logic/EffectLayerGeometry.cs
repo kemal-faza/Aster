@@ -15,6 +15,19 @@ public static class EffectLayerGeometry
         return new EffectLayerBounds(x, state.IslandY, width, height);
     }
 
+    /// <summary>
+    /// The island rectangle inside the fixed effect window. The shadow carrier
+    /// and the accent glow must use this rect so they stay attached to the
+    /// island while it expands, collapses, or switches to the minimal notch.
+    /// </summary>
+    public static EffectLayerContent ContentFor(EffectLayerState state)
+    {
+        var scaling = state.Scaling > 0 ? state.Scaling : 1;
+        var width = Math.Clamp(state.IslandWidth / scaling, 1, EffectWidth);
+        var height = Math.Clamp(state.IslandHeight / scaling, 1, EffectHeight);
+        return new EffectLayerContent((EffectWidth - width) / 2, 0, width, height);
+    }
+
     public static bool IsVisible(EffectLayerVisibility visibility) =>
         visibility.IslandVisible &&
         !visibility.UserHidden &&
@@ -22,3 +35,9 @@ public static class EffectLayerGeometry
         !visibility.SettingsOpen &&
         visibility.GlassEnabled;
 }
+
+public readonly record struct EffectLayerContent(
+    double Left,
+    double Top,
+    double Width,
+    double Height);
