@@ -33,6 +33,77 @@ public class MprisMediaSessionTests
         Assert.Equal("VLC", session.Current.SourceApp);
     }
 
+    [Fact]
+    public async Task PropertiesChangedFiresOnlyWhenTrackIdentityChanges()
+    {
+        var client = new FakeClient
+        {
+            States =
+            {
+                new MprisPlayerState("org.mpris.MediaPlayer2.vlc", "VLC",
+                    new MprisMetadata("Tone 1", "Aster Lab", "Phase 2",
+                        TimeSpan.FromMinutes(2), null, "/1"),
+                    PlaybackState.Playing, TimeSpan.Zero, true, true, true,
+                    DateTimeOffset.UtcNow)
+            }
+        };
+        using var session = new MprisMediaSession(client, new InlineDispatcher(), new NullLog());
+        var changes = 0;
+        session.PropertiesChanged += (_, _) => changes++;
+        session.Start();
+
+        await WaitUntilAsync(() => session.Current.Title == "Tone 1");
+        var afterFirst = changes;
+
+        await session.NextAsync();
+        Assert.Equal(afterFirst, changes);
+
+        client.States[0] = client.States[0] with
+        {
+            Metadata = client.States[0].Metadata with { Title = "Tone 2", TrackId = "/2" },
+            Position = TimeSpan.Zero,
+            UpdatedAt = DateTimeOffset.UtcNow
+        };
+        await session.NextAsync();
+
+        Assert.Equal(afterFirst + 1, changes);
+        Assert.Equal("/2", session.Current.TrackId);
+    }
+
+    [Fact]
+    public async Task SnapshotCarriesMprisCapabilities()
+    {
+        var client = new FakeClient
+        {
+            States =
+            {
+                new MprisPlayerState("org.mpris.MediaPlayer2.vlc", "VLC",
+                    new MprisMetadata("Tone", "", "", TimeSpan.FromMinutes(2), null, "/1"),
+                    PlaybackState.Playing, TimeSpan.Zero, false, true, false,
+                    DateTimeOffset.UtcNow)
+            }
+        };
+        using var session = new MprisMediaSession(client, new InlineDispatcher(), new NullLog());
+        session.Start();
+
+        await WaitUntilAsync(() => session.Current.Title == "Tone");
+
+        Assert.False(session.Current.CanSeek);
+        Assert.True(session.Current.CanGoNext);
+        Assert.False(session.Current.CanGoPrevious);
+        Assert.Equal("/1", session.Current.TrackId);
+    }
+
+    private static async Task WaitUntilAsync(Func<bool> condition)
+    {
+        var deadline = DateTimeOffset.UtcNow.AddSeconds(2);
+        while (!condition() && DateTimeOffset.UtcNow < deadline)
+        {
+            await Task.Delay(10);
+        }
+        Assert.True(condition());
+    }
+
     private sealed class FakeClient : IMprisClient
     {
         public List<MprisPlayerState> States { get; } = new();
