@@ -123,7 +123,7 @@
             <Border Height="58" VerticalAlignment="Top" CornerRadius="18"
                     IsHitTestVisible="False">
               <Border.Background>
-                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
                   <GradientStop Color="#1AFFFFFF" Offset="0" />
                   <GradientStop Color="#00FFFFFF" Offset="1" />
                 </LinearGradientBrush>

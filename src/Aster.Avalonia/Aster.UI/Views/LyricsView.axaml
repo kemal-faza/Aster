@@ -50,7 +50,7 @@
                   Padding="0,2,4,2"
                   PointerWheelChanged="OnWheel">
       <ScrollViewer.OpacityMask>
-        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+        <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
           <GradientStop Color="#00FFFFFF" Offset="0" />
           <GradientStop Color="#FFFFFFFF" Offset="0.04" />
           <GradientStop Color="#FFFFFFFF" Offset="0.96" />
