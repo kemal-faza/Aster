@@ -1,9 +1,11 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Media;
 using Avalonia.Threading;
 using Aster.Core.Logic;
 using Aster.Core.Models;
+using Aster.UI.Media;
 using Aster.UI.Services;
 using Aster.UI.ViewModels;
 
@@ -30,6 +32,16 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         _services = services;
+        if (services.Shell.Media is { } media)
+        {
+            media.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName == nameof(MediaViewModel.AccentColor))
+                {
+                    UpdateEffectLayer();
+                }
+            };
+        }
         _state = services.Shell;
         _settingsViewModel = services.SettingsViewModel;
         DataContext = _state;
@@ -354,8 +366,11 @@ public partial class MainWindow : Window
             IslandY: Position.Y,
             IslandWidth: pixelWidth,
             IslandHeight: pixelHeight,
-            AccentArgb: 0xFFF6A6C8);
+            AccentArgb: ToArgb(_services.Shell.Media?.AccentColor ?? ArtworkAccent.Fallback));
 
         _services.EffectLayer.Update(state);
     }
+
+    private static uint ToArgb(Color color) =>
+        0xFF000000u | ((uint)color.R << 16) | ((uint)color.G << 8) | color.B;
 }

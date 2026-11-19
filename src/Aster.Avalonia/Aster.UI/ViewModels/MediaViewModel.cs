@@ -2,6 +2,8 @@ using System.Globalization;
 using Aster.Core.Interfaces;
 using Aster.Core.Logic;
 using Aster.Core.Models;
+using Aster.UI.Media;
+using Avalonia;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
@@ -48,6 +50,19 @@ public partial class MediaViewModel : ObservableObject
 
     public double PlayingDotOpacity => IsPlaying ? 1 : 0;
 
+    public IBrush AccentGlowBrush => new RadialGradientBrush
+    {
+        GradientOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative),
+        Center = new RelativePoint(0.5, 0.5, RelativeUnit.Relative),
+        RadiusX = new RelativeScalar(0.5, RelativeUnit.Relative),
+        RadiusY = new RelativeScalar(0.5, RelativeUnit.Relative),
+        GradientStops = new GradientStops
+        {
+            new(Color.FromArgb(76, AccentColor.R, AccentColor.G, AccentColor.B), 0),
+            new(Color.FromArgb(0, AccentColor.R, AccentColor.G, AccentColor.B), 1)
+        }
+    };
+
     public MediaViewModel(IMediaSession media, IUiDispatcher dispatcher, IAppLog log)
     {
         _media = media;
@@ -76,6 +91,8 @@ public partial class MediaViewModel : ObservableObject
     partial void OnCanGoNextChanged(bool value) => NextCommand.NotifyCanExecuteChanged();
     partial void OnCanGoPreviousChanged(bool value) => PreviousCommand.NotifyCanExecuteChanged();
     partial void OnIsPlayingChanged(bool value) => OnPropertyChanged(nameof(PlayingDotOpacity));
+    partial void OnAccentColorChanged(Color value) =>
+        OnPropertyChanged(nameof(AccentGlowBrush));
 
     private void OnMediaChanged(object? sender, MediaSnapshot snapshot) =>
         _dispatcher.Post(() => Apply(snapshot));
@@ -182,6 +199,7 @@ public partial class MediaViewModel : ObservableObject
     private async Task DecodeAndApplyAsync(byte[]? bytes, string key)
     {
         var bitmap = await Task.Run(() => Decode(bytes));
+        var accent = await Task.Run(() => ArtworkAccent.Extract(bytes));
         _dispatcher.Post(() =>
         {
             if (!string.Equals(_artKey, key, StringComparison.Ordinal))
@@ -193,6 +211,8 @@ public partial class MediaViewModel : ObservableObject
             ArtworkImage?.Dispose();
             ArtworkImage = bitmap;
             HasArtwork = bitmap is not null;
+            AccentColor = accent;
+            AccentBrush = new SolidColorBrush(accent);
         });
     }
 

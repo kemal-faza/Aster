@@ -67,11 +67,20 @@
                     IsEnabled="{Binding Media.CanGoPrevious}"
                     automation:AutomationProperties.Name="Previous track"
                     ToolTip.Tip="Previous" />
-            <Button Grid.Column="1" Theme="{StaticResource PlayButton}" Margin="8,0"
-                    Content="{Binding PlayGlyph}" Command="{Binding Media.PlayPauseCommand}"
-                    IsEnabled="{Binding Media.HasSession}"
-                    automation:AutomationProperties.Name="Play or pause"
-                    ToolTip.Tip="Play / pause" />
+            <Grid Grid.Column="1" Width="52" Height="36">
+              <Border Width="56" Height="56" CornerRadius="28"
+                      HorizontalAlignment="Center" VerticalAlignment="Center"
+                      Background="{Binding Media.AccentGlowBrush}"
+                      IsHitTestVisible="False" />
+              <Button x:Name="PlayButton" Theme="{StaticResource PlayButton}"
+                      Width="36" Height="36"
+                      HorizontalAlignment="Center" VerticalAlignment="Center"
+                      Background="{Binding Media.AccentBrush}"
+                      Content="{Binding PlayGlyph}" Command="{Binding Media.PlayPauseCommand}"
+                      IsEnabled="{Binding Media.HasSession}"
+                      automation:AutomationProperties.Name="Play or pause"
+                      ToolTip.Tip="Play / pause" />
+            </Grid>
             <Button Grid.Column="2" Theme="{StaticResource GlyphButton}"
                     Content="{Binding NextGlyph}" Command="{Binding Media.NextCommand}"
                     IsEnabled="{Binding Media.CanGoNext}"

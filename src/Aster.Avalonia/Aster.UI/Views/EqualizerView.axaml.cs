@@ -10,6 +10,10 @@ public partial class EqualizerView : UserControl
     public static readonly StyledProperty<bool> IsPlayingProperty =
         AvaloniaProperty.Register<EqualizerView, bool>(nameof(IsPlaying));
 
+    public static readonly StyledProperty<IBrush> AccentBrushProperty =
+        AvaloniaProperty.Register<EqualizerView, IBrush>(
+            nameof(AccentBrush), new SolidColorBrush(Color.Parse("#F6A6C8")));
+
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromMilliseconds(120) };
     private readonly Random _random = new();
     private readonly double[] _levels = { 0.3, 0.3, 0.3, 0.3, 0.3 };
@@ -29,6 +33,16 @@ public partial class EqualizerView : UserControl
             {
                 UpdateTimer();
             }
+
+            if (e.Property == AccentBrushProperty)
+            {
+                var brush = AccentBrush;
+                Bar1.Background = brush;
+                Bar2.Background = brush;
+                Bar3.Background = brush;
+                Bar4.Background = brush;
+                Bar5.Background = brush;
+            }
         };
     }
 
@@ -36,6 +50,12 @@ public partial class EqualizerView : UserControl
     {
         get => GetValue(IsPlayingProperty);
         set => SetValue(IsPlayingProperty, value);
+    }
+
+    public IBrush AccentBrush
+    {
+        get => GetValue(AccentBrushProperty);
+        set => SetValue(AccentBrushProperty, value);
     }
 
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)

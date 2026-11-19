@@ -19,6 +19,7 @@
                  Foreground="{StaticResource TextPrimary}" VerticalAlignment="Center"
                  TextTrimming="CharacterEllipsis" />
       <views:EqualizerView Grid.Column="3" IsPlaying="{Binding Media.IsPlaying}"
+                           AccentBrush="{Binding Media.AccentBrush}"
                            VerticalAlignment="Center" />
     </Grid>
   </Grid>
