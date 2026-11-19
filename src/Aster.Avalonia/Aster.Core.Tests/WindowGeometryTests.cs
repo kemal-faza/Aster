@@ -21,4 +21,17 @@ public class WindowGeometryTests
         Assert.Equal(300, WindowGeometry.CollapsedWidthFor(minimal: false));
         Assert.Equal(38, WindowGeometry.CollapsedHeightFor(minimal: false));
     }
+
+    [Theory]
+    [InlineData(100, 50, 0, 0, true)]
+    [InlineData(100, 50, 99, 49, true)]
+    [InlineData(100, 50, 100, 49, false)]
+    [InlineData(100, 50, 99, 50, false)]
+    [InlineData(100, 50, -1, 10, false)]
+    [InlineData(100, 50, 10, -1, false)]
+    public void ContainsUsesHalfOpenBounds(
+        int width, int height, int x, int y, bool expected)
+    {
+        Assert.Equal(expected, WindowGeometry.Contains(0, 0, width, height, x, y));
+    }
 }

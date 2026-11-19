@@ -1,4 +1,5 @@
 using Aster.Core.Interfaces;
+using Aster.Core.Logic;
 using Aster.UI.Abstractions;
 using static Aster.Platform.Windows.Window.NativeMethods;
 
@@ -43,8 +44,9 @@ public sealed class WindowsWindowPlacement : IWindowPlacement
             return false;
         }
 
-        return point.X >= rect.Left && point.X < rect.Right &&
-               point.Y >= rect.Top && point.Y < rect.Bottom;
+        return WindowGeometry.Contains(
+            rect.Left, rect.Top, rect.Right - rect.Left, rect.Bottom - rect.Top,
+            point.X, point.Y);
     }
 
     public void SetBounds(IntPtr hwnd, int x, int y, int width, int height)

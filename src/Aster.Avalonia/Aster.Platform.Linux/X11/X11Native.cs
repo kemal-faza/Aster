@@ -59,6 +59,17 @@ internal static class X11Native
         out uint mask);
 
     [DllImport(Lib)]
+    public static extern int XTranslateCoordinates(
+        IntPtr display,
+        IntPtr sourceWindow,
+        IntPtr destinationWindow,
+        int sourceX,
+        int sourceY,
+        out int destinationX,
+        out int destinationY,
+        out IntPtr child);
+
+    [DllImport(Lib)]
     public static extern IntPtr XGetDefault(
         IntPtr display, string program, string option);
 

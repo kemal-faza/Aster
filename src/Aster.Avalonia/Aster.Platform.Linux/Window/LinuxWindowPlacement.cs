@@ -1,5 +1,6 @@
 using System.Globalization;
 using Aster.Core.Interfaces;
+using Aster.Core.Logic;
 using Aster.Platform.Linux.X11;
 using Aster.UI.Abstractions;
 
@@ -26,14 +27,23 @@ public sealed class LinuxWindowPlacement : IWindowPlacement
             return false;
         }
 
-        if (X11Native.XQueryPointer(
-                display, handle, out _, out _,
-                out _, out _, out var winX, out var winY, out _) == 0)
+        var root = X11Native.XDefaultRootWindow(display);
+        if (X11Native.XTranslateCoordinates(
+                display, handle, root, 0, 0,
+                out var left, out var top, out _) == 0)
         {
             return false;
         }
 
-        return winX >= 0 && winY >= 0 && winX < width && winY < height;
+        if (X11Native.XQueryPointer(
+                display, root, out _, out _,
+                out var x, out var y, out _, out _, out _) == 0)
+        {
+            return false;
+        }
+
+        return WindowGeometry.Contains(
+            left, top, (int)width, (int)height, x, y);
     }
 
     public uint GetDpi(IntPtr handle)
