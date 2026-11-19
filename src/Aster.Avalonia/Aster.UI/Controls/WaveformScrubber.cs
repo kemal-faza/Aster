@@ -139,7 +139,7 @@ public sealed class WaveformScrubber : Control
             return;
         }
 
-        Progress = Math.Clamp(target, 0, 1);
+        SetCurrentValue(ProgressProperty, Math.Clamp(target, 0, 1));
         SeekRequested?.Invoke(this, Progress);
         e.Handled = true;
     }
