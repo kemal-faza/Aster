@@ -13,6 +13,7 @@ public partial class ShellViewModel : ObservableObject
     private readonly MediaViewModel? _media;
 
     public MediaViewModel? Media => _media;
+    public LyricsViewModel? Lyrics { get; set; }
     public bool HasMedia => _media?.HasSession == true;
     public bool HasNoMedia => !HasMedia;
 

@@ -1,4 +1,6 @@
+using Aster.Core;
 using Aster.Core.Interfaces;
+using Aster.Core.Lyrics;
 using Aster.Core.Models;
 using Aster.UI.Abstractions;
 using Aster.UI.Services;
@@ -24,6 +26,8 @@ public sealed class AppServices : IAsyncDisposable
     public IEffectLayer EffectLayer { get; }
     public ShellViewModel Shell { get; }
     public SettingsViewModel SettingsViewModel { get; }
+    public LyricsService Lyrics { get; }
+    public LyricsViewModel LyricsViewModel { get; }
     public WindowMotionController? Motion { get; private set; }
     public TrayService? Tray { get; private set; }
     public bool TrayFailed { get; private set; }
@@ -47,8 +51,19 @@ public sealed class AppServices : IAsyncDisposable
         EffectLayer = factory.CreateEffectLayer(log);
 
         var media = new MediaViewModel(Media, dispatcher, log);
-        Shell = new ShellViewModel(Battery, Network, media, factory.Capabilities);
         SettingsViewModel = new SettingsViewModel(settings, log, factory.AutostartLabel);
+
+        var cache = new LyricsCache(
+            Path.Combine(AppPaths.BaseDirectory, "lyrics"), TimeProvider.System);
+        Lyrics = new LyricsService(
+            settings, new LrclibLyricsProvider(), cache, dispatcher, log);
+        LyricsViewModel = new LyricsViewModel(Lyrics, media, SettingsViewModel);
+        Media.PropertiesChanged += (_, snapshot) => _ = Lyrics.LoadAsync(snapshot);
+
+        Shell = new ShellViewModel(Battery, Network, media, factory.Capabilities)
+        {
+            Lyrics = LyricsViewModel
+        };
     }
 
     public static async Task<AppServices> CreateAsync(
@@ -156,6 +171,8 @@ public sealed class AppServices : IAsyncDisposable
             DisposeService(nameof(Tray), Tray, expectDisposable: true);
             DisposeService(nameof(EffectLayer), EffectLayer, expectDisposable: true);
             DisposeService(nameof(Fullscreen), Fullscreen, expectDisposable: true);
+            DisposeService(nameof(LyricsViewModel), LyricsViewModel);
+            DisposeService(nameof(Lyrics), Lyrics);
             DisposeService(nameof(Media), Media);
             DisposeService(nameof(Battery), Battery, expectDisposable: true);
             DisposeService(nameof(Network), Network, expectDisposable: true);
