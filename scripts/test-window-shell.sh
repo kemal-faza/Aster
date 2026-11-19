@@ -290,9 +290,9 @@ wait_for_growth() {
     local max_height=0
     for _ in $(seq 1 150); do
         read_geometry "$wid" 2>/dev/null || break
-        # When KWin ignores XTest warps, keep the window under the real pointer
-        # while measuring; the motion controller recenters it every frame.
-        if [ "$pointer_warp" != "yes" ]; then
+        # When neither XTest nor the uinput helper can move the real pointer,
+        # keep the window under the pointer while measuring.
+        if [ -z "$uinput_fd" ] && [ "$pointer_warp" != "yes" ]; then
             xdotool windowmove "$wid" $((PTR_X - WIDTH / 2)) $((PTR_Y - HEIGHT / 2)) 2>/dev/null || true
             read_geometry "$wid" 2>/dev/null || break
         fi
@@ -315,10 +315,12 @@ wait_for_growth() {
 
 init_uinput
 probe_pointer_warp
-if [ "$pointer_warp" = "yes" ]; then
+if [ -n "$uinput_fd" ]; then
+    note "uinput pointer helper is active; moving the real pointer."
+elif [ "$pointer_warp" = "yes" ]; then
     note "XTest pointer warps are honored; moving the real pointer."
 else
-    note "KWin ignores XTest pointer warps; moving the island window under the real pointer instead."
+    note "No real pointer control; moving the island window under the stale pointer instead."
 fi
 
 screen_width="$(xdotool getdisplaygeometry | awk '{print $1}')"
@@ -342,11 +344,15 @@ settle_away "$wid" "$screen_width" "$screen_height"
 expect_size "$wid" "$expected_width" "$expected_height" "island" ||
     fail "island did not collapse after moving off the pointer"
 
-# Place the collapsed island under the real pointer, then wait for a held
-# expansion. On hosts that honor warps, move the pointer instead.
+# Return the island to the top centre before moving the real pointer in.
+xdotool windowmove "$wid" $(((screen_width - expected_width) / 2)) 0 2>/dev/null || true
+sleep 0.2
+
+# Place the real pointer over the collapsed island, then wait for a held
+# expansion.
 pointer_position
 read_geometry "$wid"
-if [ "$pointer_warp" = "yes" ]; then
+if [ -n "$uinput_fd" ] || [ "$pointer_warp" = "yes" ]; then
     pointer_move $((X + WIDTH / 2)) $((Y + HEIGHT / 2))
 else
     xdotool windowmove "$wid" $((PTR_X - WIDTH / 2)) $((PTR_Y - HEIGHT / 2)) 2>/dev/null || true
@@ -478,11 +484,12 @@ expect_size "$wid" "$minimal_width" "$minimal_height" "minimal island" ||
     fail "minimal island is not 160x12 logical scaled"
 effect_wid="$(wait_visible '^Aster Effect Layer$')" || fail "minimal effect window not found"
 
-if [ "$pointer_warp" = "yes" ]; then
-    read_geometry "$wid"
+xdotool windowmove "$wid" $(((screen_width - minimal_width) / 2)) 0 2>/dev/null || true
+sleep 0.2
+read_geometry "$wid"
+if [ -n "$uinput_fd" ] || [ "$pointer_warp" = "yes" ]; then
     pointer_move $((X + WIDTH / 2)) $((Y + HEIGHT / 2))
 else
-    read_geometry "$wid"
     pointer_position
     xdotool windowmove "$wid" $((PTR_X - WIDTH / 2)) $((PTR_Y - HEIGHT / 2))
 fi
@@ -493,8 +500,11 @@ growth="$(wait_for_growth "$wid" "$minimum_width" "$minimum_height")" ||
 note "minimal island hovered to ${growth} (collapsed ${minimal_width}x${minimal_height}, expanded ${expanded_width}x${expanded_height})"
 stop_app
 
-# --- Settings open: effect must be unmapped, then return when settings close. ---
+# --- Settings open: effect must be unmapped. After settings close, the
+# collapsed island shows its neutral shadow; the accent glow appears only when
+# the island expands. ---
 start_app settings false --settings
+wid="$(wait_visible '^Aster Lab Avalonia$')" || fail "island window not found in settings case"
 settings_wid="$(wait_visible '^Aster Settings$')" || fail "settings window not found"
 effect_wid=""
 for _ in $(seq 1 100); do
@@ -512,8 +522,23 @@ sleep 0.5
 
 xdotool windowclose "$settings_wid" 2>/dev/null || true
 wait_hidden '^Aster Settings$' || fail "settings window did not close"
+settle_away "$wid" "$screen_width" "$screen_height"
 effect_wid="$(wait_visible '^Aster Effect Layer$')" ||
-    fail "effect window did not return after settings closed"
+    fail "collapsed shadow effect window is not visible after settings closed"
+xdotool windowmove "$wid" $(((screen_width - expected_width) / 2)) 0 2>/dev/null || true
+sleep 0.2
+read_geometry "$wid"
+if [ -n "$uinput_fd" ] || [ "$pointer_warp" = "yes" ]; then
+    pointer_move $((X + WIDTH / 2)) $((Y + HEIGHT / 2))
+else
+    pointer_position
+    xdotool windowmove "$wid" $((PTR_X - WIDTH / 2)) $((PTR_Y - HEIGHT / 2)) 2>/dev/null || true
+fi
+growth="$(wait_for_growth "$wid" "$growth_threshold_width" $((expected_height + 10)))" ||
+    fail "island did not expand after settings closed"
+effect_wid="$(wait_visible '^Aster Effect Layer$')" ||
+    fail "effect window did not return when the island expanded"
+note "effect returned after settings closed at ${growth}"
 stop_app
 
 if [ "$focus_check" = "PASS" ]; then

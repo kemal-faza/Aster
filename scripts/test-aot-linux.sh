@@ -126,11 +126,13 @@ PY
     exit 1
 }
 
-# Effect layer: A1 PASS when the X11 window is mapped; otherwise the inset
-# fallback is active, which is a PARTIAL, never a PASS.
+# Effect layer: A1 PASS when the X11 window is created and mapped for the app.
+# It stays mapped while the island is collapsed so the collapsed panel keeps a
+# neutral shadow; the accent glow itself is opacity 0 collapsed.
 effect_wid=""
+effect_visible=""
 for _ in $(seq 1 80); do
-    for candidate in $(xdotool search --onlyvisible --name '^Aster Effect Layer$' 2>/dev/null); do
+    for candidate in $(xdotool search --name '^Aster Effect Layer$' 2>/dev/null || true); do
         if [ "$(xprop -id "$candidate" _NET_WM_PID 2>/dev/null | sed -n 's/.*= //p')" = "$pid" ]; then
             effect_wid="$candidate"
         fi
@@ -140,10 +142,25 @@ for _ in $(seq 1 80); do
 done
 
 if [ -n "$effect_wid" ]; then
-    echo "A1 PASS: Aster Effect Layer is mapped (window $effect_wid)"
+    effect_visible=""
+    # The effect window is mapped for the collapsed shadow; wait for it to
+    # appear instead of relying on the creation order at startup.
+    for _ in $(seq 1 40); do
+        effect_visible="$(xdotool search --onlyvisible --name '^Aster Effect Layer$' 2>/dev/null | while read -r candidate; do
+            [ "$(xprop -id "$candidate" _NET_WM_PID 2>/dev/null | sed -n 's/.*= //p')" = "$pid" ] && echo "$candidate"
+        done | tail -1 || true)"
+        [ -n "$effect_visible" ] && break
+        sleep 0.05
+    done
+    if [ -n "$effect_visible" ]; then
+        echo "A1 PASS: Aster Effect Layer is mapped for the collapsed shadow (window $effect_visible)"
+    else
+        echo "A1 PARTIAL: effect window was created but did not map for the collapsed shadow (window $effect_wid)"
+        effect_status="PARTIAL"
+    fi
 else
-    echo "PARTIAL: A1 effect window 'Aster Effect Layer' not visible for pid $pid; effect layer may have self-disabled"
-    echo "reason: xdotool found no mapped window matching '^Aster Effect Layer$' owned by the app within 4s"
+    echo "PARTIAL: A1 effect window 'Aster Effect Layer' was not created for pid $pid; effect layer may have self-disabled"
+    echo "reason: xdotool found no window matching '^Aster Effect Layer$' owned by the app within 4s"
     tail -n 10 "$app_log" >&2 || true
     effect_status="PARTIAL"
 fi
