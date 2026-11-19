@@ -94,6 +94,7 @@ public partial class ShellViewModel : ObservableObject
     public string ShelfGlyph => Glyph.Get(Glyph.Kind.Shelf);
     public string FocusGlyph => Glyph.Get(Glyph.Kind.Focus);
     public string SettingsGlyph => Glyph.Get(Glyph.Kind.Settings);
+    public string LyricsGlyph => Glyph.Get(Glyph.Kind.Lyrics);
 
     public CapabilityMatrix Capabilities { get; }
 

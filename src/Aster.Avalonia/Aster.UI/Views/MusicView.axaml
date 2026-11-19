@@ -5,52 +5,101 @@
              xmlns:controls="using:Aster.UI.Controls"
              x:Class="Aster.UI.Views.MusicView"
              x:DataType="vm:ShellViewModel">
-  <Grid RowDefinitions="Auto,*" Margin="0,8,0,4" ClipToBounds="True">
-    <Grid ColumnDefinitions="92,16,*" IsVisible="{Binding HasMedia}">
-      <Border Width="92" Height="92" CornerRadius="20" ClipToBounds="True">
-        <Image Source="{Binding Media.ArtworkImage}" Stretch="UniformToFill" />
-      </Border>
-      <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="2">
-        <TextBlock Text="{Binding Media.Title}" Classes="title" />
-        <TextBlock Text="{Binding Media.Artist}" Classes="subtitle" />
-        <TextBlock Text="{Binding Media.SourceApp}" Classes="tertiary" />
-        <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto" Margin="0,4,0,0">
-          <Button Theme="{StaticResource GlyphButton}" Content="{Binding PreviousGlyph}"
-                  Command="{Binding Media.PreviousCommand}"
-                  automation:AutomationProperties.Name="Previous track"
-                  ToolTip.Tip="Previous" />
-          <Button Grid.Column="1" Theme="{StaticResource PlayButton}" Margin="8,0"
-                  Content="{Binding PlayGlyph}" Command="{Binding Media.PlayPauseCommand}"
-                  automation:AutomationProperties.Name="Play or pause"
-                  ToolTip.Tip="Play / pause" />
-          <Button Grid.Column="2" Theme="{StaticResource GlyphButton}"
-                  Content="{Binding NextGlyph}" Command="{Binding Media.NextCommand}"
-                  automation:AutomationProperties.Name="Next track"
-                  ToolTip.Tip="Next" />
+  <Grid RowDefinitions="152,18" ClipToBounds="True">
+    <StackPanel Orientation="Horizontal" ClipToBounds="True">
+      <Grid x:Name="MusicMedia" Width="464" Margin="0,8,0,4" ColumnDefinitions="92,16,*">
+        <Grid Width="92" Height="92" VerticalAlignment="Center">
+          <Ellipse x:Name="Vinyl" Width="100" Height="100"
+                   HorizontalAlignment="Left" VerticalAlignment="Center"
+                   IsVisible="{Binding Media.HasSession}"
+                   Fill="{StaticResource VinylBrush}"
+                   RenderTransformOrigin="0.5,0.5">
+            <Ellipse.RenderTransform>
+              <RotateTransform Angle="{Binding Media.VinylAngle}" />
+            </Ellipse.RenderTransform>
+          </Ellipse>
+
+          <Ellipse Width="96" Height="96"
+                   HorizontalAlignment="Left" VerticalAlignment="Center"
+                   Stroke="{StaticResource VinylRingBrush}" StrokeThickness="1"
+                   IsVisible="{Binding Media.HasSession}">
+            <Ellipse.OpacityMask>
+              <RadialGradientBrush>
+                <GradientStop Color="#00FFFFFF" Offset="0.6" />
+                <GradientStop Color="#FFFFFFFF" Offset="0.72" />
+                <GradientStop Color="#00FFFFFF" Offset="0.8" />
+              </RadialGradientBrush>
+            </Ellipse.OpacityMask>
+          </Ellipse>
+
+          <Border Width="92" Height="92" CornerRadius="20" ClipToBounds="True"
+                  HorizontalAlignment="Left" VerticalAlignment="Center">
+            <Grid>
+              <Border IsVisible="{Binding !Media.HasArtwork}" CornerRadius="20"
+                      Background="{StaticResource ArtworkFallbackBrush}" />
+              <TextBlock IsVisible="{Binding !Media.HasArtwork}"
+                         Text="{Binding MusicGlyph}" FontFamily="{StaticResource GlyphFont}"
+                         FontSize="32" Foreground="{StaticResource ArtGlyphForeground}"
+                         HorizontalAlignment="Center" VerticalAlignment="Center" />
+              <Image Source="{Binding Media.ArtworkImage}" Stretch="UniformToFill" />
+            </Grid>
+          </Border>
         </Grid>
-        <controls:SeekSlider x:Name="SeekSlider" Height="16" Margin="5,4,5,0"
-                             Value="{Binding Media.PositionSeconds}"
-                             Maximum="{Binding Media.DurationSeconds}"
-                             SeekStarted="OnSeekStarted"
-                             SeekCompleted="OnSeekCompleted" />
-        <Grid ColumnDefinitions="Auto,Auto,*,Auto" Margin="0,4,0,0">
-          <TextBlock Text="{Binding Media.PositionText}" Classes="tertiary"
-                     VerticalAlignment="Center" />
-          <TextBlock Grid.Column="1" Text="{Binding Media.DurationText}" Classes="tertiary"
-                     Margin="6,0,0,0" VerticalAlignment="Center" />
-          <Button Grid.Column="3" Theme="{StaticResource GlyphButton}"
-                  Content="{Binding SettingsGlyph}" Click="OnSettingsClick"
-                  automation:AutomationProperties.Name="Settings"
-                  ToolTip.Tip="Settings" />
+
+        <Grid x:Name="MusicInfo" Grid.Column="2" VerticalAlignment="Center"
+              RowDefinitions="Auto,Auto,Auto,Auto">
+          <Grid.RenderTransform><TranslateTransform /></Grid.RenderTransform>
+          <TextBlock Grid.Row="0" Text="{Binding Media.DisplayTitle}" Classes="title" />
+          <TextBlock Grid.Row="1" Text="{Binding Media.DisplayArtist}" Classes="subtitle"
+                     Margin="0,3,0,0" />
+
+          <controls:WaveformScrubber Grid.Row="2" x:Name="Waveform" Height="16" Margin="0,9,0,0"
+                                     Progress="{Binding Media.Progress}"
+                                     Seed="{Binding Media.WaveformSeed}"
+                                     PlayedBrush="{Binding Media.AccentBrush}"
+                                     DurationSeconds="{Binding Media.DurationSeconds}"
+                                     IsEnabled="{Binding Media.CanSeek}"
+                                     SeekRequested="OnWaveformSeek" />
+
+          <Grid Grid.Row="3" ColumnDefinitions="Auto,Auto,Auto,*,Auto" Margin="0,5,0,0">
+            <Button Theme="{StaticResource GlyphButton}" Content="{Binding PreviousGlyph}"
+                    Command="{Binding Media.PreviousCommand}"
+                    IsEnabled="{Binding Media.CanGoPrevious}"
+                    automation:AutomationProperties.Name="Previous track"
+                    ToolTip.Tip="Previous" />
+            <Button Grid.Column="1" Theme="{StaticResource PlayButton}" Margin="8,0"
+                    Content="{Binding PlayGlyph}" Command="{Binding Media.PlayPauseCommand}"
+                    IsEnabled="{Binding Media.HasSession}"
+                    automation:AutomationProperties.Name="Play or pause"
+                    ToolTip.Tip="Play / pause" />
+            <Button Grid.Column="2" Theme="{StaticResource GlyphButton}"
+                    Content="{Binding NextGlyph}" Command="{Binding Media.NextCommand}"
+                    IsEnabled="{Binding Media.CanGoNext}"
+                    automation:AutomationProperties.Name="Next track"
+                    ToolTip.Tip="Next" />
+            <Button Grid.Column="4" Theme="{StaticResource GlyphButton}"
+                    Content="{Binding LyricsGlyph}" IsEnabled="False"
+                    automation:AutomationProperties.Name="Lyrics"
+                    ToolTip.Tip="Lyrics" />
+          </Grid>
         </Grid>
+      </Grid>
+    </StackPanel>
+
+    <Grid Grid.Row="1" Width="464" HorizontalAlignment="Left"
+          IsVisible="{Binding Media.HasSession}">
+      <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" Spacing="4">
+        <TextBlock Text="{Binding Media.PositionText}" Classes="tertiary" />
+        <TextBlock Text="/" Classes="tertiary" />
+        <TextBlock Text="{Binding Media.DurationText}" Classes="tertiary" />
+      </StackPanel>
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+        <Ellipse Width="5" Height="5" Fill="{StaticResource AccentGreen}"
+                 Margin="0,0,5,0" VerticalAlignment="Center"
+                 Opacity="{Binding Media.PlayingDotOpacity}" />
+        <TextBlock Text="{Binding Media.SourceApp}" FontSize="10"
+                   Foreground="{StaticResource TextSecondary}" />
       </StackPanel>
     </Grid>
-    <StackPanel Grid.Row="1" IsVisible="{Binding HasNoMedia}" VerticalAlignment="Center"
-                HorizontalAlignment="Center">
-      <TextBlock Text="Nothing playing" FontSize="20" FontWeight="SemiBold"
-                 HorizontalAlignment="Center" />
-      <TextBlock Text="Start something on Spotify, YouTube, or Apple Music"
-                 Classes="subtitle" Margin="0,4,0,0" HorizontalAlignment="Center" />
-    </StackPanel>
   </Grid>
 </UserControl>
