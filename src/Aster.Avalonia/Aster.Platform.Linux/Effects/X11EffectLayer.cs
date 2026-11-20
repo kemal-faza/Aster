@@ -19,6 +19,8 @@ public sealed class X11EffectLayer : IEffectLayer
     private Border? _accentGlow;
     private IntPtr _islandHandle;
     private uint _accentArgb = DefaultAccentArgb;
+    private EffectLayerBounds? _lastBounds;
+    private double _lastOpacity = double.NaN;
     private bool _disabled;
     private bool _visible;
 
@@ -93,6 +95,8 @@ public sealed class X11EffectLayer : IEffectLayer
             if (!shouldShow)
             {
                 _visible = false;
+                _lastBounds = null;
+                _lastOpacity = double.NaN;
                 // Attach maps the effect window before the first hidden-state
                 // update, and the pending Show may finish after this update.
                 // Opened re-checks _visible and hides it again.
@@ -123,10 +127,20 @@ public sealed class X11EffectLayer : IEffectLayer
 
             var bounds = EffectLayerGeometry.BoundsFor(state);
             var scaling = state.Scaling > 0 ? state.Scaling : 1;
-            window.Position = new PixelPoint(bounds.X, bounds.Y);
-            window.Width = bounds.Width / scaling;
-            window.Height = bounds.Height / scaling;
-            window.Opacity = state.Minimal ? 0.55 : 0.9;
+            if (_lastBounds != bounds)
+            {
+                window.Position = new PixelPoint(bounds.X, bounds.Y);
+                window.Width = bounds.Width / scaling;
+                window.Height = bounds.Height / scaling;
+                _lastBounds = bounds;
+            }
+
+            var opacity = state.Minimal ? 0.55 : 0.9;
+            if (Math.Abs(opacity - _lastOpacity) > 0.001)
+            {
+                window.Opacity = opacity;
+                _lastOpacity = opacity;
+            }
         }
         catch (Exception ex)
         {
@@ -141,6 +155,8 @@ public sealed class X11EffectLayer : IEffectLayer
         _window = null;
         _shadowCarrier = null;
         _accentGlow = null;
+        _lastBounds = null;
+        _lastOpacity = double.NaN;
         _visible = false;
         if (window is null)
         {
@@ -200,6 +216,8 @@ public sealed class X11EffectLayer : IEffectLayer
         _window = null;
         _shadowCarrier = null;
         _accentGlow = null;
+        _lastBounds = null;
+        _lastOpacity = double.NaN;
         _visible = false;
         if (window is null)
         {

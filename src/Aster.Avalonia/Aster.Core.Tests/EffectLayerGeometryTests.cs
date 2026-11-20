@@ -83,6 +83,34 @@ public class EffectLayerGeometryTests
         Assert.Equal(expectedHeight, content.Height, 3);
     }
 
+    [Theory]
+    [InlineData(600, 76)]
+    [InlineData(800, 140)]
+    [InlineData(1000, 504)]
+    public void EffectWindowStaysCenteredWhileTheIslandResizes(
+        int islandWidth,
+        int islandHeight)
+    {
+        var screenWidth = 5120;
+        var islandX = (screenWidth - islandWidth) / 2;
+        var state = new EffectLayerState(
+            Visible: true,
+            Minimal: false,
+            ExpansionProgress: 1,
+            Scaling: 2.0,
+            IslandX: islandX,
+            IslandY: 0,
+            IslandWidth: islandWidth,
+            IslandHeight: islandHeight,
+            AccentArgb: 0xFFF6A6C8);
+
+        var bounds = EffectLayerGeometry.BoundsFor(state);
+        var content = EffectLayerGeometry.ContentFor(state);
+
+        Assert.Equal((screenWidth - bounds.Width) / 2, bounds.X);
+        Assert.Equal(state.IslandX, bounds.X + content.Left * state.Scaling, 3);
+    }
+
     [Fact]
     public void VisibilityHonorsAllGates()
     {

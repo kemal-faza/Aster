@@ -350,6 +350,17 @@ public partial class MainWindow : Window
         var scaling = screen.Scaling;
         var pixelWidth = (int)Math.Round(Width * scaling);
         var pixelHeight = (int)Math.Round(Height * scaling);
+
+        // Position is updated asynchronously from ConfigureNotify, so during
+        // the spring animation it can still describe the previous frame. The
+        // motion controller re-centers the island with this exact formula;
+        // using it here keeps the effect window's x constant for every width.
+        var islandX = WindowGeometry.CenteredLeft(
+            screen.Bounds.X,
+            screen.Bounds.Width,
+            Width,
+            scaling);
+
         var current = _services.Settings.Current;
         var visibility = new EffectLayerVisibility(
             IslandVisible: IsVisible,
@@ -362,8 +373,8 @@ public partial class MainWindow : Window
             Minimal: current.MinimalNotch,
             ExpansionProgress: _state.ExpansionProgress,
             Scaling: scaling,
-            IslandX: Position.X,
-            IslandY: Position.Y,
+            IslandX: islandX,
+            IslandY: screen.Bounds.Y,
             IslandWidth: pixelWidth,
             IslandHeight: pixelHeight,
             AccentArgb: ToArgb(_services.Shell.Media?.AccentColor ?? ArtworkAccent.Fallback));
