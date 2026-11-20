@@ -55,13 +55,13 @@
         </Grid>
 
         <Grid x:Name="MusicInfo" Grid.Column="2" VerticalAlignment="Center"
-              RowDefinitions="Auto,Auto,Auto,Auto">
+              RowDefinitions="Auto,Auto,Auto,Auto,Auto">
           <Grid.RenderTransform><TranslateTransform /></Grid.RenderTransform>
           <TextBlock Grid.Row="0" Text="{Binding Media.DisplayTitle}" Classes="title" />
           <TextBlock Grid.Row="1" Text="{Binding Media.DisplayArtist}" Classes="subtitle"
                      Margin="0,3,0,0" />
 
-          <controls:WaveformScrubber Grid.Row="2" x:Name="Waveform" Height="16" Margin="0,9,0,0"
+          <controls:WaveformScrubber Grid.Row="2" x:Name="Waveform" Height="28" Margin="0,7,0,0"
                                      Progress="{Binding Media.Progress}"
                                      Seed="{Binding Media.WaveformSeed}"
                                      PlayedBrush="{Binding Media.AccentBrush}"
@@ -69,9 +69,19 @@
                                      Energy="{Binding Media.SpectrumEnergy}"
                                      Phase="{Binding Media.PositionSeconds}"
                                      IsEnabled="{Binding Media.CanSeek}"
+                                     automation:AutomationProperties.Name="Playback position"
+                                     automation:AutomationProperties.HelpText="Drag or use the arrow keys to seek."
                                      SeekRequested="OnWaveformSeek" />
 
-          <Grid Grid.Row="3" ColumnDefinitions="Auto,Auto,Auto,*,Auto" Margin="0,5,0,0">
+          <Grid Grid.Row="3" ColumnDefinitions="*,*" Margin="0,2,0,0"
+                IsVisible="{Binding Media.HasSession}">
+            <TextBlock Text="{Binding Media.PositionText}" Classes="tertiary"
+                       HorizontalAlignment="Left" />
+            <TextBlock Grid.Column="1" Text="{Binding Media.DurationText}" Classes="tertiary"
+                       HorizontalAlignment="Right" />
+          </Grid>
+
+          <Grid Grid.Row="4" ColumnDefinitions="Auto,Auto,Auto,*,Auto" Margin="0,3,0,0">
             <Button Theme="{StaticResource GlyphButton}" Content="{Binding PreviousGlyph}"
                     Command="{Binding Media.PreviousCommand}"
                     IsEnabled="{Binding Media.CanGoPrevious}"
@@ -139,11 +149,6 @@
 
     <Grid Grid.Row="1" Width="464" HorizontalAlignment="Left"
           IsVisible="{Binding Media.HasSession}">
-      <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" Spacing="4">
-        <TextBlock Text="{Binding Media.PositionText}" Classes="tertiary" />
-        <TextBlock Text="/" Classes="tertiary" />
-        <TextBlock Text="{Binding Media.DurationText}" Classes="tertiary" />
-      </StackPanel>
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
         <Ellipse Width="5" Height="5" Fill="{StaticResource AccentGreen}"
                  Margin="0,0,5,0" VerticalAlignment="Center"
