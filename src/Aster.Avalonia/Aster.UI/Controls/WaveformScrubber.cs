@@ -28,10 +28,17 @@ public sealed class WaveformScrubber : Control
     public static readonly StyledProperty<double> DurationSecondsProperty =
         AvaloniaProperty.Register<WaveformScrubber, double>(nameof(DurationSeconds));
 
+    public static readonly StyledProperty<double> EnergyProperty =
+        AvaloniaProperty.Register<WaveformScrubber, double>(nameof(Energy));
+
+    public static readonly StyledProperty<double> PhaseProperty =
+        AvaloniaProperty.Register<WaveformScrubber, double>(nameof(Phase));
+
     static WaveformScrubber()
     {
         AffectsRender<WaveformScrubber>(
-            ProgressProperty, SeedProperty, PlayedBrushProperty, TrackBrushProperty);
+            ProgressProperty, SeedProperty, PlayedBrushProperty, TrackBrushProperty,
+            EnergyProperty, PhaseProperty);
     }
 
     public WaveformScrubber()
@@ -79,6 +86,18 @@ public sealed class WaveformScrubber : Control
         set => SetValue(DurationSecondsProperty, value);
     }
 
+    public double Energy
+    {
+        get => GetValue(EnergyProperty);
+        set => SetValue(EnergyProperty, value);
+    }
+
+    public double Phase
+    {
+        get => GetValue(PhaseProperty);
+        set => SetValue(PhaseProperty, value);
+    }
+
     public event EventHandler<double>? SeekRequested;
 
     public override void Render(DrawingContext context)
@@ -123,12 +142,39 @@ public sealed class WaveformScrubber : Control
         }
     }
 
-    private double BarHeight(int index, double height)
+    private double BarHeight(int index, double height) =>
+        BarHeightForTest(index, BarCount(Bounds.Width), height, Progress, Energy, Phase, Seed);
+
+    internal static double StaticBarHeightForTest(int index, double height, int seed)
     {
-        var noise = Hash(Seed, index) / (double)int.MaxValue;
-        var wave = 0.5 + 0.5 * Math.Sin(index * 0.63 + (Seed % 29) * 0.37);
+        var noise = Hash(seed, index) / (double)int.MaxValue;
+        var wave = 0.5 + 0.5 * Math.Sin(index * 0.63 + (seed % 29) * 0.37);
         var mix = 0.58 * noise + 0.42 * wave;
         return 3.5 + (height - 4.0) * (0.12 + 0.88 * mix);
+    }
+
+    internal static double BarHeightForTest(
+        int index,
+        int count,
+        double height,
+        double progress,
+        double energy,
+        double phase,
+        int seed)
+    {
+        var baseHeight = StaticBarHeightForTest(index, height, seed);
+
+        if (energy <= 0.001 || count <= 1)
+        {
+            return baseHeight;
+        }
+
+        var playedBar = Math.Clamp(progress, 0, 1) * (count - 1);
+        var distance = Math.Abs(index - playedBar);
+        var pulse = Math.Exp(-(distance * distance) / (2 * 3 * 3));
+        var breath = 0.6 + 0.4 * Math.Sin(phase * Math.PI * 2 * 1.5);
+        var modulated = baseHeight * (1 + 0.18 * energy * pulse * breath);
+        return Math.Clamp(modulated, 3.5, Math.Max(3.5, height - 0.5));
     }
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)

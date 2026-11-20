@@ -66,6 +66,8 @@
                                      Seed="{Binding Media.WaveformSeed}"
                                      PlayedBrush="{Binding Media.AccentBrush}"
                                      DurationSeconds="{Binding Media.DurationSeconds}"
+                                     Energy="{Binding Media.SpectrumEnergy}"
+                                     Phase="{Binding Media.PositionSeconds}"
                                      IsEnabled="{Binding Media.CanSeek}"
                                      SeekRequested="OnWaveformSeek" />
 

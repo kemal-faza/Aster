@@ -1,7 +1,7 @@
+using Aster.Core.Models;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
-using Avalonia.Threading;
 
 namespace Aster.UI.Views;
 
@@ -14,34 +14,31 @@ public partial class EqualizerView : UserControl
         AvaloniaProperty.Register<EqualizerView, IBrush>(
             nameof(AccentBrush), new SolidColorBrush(Color.Parse("#F6A6C8")));
 
-    private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromMilliseconds(120) };
-    private readonly Random _random = new();
-    private readonly double[] _levels = { 0.3, 0.3, 0.3, 0.3, 0.3 };
-    private readonly double[] _targets = { 0.3, 0.3, 0.3, 0.3, 0.3 };
-    private readonly ScaleTransform[] _scales;
+    public static readonly StyledProperty<SpectrumFrame> SpectrumProperty =
+        AvaloniaProperty.Register<EqualizerView, SpectrumFrame>(nameof(Spectrum));
+
+    private readonly Border[] _bars;
 
     public EqualizerView()
     {
         InitializeComponent();
-        _scales = new[] { Bar1, Bar2, Bar3, Bar4, Bar5 }
-            .Select(bar => (ScaleTransform)bar.RenderTransform!)
-            .ToArray();
-        _timer.Tick += (_, _) => Animate();
+        _bars = new[] { Bar1, Bar2, Bar3, Bar4, Bar5 };
         PropertyChanged += (_, e) =>
         {
             if (e.Property == IsPlayingProperty)
             {
-                UpdateTimer();
+                ApplyLevels(IsPlaying ? Spectrum : SpectrumFrame.Silence);
             }
-
-            if (e.Property == AccentBrushProperty)
+            else if (e.Property == SpectrumProperty)
             {
-                var brush = AccentBrush;
-                Bar1.Background = brush;
-                Bar2.Background = brush;
-                Bar3.Background = brush;
-                Bar4.Background = brush;
-                Bar5.Background = brush;
+                ApplyLevels(IsPlaying ? Spectrum : SpectrumFrame.Silence);
+            }
+            else if (e.Property == AccentBrushProperty)
+            {
+                foreach (var bar in _bars)
+                {
+                    bar.Background = AccentBrush;
+                }
             }
         };
     }
@@ -58,40 +55,26 @@ public partial class EqualizerView : UserControl
         set => SetValue(AccentBrushProperty, value);
     }
 
-    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    public SpectrumFrame Spectrum
     {
-        _timer.Stop();
-        base.OnDetachedFromVisualTree(e);
+        get => GetValue(SpectrumProperty);
+        set => SetValue(SpectrumProperty, value);
     }
 
-    private void UpdateTimer()
+    private void ApplyLevels(SpectrumFrame frame)
     {
-        if (IsPlaying)
-        {
-            _timer.Start();
-            return;
-        }
+        Set(0, frame.Bass);
+        Set(1, frame.LowMid);
+        Set(2, frame.Mid);
+        Set(3, frame.HighMid);
+        Set(4, frame.Treble);
 
-        _timer.Stop();
-        for (var i = 0; i < _scales.Length; i++)
+        void Set(int index, double level)
         {
-            _levels[i] = 0.3;
-            _targets[i] = 0.3;
-            _scales[i].ScaleY = 0.3;
-        }
-    }
-
-    private void Animate()
-    {
-        for (var i = 0; i < _scales.Length; i++)
-        {
-            if (_random.NextDouble() < 0.2)
+            if (_bars[index].RenderTransform is ScaleTransform scale)
             {
-                _targets[i] = 0.3 + _random.NextDouble() * 0.7;
+                scale.ScaleY = IsPlaying ? 0.3 + 0.7 * Math.Clamp(level, 0, 1) : 0.3;
             }
-
-            _levels[i] += (_targets[i] - _levels[i]) * 0.55;
-            _scales[i].ScaleY = _levels[i];
         }
     }
 }

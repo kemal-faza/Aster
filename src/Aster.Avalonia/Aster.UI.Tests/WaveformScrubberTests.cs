@@ -52,4 +52,34 @@ public class WaveformScrubberTests
         Assert.NotNull(control.TrackBrush);
         Assert.Equal(16, control.Height);
     }
+
+    [Fact]
+    public void EnergyZeroKeepsTheStaticHeight()
+    {
+        var baseHeight = WaveformScrubber.StaticBarHeightForTest(10, 16, 1234);
+        var actual = WaveformScrubber.BarHeightForTest(10, 79, 16, 0.5, 0, 0, 1234);
+
+        Assert.InRange(actual, 3.5, 15.5);
+        Assert.Equal(baseHeight, actual, 3);
+    }
+
+    [Fact]
+    public void EnergyModulatesButStaysInsideTheControl()
+    {
+        var low = WaveformScrubber.BarHeightForTest(39, 79, 16, 0.5, 0.2, 0.0, 1234);
+        var high = WaveformScrubber.BarHeightForTest(39, 79, 16, 0.5, 1.0, 0.0, 1234);
+
+        Assert.InRange(low, 3.5, 15.5);
+        Assert.InRange(high, 3.5, 15.5);
+        Assert.NotEqual(low, high);
+    }
+
+    [Fact]
+    public void PhaseChangesTheModulation()
+    {
+        var phaseA = WaveformScrubber.BarHeightForTest(39, 79, 16, 0.5, 1.0, 0.0, 1234);
+        var phaseB = WaveformScrubber.BarHeightForTest(39, 79, 16, 0.5, 1.0, 0.17, 1234);
+
+        Assert.NotEqual(phaseA, phaseB);
+    }
 }
