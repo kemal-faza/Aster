@@ -47,7 +47,8 @@ public static class SettingsMigrations
             FocusMinutes: Math.Clamp(doc.FocusMinutes ?? d.FocusMinutes, 1, 180),
             ShortBreakMinutes: Math.Clamp(doc.ShortBreakMinutes ?? d.ShortBreakMinutes, 1, 180),
             LongBreakMinutes: Math.Clamp(doc.LongBreakMinutes ?? d.LongBreakMinutes, 1, 180),
-            FocusChime: doc.FocusChime ?? d.FocusChime);
+            FocusChime: doc.FocusChime ?? d.FocusChime,
+            AudioReactiveBars: doc.AudioReactiveBars ?? d.AudioReactiveBars);
     }
 
     private static string NormalizeDate(string? value) =>

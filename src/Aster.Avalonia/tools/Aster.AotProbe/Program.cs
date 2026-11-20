@@ -44,7 +44,8 @@ try
         FocusMinutes: 30,
         ShortBreakMinutes: 7,
         LongBreakMinutes: 20,
-        FocusChime: false);
+        FocusChime: false,
+        AudioReactiveBars: false);
     await store.SaveAsync(settings);
     var reloaded = new JsonSettingsStore(settingsPath, log);
     await reloaded.LoadAsync();
@@ -57,9 +58,9 @@ try
 
     var roundTrip = JsonSerializer.Serialize(settings, SettingsJsonContext.Default.AppSettings);
     using var document = JsonDocument.Parse(roundTrip);
-    if (document.RootElement.GetProperty("schemaVersion").GetInt32() != 2)
+    if (document.RootElement.GetProperty("schemaVersion").GetInt32() != 3)
     {
-        throw new InvalidOperationException("AOT settings probe did not write schemaVersion 2.");
+        throw new InvalidOperationException("AOT settings probe did not write schemaVersion 3.");
     }
 }
 finally

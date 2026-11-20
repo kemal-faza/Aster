@@ -25,4 +25,5 @@ public sealed class SettingsDocument
     public int? ShortBreakMinutes { get; set; }
     public int? LongBreakMinutes { get; set; }
     public bool? FocusChime { get; set; }
+    public bool? AudioReactiveBars { get; set; }
 }

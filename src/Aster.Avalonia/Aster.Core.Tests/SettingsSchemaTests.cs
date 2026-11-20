@@ -11,7 +11,7 @@ public class SettingsSchemaTests
     {
         var settings = SettingsSchema.Default;
 
-        Assert.Equal(2, settings.SchemaVersion);
+        Assert.Equal(3, settings.SchemaVersion);
         Assert.False(settings.StartWithWindows);
         Assert.False(settings.MinimalNotch);
         Assert.True(settings.HideInFullscreen);
@@ -22,11 +22,11 @@ public class SettingsSchemaTests
     }
 
     [Fact]
-    public void SchemaHasTwentyTwoUserFields()
+    public void SchemaHasTwentyThreeUserFields()
     {
         var userFields = typeof(AppSettings).GetProperties().Length - 1;
 
-        Assert.Equal(22, userFields);
+        Assert.Equal(23, userFields);
     }
 
     [Fact]
@@ -37,6 +37,6 @@ public class SettingsSchemaTests
         var restored = JsonSerializer.Deserialize(json, SettingsJsonContext.Default.AppSettings);
 
         Assert.Equal(original, restored);
-        Assert.Contains("\"schemaVersion\": 2", json);
+        Assert.Contains("\"schemaVersion\": 3", json);
     }
 }

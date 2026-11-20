@@ -26,7 +26,7 @@ public class SettingsMigrationTests
 
         var settings = SettingsMigrations.FromDocument(loaded!);
 
-        Assert.Equal(2, settings.SchemaVersion);
+        Assert.Equal(3, settings.SchemaVersion);
         Assert.True(settings.StartWithWindows);
         Assert.True(settings.MinimalNotch);
         Assert.False(settings.HideInFullscreen);
@@ -49,6 +49,7 @@ public class SettingsMigrationTests
         Assert.Equal(5, settings.ShortBreakMinutes);
         Assert.Equal(15, settings.LongBreakMinutes);
         Assert.True(settings.FocusChime);
+        Assert.True(settings.AudioReactiveBars);
     }
 
     [Fact]
@@ -56,12 +57,13 @@ public class SettingsMigrationTests
     {
         var settings = SettingsMigrations.FromDocument(new SettingsDocument());
 
-        Assert.Equal(2, settings.SchemaVersion);
+        Assert.Equal(3, settings.SchemaVersion);
         Assert.True(settings.HideInFullscreen);
         Assert.True(settings.GlassBackground);
         Assert.True(settings.BouncySpring);
         Assert.Equal(8, settings.WaterActiveStartHour);
         Assert.Equal("#7C9CFF", settings.LyricsHighlightColor);
+        Assert.True(settings.AudioReactiveBars);
     }
 
     [Fact]
@@ -72,12 +74,27 @@ public class SettingsMigrationTests
             SchemaVersion = 1,
             LyricsHighlightColor = "#112233",
             WaterDailyGoal = 12,
-            FocusMinutes = 30
+            FocusMinutes = 30,
+            AudioReactiveBars = false
         });
 
         Assert.Equal("#7C9CFF", settings.LyricsHighlightColor);
         Assert.Equal(8, settings.WaterDailyGoal);
         Assert.Equal(25, settings.FocusMinutes);
+        Assert.True(settings.AudioReactiveBars);
+    }
+
+    [Fact]
+    public void V2ExplicitFalseSurvives()
+    {
+        var settings = SettingsMigrations.FromDocument(new SettingsDocument
+        {
+            SchemaVersion = 2,
+            AudioReactiveBars = false
+        });
+
+        Assert.Equal(3, settings.SchemaVersion);
+        Assert.False(settings.AudioReactiveBars);
     }
 
     [Fact]

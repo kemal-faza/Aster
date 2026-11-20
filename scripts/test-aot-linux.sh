@@ -2,7 +2,7 @@
 # NativeAOT smoke for the Phase 4A shell.
 #
 # Publishes the Linux head, launches it with a throwaway HOME that contains a
-# known schema-2 settings file, and verifies the file survives the startup
+# known schema-3 settings file, and verifies the file survives the startup
 # reconciliation unchanged, the effect layer is mapped (A1), and the publish log
 # contains no trim/AOT warnings.
 set -euo pipefail
@@ -62,13 +62,13 @@ trap cleanup EXIT
 
 mkdir -p "$(dirname "$settings")" "$work/config"
 cat >"$settings" <<'JSON'
-{"schemaVersion":2,"startWithWindows":false,"minimalNotch":false,"hideInFullscreen":true,
+{"schemaVersion":3,"startWithWindows":false,"minimalNotch":false,"hideInFullscreen":true,
  "glassBackground":true,"bouncySpring":true,"showMascot":true,"volumeToast":true,
  "brightnessToast":true,"lyricsEnabled":true,"lyricsHighlightColor":"#7C9CFF",
  "waterReminderEnabled":false,"waterIntervalMinutes":60,"waterActiveStartHour":8,
  "waterActiveEndHour":22,"waterDailyGoal":8,"waterGlassesToday":0,"waterDate":"",
  "cameraMirror":true,"focusMinutes":25,"shortBreakMinutes":5,"longBreakMinutes":15,
- "focusChime":true}
+ "focusChime":true,"audioReactiveBars":true}
 JSON
 seeded="$(cat "$settings")"
 
@@ -96,7 +96,7 @@ done
 echo "AOT ready in $(cat "$ready") ms"
 sleep 0.3
 
-# The file must still be schema-2 with the seeded values.
+# The file must still be schema-3 with the seeded values.
 python3 - "$settings" "$seeded" <<'PY' || {
 import json
 import sys
@@ -106,8 +106,8 @@ seeded = json.loads(seeded_text)
 with open(path, encoding="utf-8") as handle:
     loaded = json.load(handle)
 
-if loaded.get("schemaVersion") != 2:
-    raise SystemExit(f"schemaVersion is {loaded.get('schemaVersion')!r}, expected 2")
+if loaded.get("schemaVersion") != 3:
+    raise SystemExit(f"schemaVersion is {loaded.get('schemaVersion')!r}, expected 3")
 
 missing = []
 changed = []
@@ -120,9 +120,9 @@ for key, expected in seeded.items():
 if missing or changed:
     raise SystemExit(f"settings changed or missing: missing={missing} changed={changed}")
 
-print(f"settings file intact: schemaVersion=2, {len(seeded)} seeded keys preserved")
+print(f"settings file intact: schemaVersion=3, {len(seeded)} seeded keys preserved")
 PY
-    echo "FAIL: schema-2 settings file did not survive startup (see above)" >&2
+    echo "FAIL: schema-3 settings file did not survive startup (see above)" >&2
     exit 1
 }
 

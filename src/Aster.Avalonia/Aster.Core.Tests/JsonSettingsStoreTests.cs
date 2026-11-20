@@ -84,7 +84,7 @@ public class JsonSettingsStoreTests : IDisposable
     [Fact]
     public async Task NewerSchemaDisablesSaveAndPreservesFile()
     {
-        var newer = """{"schemaVersion":3,"startWithWindows":true}""";
+        var newer = """{"schemaVersion":4,"startWithWindows":true}""";
         await File.WriteAllTextAsync(PathToSettings, newer);
         var store = new JsonSettingsStore(PathToSettings, _log);
 
