@@ -8,20 +8,24 @@ namespace Aster.UI.Controls;
 public sealed class WaveformScrubber : Control
 {
     private const double ThumbRadius = 7.0;
-    private const double ThumbStroke = 2.6;
-    private const double TrackThickness = 4.0;
+    private const double ThumbStroke = 2.2;
+    private const double TrackThickness = 3.0;
+    private const double PlayedTrackThickness = 4.5;
     private const double WaveStep = 3.0;
-    private const double TopMargin = 4.0;
-    private const double UnplayedOpacity = 0.25;
+    private const double WaveAmplitude = 18.0;
+    private const double PhaseSpeed = 0.35;
+    private const double GlowRadius = 14.0;
 
-    // The mockup's layers: 70/50/35% height and 60/40/20% opacity. The tallest
-    // layer sits behind, so the bright ridge stays visible above the shorter
-    // layers; the vertical gradient fades the body toward the track.
+    // Final design: five copies of the same ocean swell. The largest layer
+    // leads, the rest start later, sit lower, and stay quieter. Each layer's
+    // envelope peak moves right with its delay so the copies stay readable.
     private static readonly LayerSpec[] Layers =
     {
-        new(0.70, 0.60, 0.000),
-        new(0.50, 0.40, 0.200),
-        new(0.35, 0.20, 0.400)
+        new(1.00, 0.65, 0.0, 0.50),
+        new(0.86, 0.50, 0.6, 0.53),
+        new(0.72, 0.38, 1.2, 0.56),
+        new(0.58, 0.28, 1.8, 0.60),
+        new(0.46, 0.20, 2.4, 0.64)
     };
 
     public static readonly StyledProperty<double> ProgressProperty =
@@ -144,67 +148,22 @@ public sealed class WaveformScrubber : Control
             ? solid.Color
             : Color.Parse("#F6A6C8");
 
-        // The tallest layer defines the available height; the others scale
-        // down from it. A short top margin keeps the ridge inside the control.
-        var waveHeight = Math.Max(1, trackY - TopMargin);
-        var maxAmplitude = waveHeight / Layers[0].Scale;
-
-        if (progress < 0.9995)
-        {
-            using (context.PushClip(new Rect(thumbX, 0, width - thumbX, height)))
-            using (context.PushOpacity(UnplayedOpacity))
-            {
-                DrawLayers(
-                    context, trackLeft, trackRight, trackY, maxAmplitude,
-                    Seed, Energy, Phase, accent);
-            }
-        }
-
-        if (progress > 0.0005)
-        {
-            using (context.PushClip(new Rect(0, 0, thumbX, height)))
-            {
-                DrawLayers(
-                    context, trackLeft, trackRight, trackY, maxAmplitude,
-                    Seed, Energy, Phase, accent);
-            }
-        }
-
         var trackPen = new Pen(TrackBrush, TrackThickness) { LineCap = PenLineCap.Round };
         context.DrawLine(trackPen, new Point(trackLeft, trackY), new Point(trackRight, trackY));
 
-        if (progress > 0.0005)
+        if (progress > 0.0005 && thumbX - trackLeft >= 1)
         {
-            var playedPen = new Pen(PlayedBrush, TrackThickness) { LineCap = PenLineCap.Round };
+            var playedBrush = CreateWaveBrush(accent, 1.0);
+            var playedPen = new Pen(playedBrush, PlayedTrackThickness) { LineCap = PenLineCap.Round };
             context.DrawLine(playedPen, new Point(trackLeft, trackY), new Point(thumbX, trackY));
+
+            // The wave lives only on the played side. Its height is the final
+            // 18 px, capped so a short control still keeps the ridge on screen.
+            var amplitude = Math.Min(WaveAmplitude, Math.Max(1, trackY - 2));
+            DrawOceanLayers(context, trackLeft, thumbX, trackY, amplitude, Seed, Phase, accent);
         }
 
-        var thumbCenter = new Point(thumbX, trackY);
-        var glow = new RadialGradientBrush
-        {
-            GradientStops = new GradientStops
-            {
-                new(Color.FromArgb(0x80, accent.R, accent.G, accent.B), 0),
-                new(Color.FromArgb(0x2A, accent.R, accent.G, accent.B), 0.55),
-                new(Color.FromArgb(0x00, accent.R, accent.G, accent.B), 1)
-            }
-        };
-        context.DrawEllipse(
-            glow, null, thumbCenter, ThumbRadius * 3.0, ThumbRadius * 3.0);
-
-        context.DrawEllipse(
-            new SolidColorBrush(Color.Parse("#E6100E12")),
-            null,
-            thumbCenter,
-            ThumbRadius,
-            ThumbRadius);
-
-        context.DrawEllipse(
-            null,
-            new Pen(Brushes.White, ThumbStroke),
-            thumbCenter,
-            ThumbRadius,
-            ThumbRadius);
+        DrawThumb(context, thumbX, trackY, accent);
     }
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)
@@ -341,93 +300,93 @@ public sealed class WaveformScrubber : Control
     }
 
     /// <summary>
-    /// Normalized 0..1 contour for one layer. The shape is a short sum of
-    /// spatial sines whose amplitudes and phases drift slowly with playback
-    /// time. The path is deterministic from <paramref name="seed"/> and is
-    /// continuous in time; the playback position freezes it on pause.
+    /// Normalized 0..1 height of the ocean swell at <paramref name="u"/> across
+    /// the played width. The bell-shaped window is fixed to the played width;
+    /// the crest travels through it with playback position, so pausing freezes
+    /// the crest. Each layer supplies its own window peak.
     /// </summary>
-    internal static double EnvelopeAt(
-        double t,
+    internal static double OceanEnvelopeAt(
+        double u,
         int seed,
-        double energy,
         double phase,
-        double layerPhase = 0)
+        double peak = 0.50)
     {
-        t = Math.Clamp(t, 0, 1);
+        u = Math.Clamp(u, 0, 1);
+        peak = Math.Clamp(peak, 0.01, 0.99);
+
+        var sigma = u < peak ? 0.32 : 0.26;
+        var window = Math.Exp(-0.5 * Math.Pow((u - peak) / sigma, 2));
+
         var seedPhase = (seed % 97) * 0.37;
-        var turn = t * Math.PI * 2;
-        var drift = phase * 0.21;
-        var lp = layerPhase * Math.PI * 2;
+        var travel = 2 * Math.PI * (0.80 * u - PhaseSpeed * phase) + seedPhase;
+        var primary = Math.Sin(travel);
+        var secondary = 0.06 * Math.Sin(2 * travel + 1.3);
+        var shape = 0.5 + 0.5 * (primary + secondary) / 1.06;
 
-        // Incommensurate slow modulation gives a long, non-repeating path
-        // without the acceleration jumps of a sampled noise field.
-        var w1 = 0.28 + 0.05 * Math.Sin(drift * 0.53 + lp * 1.3 + 0.6);
-        var w2 = 0.16 + 0.04 * Math.Sin(drift * 0.71 + lp * 2.1 + 1.7);
-        var w3 = 0.08 + 0.02 * Math.Sin(drift * 0.97 + lp * 3.3 + 3.1);
-
-        // The linear terms make the hills flow across the track; the slow
-        // sines add sway so the contour keeps changing shape. The layers use
-        // opposite directions and different speeds, so they cross smoothly.
-        var p1 = seedPhase + 1.20 * drift + 0.35 * Math.Sin(drift * 0.45 + lp * 0.9 + 0.2);
-        var p2 = seedPhase * 1.7 - 1.80 * drift + 0.45 * Math.Sin(drift * 0.33 + lp * 1.7 + 1.1);
-        var p3 = seedPhase * 0.6 + 2.40 * drift + 0.55 * Math.Sin(drift * 0.27 + lp * 2.7 + 2.3);
-
-        var wave = 0.48
-            + w1 * Math.Sin(turn * 3.1 + p1)
-            + w2 * Math.Sin(turn * 6.7 + p2)
-            + w3 * Math.Sin(turn * 11.3 + p3);
-
-        var shape = Math.Clamp(wave, 0.12, 1.0);
-        var window = 0.90 + 0.10 * Math.Sin(Math.PI * t);
-
-        // Energy only adds a tiny lift. The morph speed is constant, so the
-        // animation never locks to the beat.
-        var lift = 1 + 0.03 * Math.Clamp(energy, 0, 1);
-
-        return Math.Clamp(shape * window * lift, 0, 1);
+        // The window dominates; the ripple only varies the height by 38%, so
+        // the crest drifts gently instead of pumping with every cycle.
+        return Math.Clamp(window * (0.62 + 0.38 * shape), 0, 1);
     }
 
     internal static double AmplitudeAt(
-        double t,
+        double u,
         double height,
         int seed,
-        double energy,
-        double phase)
-    {
-        var max = Math.Max(1, height / 2 - 3);
-        return max * EnvelopeAt(t, seed, energy, phase);
-    }
-
-    private static void DrawLayers(
-        DrawingContext context,
-        double left,
-        double right,
-        double baselineY,
-        double maxAmplitude,
-        int seed,
-        double energy,
         double phase,
-        Color accent)
+        double peak = 0.50)
     {
-        foreach (var layer in Layers)
-        {
-            var geometry = BuildLayer(
-                left, right, baselineY, maxAmplitude * layer.Scale,
-                seed, energy, phase, layer.Phase);
-            context.DrawGeometry(
-                CreateLayerBrush(accent, layer.Alpha), null, geometry);
-        }
+        return Math.Max(1, height) * OceanEnvelopeAt(u, seed, phase, peak);
     }
 
-    private static StreamGeometry BuildLayer(
+    private static void DrawOceanLayers(
+        DrawingContext context,
         double left,
         double right,
         double baselineY,
         double amplitude,
         int seed,
-        double energy,
         double phase,
-        double layerPhase)
+        Color accent)
+    {
+        var contour = ShiftHue(accent, 0, -0.42);
+
+        for (var i = 0; i < Layers.Length; i++)
+        {
+            var layer = Layers[i];
+            var maxAmplitude = Math.Max(0.01, amplitude * layer.Scale);
+            var (fill, top) = BuildOceanLayer(
+                left, right, baselineY, maxAmplitude,
+                seed, phase - layer.Delay, layer.Peak);
+
+            context.DrawGeometry(CreateWaveBrush(accent, layer.Opacity), null, fill);
+
+            if (i == 0)
+            {
+                var under = new Pen(
+                    new SolidColorBrush(Color.FromArgb(90, contour.R, contour.G, contour.B)), 3.0);
+                context.DrawGeometry(null, under, top);
+                context.DrawGeometry(null, new Pen(Brushes.White, 1.6), top);
+            }
+            else
+            {
+                var alpha = (byte)Math.Round(
+                    Math.Clamp(0.55 * layer.Opacity, 0, 1) * 255);
+                var width = 0.9 + 0.5 * layer.Opacity;
+                var pen = new Pen(
+                    new SolidColorBrush(Color.FromArgb(alpha, contour.R, contour.G, contour.B)), width);
+                context.DrawGeometry(null, pen, top);
+            }
+        }
+    }
+
+    private static (StreamGeometry Fill, StreamGeometry Top) BuildOceanLayer(
+        double left,
+        double right,
+        double baselineY,
+        double amplitude,
+        int seed,
+        double phase,
+        double peak)
     {
         var span = right - left;
         var count = Math.Max(2, (int)Math.Ceiling(span / WaveStep));
@@ -437,62 +396,157 @@ public sealed class WaveformScrubber : Control
         for (var i = 0; i <= count; i++)
         {
             var x = left + Math.Min(span, i * WaveStep);
-            var t = span <= 0 ? 0 : (x - left) / span;
+            var u = span <= 0 ? 0 : (x - left) / span;
             var amp = Math.Clamp(
-                EnvelopeAt(t, seed, energy, phase, layerPhase) * maxAmp,
+                OceanEnvelopeAt(u, seed, phase, peak) * maxAmp,
                 0,
                 maxAmp);
             points.Add(new Point(x, baselineY - amp));
         }
 
-        var geometry = new StreamGeometry();
-        using (var ctx = geometry.Open())
+        var top = new StreamGeometry();
+        using (var ctx = top.Open())
+        {
+            ctx.BeginFigure(points[0], false);
+            AddCurves(ctx, points, baselineY, maxAmp);
+            ctx.EndFigure(false);
+        }
+
+        var fill = new StreamGeometry();
+        using (var ctx = fill.Open())
         {
             ctx.BeginFigure(points[0], true);
-
-            // Catmull-Rom through the samples. Control points are clamped to
-            // the layer's band so the curve cannot dip under the track or rise
-            // above its own ridge.
-            for (var i = 0; i < points.Count - 1; i++)
-            {
-                var p0 = points[Math.Max(0, i - 1)];
-                var p1 = points[i];
-                var p2 = points[i + 1];
-                var p3 = points[Math.Min(points.Count - 1, i + 2)];
-                var c1 = new Point(
-                    p1.X + (p2.X - p0.X) / 6,
-                    Math.Clamp(p1.Y + (p2.Y - p0.Y) / 6, baselineY - maxAmp, baselineY));
-                var c2 = new Point(
-                    p2.X - (p3.X - p1.X) / 6,
-                    Math.Clamp(p2.Y - (p3.Y - p1.Y) / 6, baselineY - maxAmp, baselineY));
-                ctx.CubicBezierTo(c1, c2, p2);
-            }
-
+            AddCurves(ctx, points, baselineY, maxAmp);
             ctx.LineTo(new Point(right, baselineY));
             ctx.LineTo(new Point(left, baselineY));
             ctx.EndFigure(true);
         }
 
-        return geometry;
+        return (fill, top);
     }
 
-    private static IBrush CreateLayerBrush(Color accent, double alpha)
+    private static void AddCurves(
+        StreamGeometryContext ctx,
+        List<Point> points,
+        double baselineY,
+        double maxAmp)
     {
-        static byte Alpha(double value) =>
-            (byte)Math.Round(Math.Clamp(value, 0, 1) * 255);
+        // Catmull-Rom through the samples. Control points stay inside the
+        // layer's band so the curve cannot dip below the track or overshoot.
+        for (var i = 0; i < points.Count - 1; i++)
+        {
+            var p0 = points[Math.Max(0, i - 1)];
+            var p1 = points[i];
+            var p2 = points[i + 1];
+            var p3 = points[Math.Min(points.Count - 1, i + 2)];
+            var c1 = new Point(
+                p1.X + (p2.X - p0.X) / 6,
+                Math.Clamp(p1.Y + (p2.Y - p0.Y) / 6, baselineY - maxAmp, baselineY));
+            var c2 = new Point(
+                p2.X - (p3.X - p1.X) / 6,
+                Math.Clamp(p2.Y - (p3.Y - p1.Y) / 6, baselineY - maxAmp, baselineY));
+            ctx.CubicBezierTo(c1, c2, p2);
+        }
+    }
+
+    private static void DrawThumb(
+        DrawingContext context,
+        double thumbX,
+        double trackY,
+        Color accent)
+    {
+        var center = new Point(thumbX, trackY);
+        var glow = new RadialGradientBrush
+        {
+            GradientStops = new GradientStops
+            {
+                new(Color.FromArgb(0x5C, accent.R, accent.G, accent.B), 0),
+                new(Color.FromArgb(0x17, accent.R, accent.G, accent.B), 0.6),
+                new(Color.FromArgb(0x00, accent.R, accent.G, accent.B), 1)
+            }
+        };
+
+        context.DrawEllipse(glow, null, center, GlowRadius, GlowRadius);
+        context.DrawEllipse(
+            new SolidColorBrush(accent), null, center, ThumbRadius, ThumbRadius);
+        context.DrawEllipse(
+            null, new Pen(Brushes.White, ThumbStroke), center, ThumbRadius, ThumbRadius);
+    }
+
+    private static IBrush CreateWaveBrush(Color accent, double alpha)
+    {
+        var start = ShiftHue(accent, -22, 0.00);
+        var end = ShiftHue(accent, 26, 0.06);
 
         return new LinearGradientBrush
         {
             StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
-            EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative),
+            EndPoint = new RelativePoint(1, 0, RelativeUnit.Relative),
             GradientStops = new GradientStops
             {
-                new(Color.FromArgb(Alpha(alpha), accent.R, accent.G, accent.B), 0),
-                new(Color.FromArgb(Alpha(alpha), accent.R, accent.G, accent.B), 0.72),
-                new(Color.FromArgb(Alpha(alpha * 0.30), accent.R, accent.G, accent.B), 1)
+                new(WithAlpha(start, alpha), 0),
+                new(WithAlpha(accent, alpha), 0.45),
+                new(WithAlpha(end, alpha), 1)
             }
         };
     }
 
-    internal readonly record struct LayerSpec(double Scale, double Alpha, double Phase);
+    private static Color WithAlpha(Color color, double alpha)
+    {
+        var value = (byte)Math.Round(Math.Clamp(alpha, 0, 1) * 255);
+        return Color.FromArgb(value, color.R, color.G, color.B);
+    }
+
+    private static Color ShiftHue(Color color, double degrees, double lightnessDelta)
+    {
+        var r = color.R / 255.0;
+        var g = color.G / 255.0;
+        var b = color.B / 255.0;
+        var max = Math.Max(r, Math.Max(g, b));
+        var min = Math.Min(r, Math.Min(g, b));
+        var delta = max - min;
+        var lightness = (max + min) / 2;
+        var saturation = 0.0;
+        var hue = 0.0;
+
+        if (delta > 0.00001)
+        {
+            saturation = delta / (1 - Math.Abs(2 * lightness - 1));
+            hue = max == r
+                ? 60 * (((g - b) / delta) % 6)
+                : max == g
+                    ? 60 * ((b - r) / delta + 2)
+                    : 60 * ((r - g) / delta + 4);
+            if (hue < 0)
+            {
+                hue += 360;
+            }
+        }
+
+        hue = (hue + degrees + 360) % 360;
+        var targetLightness = Math.Clamp(lightness + lightnessDelta, 0, 1);
+        var chroma = (1 - Math.Abs(2 * targetLightness - 1)) * saturation;
+        var x = chroma * (1 - Math.Abs(hue / 60 % 2 - 1));
+        var m = targetLightness - chroma / 2;
+        var (rr, gg, bb) = hue switch
+        {
+            < 60 => (chroma, x, 0.0),
+            < 120 => (x, chroma, 0.0),
+            < 180 => (0.0, chroma, x),
+            < 240 => (0.0, x, chroma),
+            < 300 => (x, 0.0, chroma),
+            _ => (chroma, 0.0, x)
+        };
+
+        return Color.FromRgb(
+            (byte)Math.Clamp(Math.Round((rr + m) * 255), 0, 255),
+            (byte)Math.Clamp(Math.Round((gg + m) * 255), 0, 255),
+            (byte)Math.Clamp(Math.Round((bb + m) * 255), 0, 255));
+    }
+
+    internal readonly record struct LayerSpec(
+        double Scale,
+        double Opacity,
+        double Delay,
+        double Peak);
 }
