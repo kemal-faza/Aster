@@ -304,6 +304,18 @@
                                          Text="Adds a spring overshoot when the panel opens or closes." />
                             </StackPanel>
                           </CheckBox>
+                          <CheckBox x:Name="AudioReactiveBarsToggle"
+                                    Theme="{StaticResource ToggleSwitch}"
+                                    IsChecked="{Binding AudioReactiveBars, Mode=TwoWay}"
+                                    IsEnabled="{Binding CanSave}"
+                                    automation:AutomationProperties.Name="Audio-reactive bars"
+                                    automation:AutomationProperties.HelpText="Animate the rhythm bars from system audio. Audio is processed locally and never recorded or sent.">
+                            <StackPanel>
+                              <TextBlock Classes="settings-label" Text="Audio-reactive bars" />
+                              <TextBlock Classes="settings-description"
+                                         Text="Bars follow system audio. Audio is processed locally and never recorded or sent. Off uses a generated animation instead." />
+                            </StackPanel>
+                          </CheckBox>
                         </StackPanel>
                       </Border>
                     </StackPanel>

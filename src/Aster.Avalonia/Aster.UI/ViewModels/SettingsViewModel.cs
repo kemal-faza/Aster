@@ -42,6 +42,7 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private int _shortBreakMinutes = 5;
     [ObservableProperty] private int _longBreakMinutes = 15;
     [ObservableProperty] private bool _focusChime = true;
+    [ObservableProperty] private bool _audioReactiveBars;
 
     public SettingsViewModel(ISettingsStore store, IAppLog log, string autostartLabel)
     {
@@ -72,6 +73,7 @@ public partial class SettingsViewModel : ObservableObject
         _shortBreakMinutes = current.ShortBreakMinutes;
         _longBreakMinutes = current.LongBreakMinutes;
         _focusChime = current.FocusChime;
+        _audioReactiveBars = current.AudioReactiveBars;
         _saveTimer.Tick += async (_, _) =>
         {
             _saveTimer.Stop();
@@ -189,7 +191,8 @@ public partial class SettingsViewModel : ObservableObject
                 FocusMinutes = FocusMinutes,
                 ShortBreakMinutes = ShortBreakMinutes,
                 LongBreakMinutes = LongBreakMinutes,
-                FocusChime = FocusChime
+                FocusChime = FocusChime,
+                AudioReactiveBars = AudioReactiveBars
             };
 
             _lastSaved = next;
@@ -258,6 +261,7 @@ public partial class SettingsViewModel : ObservableObject
     partial void OnShortBreakMinutesChanged(int value) => ScheduleSave();
     partial void OnLongBreakMinutesChanged(int value) => ScheduleSave();
     partial void OnFocusChimeChanged(bool value) => ScheduleSave();
+    partial void OnAudioReactiveBarsChanged(bool value) => ScheduleSave();
 
     internal void RefreshFromStore(AppSettings settings)
     {
@@ -312,6 +316,10 @@ public partial class SettingsViewModel : ObservableObject
                 baseline.LongBreakMinutes,
                 settings.LongBreakMinutes);
             FocusChime = Reconcile(FocusChime, baseline.FocusChime, settings.FocusChime);
+            AudioReactiveBars = Reconcile(
+                AudioReactiveBars,
+                baseline.AudioReactiveBars,
+                settings.AudioReactiveBars);
         }
         finally
         {

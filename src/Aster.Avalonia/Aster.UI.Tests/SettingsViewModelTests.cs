@@ -117,7 +117,8 @@ public class SettingsViewModelTests
             FocusMinutes: 40,
             ShortBreakMinutes: 7,
             LongBreakMinutes: 20,
-            FocusChime: false);
+            FocusChime: false,
+            AudioReactiveBars: true);
         var expected = new AppSettings(
             SchemaVersion: SettingsSchema.CurrentVersion,
             StartWithWindows: false,
@@ -141,7 +142,8 @@ public class SettingsViewModelTests
             FocusMinutes: 50,
             ShortBreakMinutes: 10,
             LongBreakMinutes: 30,
-            FocusChime: true);
+            FocusChime: true,
+            AudioReactiveBars: false);
         var store = new FakeStore(seeded);
         var vm = new SettingsViewModel(store, new NullLog(), "Start with Windows")
         {
@@ -166,7 +168,8 @@ public class SettingsViewModelTests
             FocusMinutes = expected.FocusMinutes,
             ShortBreakMinutes = expected.ShortBreakMinutes,
             LongBreakMinutes = expected.LongBreakMinutes,
-            FocusChime = expected.FocusChime
+            FocusChime = expected.FocusChime,
+            AudioReactiveBars = expected.AudioReactiveBars
         };
 
         await vm.SaveNowAsync();
