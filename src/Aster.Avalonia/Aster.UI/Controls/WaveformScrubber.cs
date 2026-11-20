@@ -356,7 +356,7 @@ public sealed class WaveformScrubber : Control
         t = Math.Clamp(t, 0, 1);
         var seedPhase = (seed % 97) * 0.37;
         var turn = t * Math.PI * 2;
-        var drift = phase * 0.15;
+        var drift = phase * 0.21;
         var lp = layerPhase * Math.PI * 2;
 
         // Incommensurate slow modulation gives a long, non-repeating path
