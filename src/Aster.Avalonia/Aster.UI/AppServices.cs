@@ -24,6 +24,8 @@ public sealed class AppServices : IAsyncDisposable
     public IWindowPlacement Placement { get; }
     public IWindowChrome Chrome { get; }
     public IEffectLayer EffectLayer { get; }
+    public MediaViewModel MediaViewModel { get; }
+    public IAudioSpectrumSource? AudioSpectrum { get; }
     public ShellViewModel Shell { get; }
     public SettingsViewModel SettingsViewModel { get; }
     public LyricsService Lyrics { get; }
@@ -50,7 +52,19 @@ public sealed class AppServices : IAsyncDisposable
         Chrome = factory.CreateWindowChrome(log);
         EffectLayer = factory.CreateEffectLayer(log);
 
-        var media = new MediaViewModel(Media, dispatcher, log);
+        IAudioSpectrumSource? spectrum = null;
+        try
+        {
+            spectrum = factory.CreateAudioSpectrum(log);
+        }
+        catch (Exception ex)
+        {
+            log.Error("Failed to create the audio spectrum source.", ex);
+        }
+
+        AudioSpectrum = spectrum;
+        MediaViewModel = new MediaViewModel(Media, dispatcher, log, spectrum, settings);
+        var media = MediaViewModel;
         SettingsViewModel = new SettingsViewModel(settings, log, factory.AutostartLabel);
 
         var cache = new LyricsCache(
@@ -178,6 +192,8 @@ public sealed class AppServices : IAsyncDisposable
             DisposeService(nameof(Fullscreen), Fullscreen, expectDisposable: true);
             DisposeService(nameof(LyricsViewModel), LyricsViewModel);
             DisposeService(nameof(Lyrics), Lyrics);
+            DisposeService(nameof(MediaViewModel), MediaViewModel, expectDisposable: true);
+            DisposeService(nameof(AudioSpectrum), AudioSpectrum, expectDisposable: true);
             DisposeService(nameof(Media), Media);
             DisposeService(nameof(Battery), Battery, expectDisposable: true);
             DisposeService(nameof(Network), Network, expectDisposable: true);

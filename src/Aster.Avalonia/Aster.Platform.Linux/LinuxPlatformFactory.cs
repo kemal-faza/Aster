@@ -4,6 +4,7 @@ using Aster.Core.Logging;
 using Aster.Core.Models;
 using Aster.Core.Settings;
 using Aster.Core.System;
+using Aster.Platform.Linux.Audio;
 using Aster.Platform.Linux.Effects;
 using Aster.Platform.Linux.Media;
 using Aster.Platform.Linux.System;
@@ -43,6 +44,8 @@ public sealed class LinuxPlatformFactory : IPlatformFactory
         _useX11 ? new LinuxWindowChrome(log) : new NoopWindowChrome();
     public IEffectLayer CreateEffectLayer(IAppLog log) =>
         _useX11 ? new X11EffectLayer(log) : new InsetEffectLayer();
+    public IAudioSpectrumSource? CreateAudioSpectrum(IAppLog log) =>
+        new ParecSpectrumSource(log);
     public ISingleInstance CreateSingleInstance(string name) =>
         new MutexSingleInstance(name);
 }

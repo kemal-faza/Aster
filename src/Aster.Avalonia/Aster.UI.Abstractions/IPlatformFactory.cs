@@ -19,4 +19,5 @@ public interface IPlatformFactory
     IWindowChrome CreateWindowChrome(IAppLog log);
     ISingleInstance CreateSingleInstance(string name);
     IEffectLayer CreateEffectLayer(IAppLog log) => new InsetEffectLayer();
+    IAudioSpectrumSource? CreateAudioSpectrum(IAppLog log) => null;
 }

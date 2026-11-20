@@ -60,6 +60,10 @@ public class AppServicesTests
         Assert.Equal("save", factory.Order[0]);
         Assert.True(factory.Order.IndexOf("effect") > 0);
         Assert.True(factory.Order.IndexOf("media") > 0);
+        var spectrumIndex = factory.Order.IndexOf("spectrum");
+        var mediaIndex = factory.Order.IndexOf("media");
+        Assert.True(spectrumIndex >= 0, "spectrum dispose was not recorded");
+        Assert.True(mediaIndex > spectrumIndex, "spectrum must be disposed before media");
     }
 
     [Fact]
@@ -109,6 +113,22 @@ public class AppServicesTests
             message => message.Contains("EffectLayer", StringComparison.Ordinal));
     }
 
+    [Fact]
+    public async Task CreateAsyncToleratesSpectrumFactoryFailure()
+    {
+        var factory = new FakePlatformFactory
+        {
+            ThrowOnSpectrumCreation = true
+        };
+
+        var services = await AppServices.CreateAsync(factory, new ImmediateDispatcher());
+
+        Assert.Null(services.AudioSpectrum);
+        Assert.Contains(
+            factory.Log.Errors,
+            message => message.Contains("spectrum", StringComparison.OrdinalIgnoreCase));
+    }
+
     private static void AssertAllDisposedOnce(FakePlatformFactory factory)
     {
         Assert.Equal(1, factory.EffectLayer.DisposeCount);
@@ -116,6 +136,27 @@ public class AppServicesTests
         Assert.Equal(1, factory.Media.DisposeCount);
         Assert.Equal(1, factory.Battery.DisposeCount);
         Assert.Equal(1, factory.Network.DisposeCount);
+        Assert.Equal(1, factory.AudioSpectrum.DisposeCount);
+    }
+
+    private sealed class FakeAudioSpectrumSource : IAudioSpectrumSource
+    {
+        public bool IsAvailable => true;
+        public SpectrumFrame Latest => SpectrumFrame.Silence;
+        public int StartCount { get; private set; }
+        public int StopCount { get; private set; }
+        public int DisposeCount { get; private set; }
+        public List<string>? Order { get; set; }
+
+        public void Start() => StartCount++;
+
+        public void Stop() => StopCount++;
+
+        public void Dispose()
+        {
+            Order?.Add("spectrum");
+            DisposeCount++;
+        }
     }
 
     private sealed class ImmediateDispatcher : IUiDispatcher
@@ -328,6 +369,7 @@ public class AppServicesTests
             Store.Order = Order;
             Media.Order = Order;
             EffectLayer.Order = Order;
+            AudioSpectrum.Order = Order;
         }
 
         public List<string> Order { get; } = new();
@@ -345,6 +387,8 @@ public class AppServicesTests
         public FakeNetworkStatus Network { get; } = new();
         public FakeFullscreenWatcher Fullscreen { get; } = new();
         public FakeEffectLayer EffectLayer { get; } = new();
+        public FakeAudioSpectrumSource AudioSpectrum { get; } = new();
+        public bool ThrowOnSpectrumCreation { get; set; }
         public FakePlacement Placement { get; } = new();
         public FakeChrome Chrome { get; } = new();
         public FakeSingleInstance SingleInstance { get; } = new();
@@ -370,5 +414,15 @@ public class AppServicesTests
         public ISingleInstance CreateSingleInstance(string name) => SingleInstance;
 
         public IEffectLayer CreateEffectLayer(IAppLog log) => EffectLayer;
+
+        public IAudioSpectrumSource? CreateAudioSpectrum(IAppLog log)
+        {
+            if (ThrowOnSpectrumCreation)
+            {
+                throw new InvalidOperationException("spectrum factory failed");
+            }
+
+            return AudioSpectrum;
+        }
     }
 }
