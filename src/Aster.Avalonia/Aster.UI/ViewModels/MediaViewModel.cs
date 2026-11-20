@@ -17,6 +17,9 @@ public partial class MediaViewModel : ObservableObject, IDisposable
     private readonly IMediaSession _media;
     private readonly IUiDispatcher _dispatcher;
     private readonly IAppLog _log;
+    private readonly IAudioSpectrumSource? _spectrumSource;
+    private readonly ISettingsStore? _settings;
+    private bool _audioReactive;
     private readonly DispatcherTimer _playbackTimer =
         new() { Interval = TimeSpan.FromMilliseconds(33) };
     private DateTimeOffset _lastVinylTick;
@@ -46,8 +49,11 @@ public partial class MediaViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _displayTitle = "Nothing playing";
     [ObservableProperty] private string _displayArtist = "Start something on Spotify, YouTube, or Apple Music";
     [ObservableProperty] private double _vinylAngle;
+    [ObservableProperty] private SpectrumFrame _spectrum;
 
     public bool IsSeeking { get; set; }
+
+    public double SpectrumEnergy => Spectrum.Energy;
 
     public double PlayingDotOpacity => IsPlaying ? 1 : 0;
 
@@ -81,11 +87,23 @@ public partial class MediaViewModel : ObservableObject, IDisposable
             }
         };
 
-    public MediaViewModel(IMediaSession media, IUiDispatcher dispatcher, IAppLog log)
+    public MediaViewModel(
+        IMediaSession media,
+        IUiDispatcher dispatcher,
+        IAppLog log,
+        IAudioSpectrumSource? spectrum = null,
+        ISettingsStore? settings = null)
     {
         _media = media;
         _dispatcher = dispatcher;
         _log = log;
+        _spectrumSource = spectrum;
+        _settings = settings;
+        _audioReactive = settings?.Current.AudioReactiveBars ?? true;
+        if (_settings is not null)
+        {
+            _settings.Changed += OnSettingsChanged;
+        }
 
         _media.Changed += OnMediaChanged;
         _playbackTimer.Tick += (_, _) => OnPlaybackTick();
@@ -96,6 +114,8 @@ public partial class MediaViewModel : ObservableObject, IDisposable
     {
         _playbackTimer.Stop();
         _media.Changed -= OnMediaChanged;
+        _settings?.Changed -= OnSettingsChanged;
+        _spectrumSource?.Stop();
     }
 
     [RelayCommand]
@@ -147,6 +167,9 @@ public partial class MediaViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(LyricsGlowBrush));
     }
 
+    partial void OnSpectrumChanged(SpectrumFrame value) =>
+        OnPropertyChanged(nameof(SpectrumEnergy));
+
     private void OnMediaChanged(object? sender, MediaSnapshot snapshot) =>
         _dispatcher.Post(() => Apply(snapshot));
 
@@ -191,6 +214,16 @@ public partial class MediaViewModel : ObservableObject, IDisposable
         {
             _playbackTimer.Stop();
         }
+
+        if (IsPlaying && _audioReactive)
+        {
+            _spectrumSource?.Start();
+        }
+        else
+        {
+            _spectrumSource?.Stop();
+            Spectrum = SpectrumFrame.Silence;
+        }
     }
 
     private static string BuildTrackKey(MediaSnapshot snapshot) =>
@@ -234,6 +267,7 @@ public partial class MediaViewModel : ObservableObject, IDisposable
         _lastVinylTick = now;
         VinylAngle = (VinylAngle + elapsed * (360.0 / 11.0)) % 360;
         UpdateProgress(_media.Current);
+        UpdateSpectrum();
     }
 
     private void UpdateProgress(MediaSnapshot snapshot)
@@ -274,6 +308,40 @@ public partial class MediaViewModel : ObservableObject, IDisposable
         double Progress,
         string? PositionText,
         int WholeSecond);
+
+    private void UpdateSpectrum()
+    {
+        Spectrum = _audioReactive && _spectrumSource is { IsAvailable: true }
+            ? _spectrumSource.Latest
+            : SimulatedSpectrum.Next(PositionSeconds, WaveformSeed);
+    }
+
+    private void OnSettingsChanged(object? sender, AppSettings settings) =>
+        _dispatcher.Post(() => ApplyAudioReactiveSetting(settings));
+
+    private void ApplyAudioReactiveSetting(AppSettings settings)
+    {
+        if (_audioReactive == settings.AudioReactiveBars)
+        {
+            return;
+        }
+
+        _audioReactive = settings.AudioReactiveBars;
+
+        if (!_audioReactive)
+        {
+            _spectrumSource?.Stop();
+            Spectrum = IsPlaying
+                ? SimulatedSpectrum.Next(PositionSeconds, WaveformSeed)
+                : SpectrumFrame.Silence;
+            return;
+        }
+
+        if (IsPlaying)
+        {
+            _spectrumSource?.Start();
+        }
+    }
 
     private async Task DecodeAndApplyAsync(byte[]? bytes, string key)
     {
