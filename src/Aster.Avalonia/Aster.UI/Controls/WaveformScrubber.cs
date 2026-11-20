@@ -95,30 +95,54 @@ public sealed class WaveformScrubber : Control
         var count = BarCount(width);
         var total = count * Step - Gap;
         var left = (width - total) / 2;
-        var progress = Math.Clamp(Progress, 0, 1);
-        var playedEdge = progress * width;
+        var playedEdge = PlayedWidth(Progress, width);
 
+        DrawBars(context, count, left, height, TrackBrush);
+
+        using (context.PushClip(new Rect(0, 0, playedEdge, height)))
+        {
+            DrawBars(context, count, left, height, PlayedBrush);
+        }
+    }
+
+    private void DrawBars(
+        DrawingContext context,
+        int count,
+        double left,
+        double height,
+        IBrush brush)
+    {
         for (var i = 0; i < count; i++)
         {
-            var noise = Hash(Seed, i) / (double)int.MaxValue;
-            var wave = 0.5 + 0.5 * Math.Sin(i * 0.63 + (Seed % 29) * 0.37);
-            var mix = 0.58 * noise + 0.42 * wave;
-            var barHeight = 3.5 + (height - 4.0) * (0.12 + 0.88 * mix);
+            var barHeight = BarHeight(i, height);
             var x = left + i * Step;
             var y = (height - barHeight) / 2;
-            var brush = x + BarWidth / 2 <= playedEdge ? PlayedBrush : TrackBrush;
-
-            context.DrawRectangle(brush, null, new Rect(x, y, BarWidth, barHeight),
+            context.DrawRectangle(
+                brush, null, new Rect(x, y, BarWidth, barHeight),
                 BarWidth / 2, BarWidth / 2);
         }
+    }
+
+    private double BarHeight(int index, double height)
+    {
+        var noise = Hash(Seed, index) / (double)int.MaxValue;
+        var wave = 0.5 + 0.5 * Math.Sin(index * 0.63 + (Seed % 29) * 0.37);
+        var mix = 0.58 * noise + 0.42 * wave;
+        return 3.5 + (height - 4.0) * (0.12 + 0.88 * mix);
     }
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         base.OnPointerPressed(e);
         var ratio = RatioForX(e.GetPosition(this).X, Bounds.Width);
-        SeekRequested?.Invoke(this, ratio);
+        ApplyPointerSeek(ratio);
         e.Handled = true;
+    }
+
+    internal void ApplyPointerSeek(double ratio)
+    {
+        SetCurrentValue(ProgressProperty, ratio);
+        SeekRequested?.Invoke(this, ratio);
     }
 
     protected override void OnKeyDown(KeyEventArgs e)
@@ -143,6 +167,9 @@ public sealed class WaveformScrubber : Control
         SeekRequested?.Invoke(this, Progress);
         e.Handled = true;
     }
+
+    internal static double PlayedWidth(double progress, double width) =>
+        Math.Clamp(progress, 0, 1) * width;
 
     internal static int BarCount(double width) =>
         width < 8 ? 1 : Math.Max(1, (int)Math.Floor((width + Gap) / Step));

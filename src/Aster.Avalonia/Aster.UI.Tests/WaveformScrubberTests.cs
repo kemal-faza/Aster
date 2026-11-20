@@ -23,6 +23,27 @@ public class WaveformScrubberTests
     }
 
     [Fact]
+    public void PlayedWidthClampsToTheControl()
+    {
+        Assert.Equal(0, WaveformScrubber.PlayedWidth(-0.2, 100));
+        Assert.Equal(50, WaveformScrubber.PlayedWidth(0.5, 100));
+        Assert.Equal(100, WaveformScrubber.PlayedWidth(1.2, 100));
+    }
+
+    [Fact]
+    public void PointerSeekUpdatesProgressBeforeRaisingTheEvent()
+    {
+        var control = new WaveformScrubber();
+        double? requested = null;
+        control.SeekRequested += (_, ratio) => requested = ratio;
+
+        control.ApplyPointerSeek(0.75);
+
+        Assert.Equal(0.75, control.Progress);
+        Assert.Equal(0.75, requested);
+    }
+
+    [Fact]
     public void HasWpfDefaultBrushes()
     {
         var control = new WaveformScrubber();

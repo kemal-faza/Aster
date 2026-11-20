@@ -74,6 +74,80 @@ public class MediaViewModelTests
         Assert.Equal("Spotify", vm.SourceApp);
     }
 
+    [Fact]
+    public void PlaybackTickOnlyFormatsTheTextWhenTheSecondChanges()
+    {
+        var first = MediaViewModel.ComputePlaybackTick(
+            TimeSpan.FromSeconds(12.2), TimeSpan.FromSeconds(180), lastSecond: -1);
+        Assert.Equal(12.2, first.PositionSeconds, 3);
+        Assert.Equal("0:12", first.PositionText);
+        Assert.Equal(12, first.WholeSecond);
+
+        var sameSecond = MediaViewModel.ComputePlaybackTick(
+            TimeSpan.FromSeconds(12.8), TimeSpan.FromSeconds(180), lastSecond: 12);
+        Assert.Null(sameSecond.PositionText);
+        Assert.Equal(12.8, sameSecond.PositionSeconds, 3);
+
+        var nextSecond = MediaViewModel.ComputePlaybackTick(
+            TimeSpan.FromSeconds(13.0), TimeSpan.FromSeconds(180), lastSecond: 12);
+        Assert.Equal("0:13", nextSecond.PositionText);
+        Assert.Equal(13, nextSecond.WholeSecond);
+    }
+
+    [Fact]
+    public void PlaybackTickClampsProgress()
+    {
+        var beyond = MediaViewModel.ComputePlaybackTick(
+            TimeSpan.FromSeconds(200), TimeSpan.FromSeconds(180), lastSecond: -1);
+        Assert.Equal(1, beyond.Progress);
+
+        var noDuration = MediaViewModel.ComputePlaybackTick(
+            TimeSpan.FromSeconds(10), TimeSpan.Zero, lastSecond: -1);
+        Assert.Equal(0, noDuration.Progress);
+    }
+
+    [Fact]
+    public async Task SeekUpdatesOptimisticallyAndClearsIsSeeking()
+    {
+        var snapshot = new MediaSnapshot(
+            "Track", "Artist", "", null, "key", PlaybackState.Playing,
+            TimeSpan.Zero, TimeSpan.FromMinutes(3), "Spotify",
+            "track-1", true, true, true, DateTimeOffset.Now);
+        var media = new FakeMedia(snapshot);
+        var vm = new MediaViewModel(media, new InlineDispatcher(), new NullLog());
+
+        await vm.SeekCommand.ExecuteAsync(30.0);
+
+        Assert.Equal(30.0, vm.PositionSeconds, 3);
+        Assert.Equal(30.0 / 180.0, vm.Progress, 3);
+        Assert.False(vm.IsSeeking);
+    }
+
+    [Fact]
+    public async Task SeekKeepsTheOptimisticPositionWhileThePlayerIsDelayed()
+    {
+        var snapshot = new MediaSnapshot(
+            "Track", "Artist", "", null, "key", PlaybackState.Playing,
+            TimeSpan.Zero, TimeSpan.FromMinutes(3), "Spotify",
+            "track-1", true, true, true, DateTimeOffset.Now);
+        var media = new FakeMedia(snapshot)
+        {
+            SeekGate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously)
+        };
+        var vm = new MediaViewModel(media, new InlineDispatcher(), new NullLog());
+
+        var seek = vm.SeekCommand.ExecuteAsync(30.0);
+        await Task.Delay(50);
+
+        Assert.True(vm.IsSeeking);
+        Assert.Equal(30.0, vm.PositionSeconds, 3);
+
+        media.SeekGate.SetResult();
+        await seek;
+
+        Assert.False(vm.IsSeeking);
+    }
+
     private sealed class FakeMedia : IMediaSession
     {
         public FakeMedia(MediaSnapshot snapshot) => Current = snapshot;
@@ -87,7 +161,23 @@ public class MediaViewModelTests
         public Task PlayPauseAsync(CancellationToken ct = default) => Task.CompletedTask;
         public Task NextAsync(CancellationToken ct = default) => Task.CompletedTask;
         public Task PreviousAsync(CancellationToken ct = default) => Task.CompletedTask;
-        public Task SeekAsync(TimeSpan position, CancellationToken ct = default) => Task.CompletedTask;
+
+        public TaskCompletionSource? SeekGate { get; set; }
+
+        public async Task SeekAsync(TimeSpan position, CancellationToken ct = default)
+        {
+            if (SeekGate is not null)
+            {
+                await SeekGate.Task.WaitAsync(ct);
+            }
+
+            Current = Current with
+            {
+                Position = position,
+                UpdatedAt = DateTimeOffset.Now
+            };
+        }
+
         public TimeSpan EstimatedPosition(DateTimeOffset now) => Current.Position;
         public void Start() { }
     }

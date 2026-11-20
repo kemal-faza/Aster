@@ -12,14 +12,15 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace Aster.UI.ViewModels;
 
-public partial class MediaViewModel : ObservableObject
+public partial class MediaViewModel : ObservableObject, IDisposable
 {
     private readonly IMediaSession _media;
     private readonly IUiDispatcher _dispatcher;
     private readonly IAppLog _log;
-    private readonly DispatcherTimer _progressTimer;
-    private readonly DispatcherTimer _vinylTimer = new() { Interval = TimeSpan.FromMilliseconds(33) };
+    private readonly DispatcherTimer _playbackTimer =
+        new() { Interval = TimeSpan.FromMilliseconds(33) };
     private DateTimeOffset _lastVinylTick;
+    private int _lastPositionSecond = -1;
     private string _artKey = string.Empty;
 
     [ObservableProperty] private string _title = string.Empty;
@@ -87,10 +88,14 @@ public partial class MediaViewModel : ObservableObject
         _log = log;
 
         _media.Changed += OnMediaChanged;
-        _progressTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
-        _progressTimer.Tick += (_, _) => UpdateProgress(_media.Current);
-        _vinylTimer.Tick += (_, _) => AdvanceVinyl();
+        _playbackTimer.Tick += (_, _) => OnPlaybackTick();
         Apply(_media.Current);
+    }
+
+    public void Dispose()
+    {
+        _playbackTimer.Stop();
+        _media.Changed -= OnMediaChanged;
     }
 
     [RelayCommand]
@@ -103,7 +108,35 @@ public partial class MediaViewModel : ObservableObject
     private Task PreviousAsync() => _media.PreviousAsync();
 
     [RelayCommand]
-    private Task SeekAsync(double seconds) => _media.SeekAsync(TimeSpan.FromSeconds(seconds));
+    private async Task SeekAsync(double seconds)
+    {
+        if (DurationSeconds <= 0)
+        {
+            return;
+        }
+
+        var target = Math.Clamp(seconds, 0, DurationSeconds);
+        var position = TimeSpan.FromSeconds(target);
+        PositionSeconds = target;
+        PositionText = Format(position);
+        Progress = target / DurationSeconds;
+        IsSeeking = true;
+
+        try
+        {
+            await _media.SeekAsync(position);
+            var deadline = DateTimeOffset.UtcNow + TimeSpan.FromMilliseconds(500);
+            while (DateTimeOffset.UtcNow < deadline &&
+                   Math.Abs(_media.Current.Position.TotalSeconds - target) > 1.0)
+            {
+                await Task.Delay(25);
+            }
+        }
+        finally
+        {
+            IsSeeking = false;
+        }
+    }
 
     partial void OnCanGoNextChanged(bool value) => NextCommand.NotifyCanExecuteChanged();
     partial void OnCanGoPreviousChanged(bool value) => PreviousCommand.NotifyCanExecuteChanged();
@@ -140,8 +173,9 @@ public partial class MediaViewModel : ObservableObject
             : "Start something on Spotify, YouTube, or Apple Music";
         DurationSeconds = Math.Max(0, snapshot.Duration.TotalSeconds);
         DurationText = Format(snapshot.Duration);
+        _lastPositionSecond = -1;
         UpdateProgress(snapshot);
-        UpdateVinylTimer();
+        UpdatePlaybackTimer();
 
         if (!string.Equals(snapshot.ArtworkKey, _artKey, StringComparison.Ordinal))
         {
@@ -151,11 +185,11 @@ public partial class MediaViewModel : ObservableObject
 
         if (IsPlaying)
         {
-            _progressTimer.Start();
+            _playbackTimer.Start();
         }
         else
         {
-            _progressTimer.Stop();
+            _playbackTimer.Stop();
         }
     }
 
@@ -171,34 +205,35 @@ public partial class MediaViewModel : ObservableObject
                 ? snapshot.Album
                 : "Unknown artist";
 
-    private void UpdateVinylTimer()
+    private void UpdatePlaybackTimer()
     {
         if (!HasSession)
         {
-            _vinylTimer.Stop();
+            _playbackTimer.Stop();
             VinylAngle = 0;
             return;
         }
 
-        if (IsPlaying)
+        if (!IsPlaying)
         {
-            if (!_vinylTimer.IsEnabled)
-            {
-                _lastVinylTick = DateTimeOffset.UtcNow;
-                _vinylTimer.Start();
-            }
+            _playbackTimer.Stop();
             return;
         }
 
-        _vinylTimer.Stop();
+        if (!_playbackTimer.IsEnabled)
+        {
+            _lastVinylTick = DateTimeOffset.UtcNow;
+            _playbackTimer.Start();
+        }
     }
 
-    private void AdvanceVinyl()
+    private void OnPlaybackTick()
     {
         var now = DateTimeOffset.UtcNow;
         var elapsed = (now - _lastVinylTick).TotalSeconds;
         _lastVinylTick = now;
         VinylAngle = (VinylAngle + elapsed * (360.0 / 11.0)) % 360;
+        UpdateProgress(_media.Current);
     }
 
     private void UpdateProgress(MediaSnapshot snapshot)
@@ -209,12 +244,36 @@ public partial class MediaViewModel : ObservableObject
         }
 
         var position = _media.EstimatedPosition(DateTimeOffset.Now);
-        PositionSeconds = Math.Max(0, position.TotalSeconds);
-        PositionText = Format(position);
-        Progress = snapshot.Duration.TotalSeconds <= 0
-            ? 0
-            : Math.Clamp(position.TotalSeconds / snapshot.Duration.TotalSeconds, 0, 1);
+        var tick = ComputePlaybackTick(position, snapshot.Duration, _lastPositionSecond);
+        PositionSeconds = tick.PositionSeconds;
+        Progress = tick.Progress;
+
+        if (tick.PositionText is not null)
+        {
+            PositionText = tick.PositionText;
+            _lastPositionSecond = tick.WholeSecond;
+        }
     }
+
+    internal static PlaybackTick ComputePlaybackTick(
+        TimeSpan position,
+        TimeSpan duration,
+        int lastSecond)
+    {
+        var seconds = Math.Max(0, position.TotalSeconds);
+        var progress = duration.TotalSeconds <= 0
+            ? 0
+            : Math.Clamp(seconds / duration.TotalSeconds, 0, 1);
+        var whole = (int)Math.Floor(seconds);
+        var text = whole == lastSecond ? null : Format(position);
+        return new PlaybackTick(seconds, progress, text, whole);
+    }
+
+    internal readonly record struct PlaybackTick(
+        double PositionSeconds,
+        double Progress,
+        string? PositionText,
+        int WholeSecond);
 
     private async Task DecodeAndApplyAsync(byte[]? bytes, string key)
     {
