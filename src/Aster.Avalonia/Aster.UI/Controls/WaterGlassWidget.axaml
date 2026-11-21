@@ -1,0 +1,40 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Aster.UI.ViewModels"
+             xmlns:automation="using:Avalonia.Automation"
+             x:Class="Aster.UI.Controls.WaterGlassWidget"
+             x:DataType="vm:WaterViewModel"
+             IsVisible="{Binding IsEnabled, FallbackValue=False}">
+  <UserControl.Styles>
+    <Style Selector="TextBlock.goal">
+      <Setter Property="Foreground" Value="{StaticResource AccentGreen}" />
+    </Style>
+  </UserControl.Styles>
+  <Button Classes="waterGlass" Height="18" Padding="6,0"
+          Command="{Binding LogCommand}"
+          ToolTip.Tip="{Binding Tooltip}"
+          automation:AutomationProperties.Name="Log a glass of water"
+          automation:AutomationProperties.HelpText="{Binding Tooltip}">
+    <StackPanel Orientation="Horizontal">
+      <ItemsControl ItemsSource="{Binding Bars}" Margin="0,0,-2,0">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <StackPanel Orientation="Horizontal" />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:WaterBarViewModel">
+            <Border Classes="waterbar"
+                    Classes.filled="{Binding Filled}"
+                    Classes.goal="{Binding Goal}"
+                    Margin="0,0,2,0" />
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+      <TextBlock Text="{Binding CountText}" FontSize="9.5" Margin="5,0,0,0"
+                 VerticalAlignment="Center"
+                 Foreground="{StaticResource AccentWater}"
+                 Classes.goal="{Binding IsGoalReached}" />
+    </StackPanel>
+  </Button>
+</UserControl>
