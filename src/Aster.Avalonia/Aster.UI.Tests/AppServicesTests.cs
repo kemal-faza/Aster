@@ -215,6 +215,27 @@ public class AppServicesTests
             Changed?.Invoke(this, settings);
             return Task.CompletedTask;
         }
+
+        public Task<SettingsUpdateResult> UpdateAsync(
+            Func<AppSettings, AppSettings> update,
+            CancellationToken ct = default)
+        {
+            SaveCount++;
+            Order?.Add("save");
+            if (ThrowOnSave)
+            {
+                throw new InvalidOperationException("Settings save failed.");
+            }
+
+            var next = update(Current) with
+            {
+                SchemaVersion = SettingsSchema.CurrentVersion
+            };
+            Saves.Add(next);
+            Current = next;
+            Changed?.Invoke(this, next);
+            return Task.FromResult(new SettingsUpdateResult(true, next));
+        }
     }
 
     private sealed class FakeAutostart : IAutostart

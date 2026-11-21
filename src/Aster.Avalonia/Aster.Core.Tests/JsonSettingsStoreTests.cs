@@ -95,6 +95,54 @@ public class JsonSettingsStoreTests : IDisposable
         Assert.Equal(newer, await File.ReadAllTextAsync(PathToSettings));
     }
 
+    [Fact]
+    public async Task UpdateAsyncAppliesInsideTheGate()
+    {
+        var store = new JsonSettingsStore(PathToSettings, _log);
+        await store.LoadAsync();
+
+        var result = await store.UpdateAsync(s => s with
+        {
+            FocusMinutes = 40,
+            WaterGlassesToday = s.WaterGlassesToday + 1
+        });
+
+        Assert.True(result.Succeeded);
+        Assert.Equal(40, store.Current.FocusMinutes);
+        Assert.Equal(1, store.Current.WaterGlassesToday);
+        Assert.Equal(SettingsSchema.CurrentVersion, store.Current.SchemaVersion);
+    }
+
+    [Fact]
+    public async Task UpdateAsyncKeepsCurrentWhenReadOnly()
+    {
+        await File.WriteAllTextAsync(
+            PathToSettings,
+            """{"schemaVersion":99}""");
+        var store = new JsonSettingsStore(PathToSettings, _log);
+        await store.LoadAsync();
+
+        var before = store.Current;
+        var result = await store.UpdateAsync(s => s with { FocusMinutes = 40 });
+
+        Assert.False(result.Succeeded);
+        Assert.Same(before, result.Settings);
+        Assert.Same(before, store.Current);
+    }
+
+    [Fact]
+    public async Task ConcurrentUpdatesDoNotLoseIncrements()
+    {
+        var store = new JsonSettingsStore(PathToSettings, _log);
+        await store.LoadAsync();
+
+        await Task.WhenAll(
+            store.UpdateAsync(s => s with { WaterGlassesToday = s.WaterGlassesToday + 1 }),
+            store.UpdateAsync(s => s with { WaterGlassesToday = s.WaterGlassesToday + 1 }));
+
+        Assert.Equal(2, store.Current.WaterGlassesToday);
+    }
+
     private sealed class NullLog : IAppLog
     {
         public void Info(string message) { }

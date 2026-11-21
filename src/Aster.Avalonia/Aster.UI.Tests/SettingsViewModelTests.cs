@@ -311,6 +311,31 @@ public class SettingsViewModelTests
             Current = settings;
             Changed?.Invoke(this, settings);
         }
+
+        public async Task<SettingsUpdateResult> UpdateAsync(
+            Func<AppSettings, AppSettings> update,
+            CancellationToken ct = default)
+        {
+            var next = update(Current) with
+            {
+                SchemaVersion = SettingsSchema.CurrentVersion
+            };
+
+            Saved = next;
+            if (SaveGate is not null)
+            {
+                await SaveGate;
+            }
+
+            if (!PersistSaves)
+            {
+                return new SettingsUpdateResult(false, Current);
+            }
+
+            Current = next;
+            Changed?.Invoke(this, next);
+            return new SettingsUpdateResult(true, next);
+        }
     }
 
     private sealed class NullLog : IAppLog

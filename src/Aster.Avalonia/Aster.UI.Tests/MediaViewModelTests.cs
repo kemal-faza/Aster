@@ -253,6 +253,19 @@ public class MediaViewModelTests
             Changed?.Invoke(this, settings);
             return Task.CompletedTask;
         }
+
+        public Task<SettingsUpdateResult> UpdateAsync(
+            Func<AppSettings, AppSettings> update,
+            CancellationToken ct = default)
+        {
+            Current = update(Current) with
+            {
+                SchemaVersion = SettingsSchema.CurrentVersion
+            };
+            SaveCount++;
+            Changed?.Invoke(this, Current);
+            return Task.FromResult(new SettingsUpdateResult(true, Current));
+        }
     }
 
     private sealed class FakeMedia : IMediaSession

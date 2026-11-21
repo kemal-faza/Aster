@@ -20,6 +20,10 @@ public interface ISingleInstance : IDisposable
     bool IsFirstInstance { get; }
 }
 
+public readonly record struct SettingsUpdateResult(
+    bool Succeeded,
+    AppSettings Settings);
+
 public interface ISettingsStore
 {
     AppSettings Current { get; }
@@ -27,6 +31,9 @@ public interface ISettingsStore
     string? LoadWarning { get; }
     Task LoadAsync(CancellationToken ct = default);
     Task SaveAsync(AppSettings settings, CancellationToken ct = default);
+    Task<SettingsUpdateResult> UpdateAsync(
+        Func<AppSettings, AppSettings> update,
+        CancellationToken ct = default);
     event EventHandler<AppSettings>? Changed;
 }
 
