@@ -1,7 +1,10 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="Aster.UI.Controls.ToastHost">
-  <Border Name="PART_Toast"
+             xmlns:vm="using:Aster.UI.ViewModels"
+             xmlns:automation="using:Avalonia.Automation"
+             x:Class="Aster.UI.Controls.ToastHost"
+             x:DataType="vm:ToastViewModel">
+  <Border x:Name="ToastBorder"
           Width="212"
           Padding="12,6"
           CornerRadius="17"
@@ -9,13 +12,47 @@
           BorderBrush="{StaticResource ToastBorder}"
           Background="{StaticResource IslandGlassToast}"
           HorizontalAlignment="Center"
-          IsVisible="False">
+          IsVisible="False"
+          Opacity="0"
+          IsHitTestVisible="{Binding IsClickable}"
+          automation:AutomationProperties.Name="{Binding Text}"
+          Classes.solid="{Binding !IsGlass}">
+    <Border.Styles>
+      <Style Selector="Border.solid">
+        <Setter Property="Background" Value="{StaticResource IslandSolidToast}" />
+      </Style>
+    </Border.Styles>
     <Grid ColumnDefinitions="Auto,8,*,Auto">
-      <TextBlock Name="PART_Glyph" FontFamily="{StaticResource GlyphFont}" FontSize="13" />
-      <TextBlock Name="PART_Text" Grid.Column="2" FontSize="11" VerticalAlignment="Center" />
-      <Border Name="PART_Progress" Grid.Column="3" Width="50" Height="3"
-              CornerRadius="1.5" Background="{StaticResource TrackBrush}">
-        <Border Name="PART_ProgressFill" HorizontalAlignment="Left" Background="{StaticResource AccentWater}" />
+      <TextBlock x:Name="GlyphText"
+                 FontFamily="{StaticResource GlyphFont}"
+                 FontSize="14"
+                 VerticalAlignment="Center"
+                 IsVisible="{Binding HasGlyph}"
+                 Text="{Binding Glyph}" />
+      <Path x:Name="DropIcon"
+            Width="9" Height="12"
+            Fill="{StaticResource AccentWater}"
+            Stretch="Uniform"
+            VerticalAlignment="Center"
+            IsVisible="{Binding ShowDrop}"
+            Data="M4,0 C4,0 0.8,4.4 0.8,7 A3.2,3.2 0 0 0 7.2,7 C7.2,4.4 4,0 4,0 Z" />
+      <TextBlock x:Name="ToastText"
+                 Grid.Column="2"
+                 FontSize="11"
+                 VerticalAlignment="Center"
+                 Text="{Binding Text}"
+                 TextTrimming="CharacterEllipsis" />
+      <Border x:Name="ProgressTrack"
+              Grid.Column="3"
+              Width="50" Height="4"
+              CornerRadius="2"
+              Background="{StaticResource TrackBrush}"
+              VerticalAlignment="Center"
+              IsVisible="{Binding HasProgress}">
+        <Border x:Name="ProgressFill"
+                HorizontalAlignment="Left"
+                Background="{StaticResource AccentWater}"
+                Width="{Binding ProgressWidth}" />
       </Border>
     </Grid>
   </Border>
