@@ -1,6 +1,6 @@
 # Aster Phase 4 — Linux Parity PLAN
 
-- **Status:** 4A–4C sudah diimplementasikan di line 0.12.0-dev; 4D–4G belum. v0.11.0 masih release candidate dan dokumen rilisnya sudah masuk ke `main` fork.
+- **Status:** 4A–4D sudah diimplementasikan di line 0.12.0-dev; 4E–4G belum. v0.11.0 masih release candidate dan dokumen rilisnya sudah masuk ke `main` fork.
 - **Branch:** `main` (branch aktif lokal, tracking `main` fork); line `phase-4-release` sudah di-merge ke `main` fork lewat PR #2
 - **Baseline:** WPF Aster v0.10.0, commit `fcc6cb5`, MIT
 - **Target:** Full design and behavior parity with the WPF app on Linux X11/XWayland first; Windows parity later; native Wayland deferred.
@@ -46,7 +46,7 @@ Phase 4 tidak dibuat sebagai satu spec raksasa. Pekerjaan dipecah menjadi tujuh 
 | 2A — Windows hardening | NOT RUN | Tidak ada host Windows pada sesi tersebut |
 | 2B — Linux L2 | PARTIAL | Core PASS; click-through fractional, a11y, soak terbuka |
 | 3 — Release engineering | RELEASE CANDIDATE | v0.11.0 portable preview; publish manual; dokumen rilis sudah di `main` fork |
-| 4 — Linux parity | IN PROGRESS | 4A–4C sudah masuk `main` fork; 4D–4G pending |
+| 4 — Linux parity | IN PROGRESS | 4A–4D sudah masuk `main` fork; 4E–4G pending |
 
 Detail historis tetap ada di `docs/specs/`, `docs/plans/`, dan `docs/results/` (local-only), serta di riwayat Git. Dokumen ini menggantikan isi `PLAN.md` sebelumnya, bukan menghapus bukti fase lama.
 
@@ -625,12 +625,12 @@ Baseline Linux Phase 2: 129 MB RSS, 25 MB binary, ~100 ms startup. Efek glass/gl
 ## 18. Langkah berikutnya
 
 1. Merge PR fork #1 (dokumen rilis v0.11.0) dan #2 (line 0.12.0-dev) ke `main` fork.
-2. Lanjutkan 4D shelf, 4E overlays/mascot, dan 4F camera.
+2. Lanjutkan 4E overlays/mascot dan 4F camera.
 3. Jalankan 4G dan publish Linux parity candidate.
 4. Sinkronkan `main` fork dengan `main` upstream, lalu ajukan satu PR upstream dari `main` fork ke `main` upstream.
 5. Capture WPF P0/P1/P2 sesuai gate.
 
-4A–4C sudah diimplementasikan; 4D–4F menunggu spec dan plan.
+4A–4D sudah diimplementasikan; 4E–4F menunggu spec dan plan.
 
 ---
 
