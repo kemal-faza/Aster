@@ -18,4 +18,8 @@ public static class WindowGeometry
         var width = (int)Math.Round(logicalWidth * scaling);
         return screenX + (screenWidth - width) / 2;
     }
+
+    public static bool Contains(
+        int left, int top, int width, int height, int x, int y) =>
+        x >= left && x < left + width && y >= top && y < top + height;
 }

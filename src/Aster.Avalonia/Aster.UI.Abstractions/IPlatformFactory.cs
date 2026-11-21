@@ -18,4 +18,7 @@ public interface IPlatformFactory
     IWindowPlacement CreateWindowPlacement(IAppLog log);
     IWindowChrome CreateWindowChrome(IAppLog log);
     ISingleInstance CreateSingleInstance(string name);
+    IEffectLayer CreateEffectLayer(IAppLog log) => new InsetEffectLayer();
+    IAudioSpectrumSource? CreateAudioSpectrum(IAppLog log) => null;
+    IChimePlayer? CreateChimePlayer(IAppLog log) => null;
 }

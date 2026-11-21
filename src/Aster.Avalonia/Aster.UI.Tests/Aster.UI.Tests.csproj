@@ -10,11 +10,18 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageReference Include="xunit" Version="2.9.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+    <PackageReference Include="SkiaSharp" Version="3.119.4" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="3.119.4" />
   </ItemGroup>
   <ItemGroup>
     <Using Include="Xunit" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Aster.UI\Aster.UI.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Aster.UI\Assets\Fonts\FluentSystemIcons-Regular.ttf"
+          Link="Assets\Fonts\FluentSystemIcons-Regular.ttf"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

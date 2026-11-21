@@ -1,0 +1,318 @@
+using Aster.Core;
+using Aster.Core.Interfaces;
+using Aster.Core.Lyrics;
+using Aster.Core.Models;
+using Aster.UI.Abstractions;
+using Aster.UI.Services;
+using Aster.UI.ViewModels;
+using Aster.UI.Views;
+
+namespace Aster.UI;
+
+public sealed class AppServices : IAsyncDisposable
+{
+    private readonly SemaphoreSlim _shutdownGate = new(1, 1);
+    private bool _shutdownComplete;
+
+    public IAppLog Log { get; }
+    public ISettingsStore Settings { get; }
+    public IMediaSession Media { get; }
+    public IBatteryStatus Battery { get; }
+    public INetworkStatus Network { get; }
+    public IAutostart Autostart { get; }
+    public IFullscreenWatcher Fullscreen { get; }
+    public IWindowPlacement Placement { get; }
+    public IWindowChrome Chrome { get; }
+    public IEffectLayer EffectLayer { get; }
+    public MediaViewModel MediaViewModel { get; }
+    public IAudioSpectrumSource? AudioSpectrum { get; }
+    public ShellViewModel Shell { get; }
+    public SettingsViewModel SettingsViewModel { get; }
+    public LyricsService Lyrics { get; }
+    public LyricsViewModel LyricsViewModel { get; }
+    public ToastViewModel Toast { get; }
+    public IChimePlayer? Chime { get; }
+    public FocusService Focus { get; }
+    public FocusViewModel FocusViewModel { get; }
+    public WaterService Water { get; }
+    public WaterViewModel WaterViewModel { get; }
+    public WindowMotionController? Motion { get; private set; }
+    public TrayService? Tray { get; private set; }
+    public bool TrayFailed { get; private set; }
+
+    private AppServices(
+        IPlatformFactory factory,
+        IUiDispatcher dispatcher,
+        IAppLog log,
+        ISettingsStore settings,
+        IAutostart autostart)
+    {
+        Log = log;
+        Settings = settings;
+        Autostart = autostart;
+        Media = factory.CreateMediaSession(dispatcher, log);
+        Battery = factory.CreateBatteryStatus(dispatcher, log);
+        Network = factory.CreateNetworkStatus(dispatcher, log);
+        Fullscreen = factory.CreateFullscreenWatcher(dispatcher, log);
+        Placement = factory.CreateWindowPlacement(log);
+        Chrome = factory.CreateWindowChrome(log);
+        EffectLayer = factory.CreateEffectLayer(log);
+
+        IAudioSpectrumSource? spectrum = null;
+        try
+        {
+            spectrum = factory.CreateAudioSpectrum(log);
+        }
+        catch (Exception ex)
+        {
+            log.Error("Failed to create the audio spectrum source.", ex);
+        }
+
+        AudioSpectrum = spectrum;
+        MediaViewModel = new MediaViewModel(Media, dispatcher, log, spectrum, settings);
+        var media = MediaViewModel;
+        SettingsViewModel = new SettingsViewModel(settings, log, factory.AutostartLabel);
+
+        var cache = new LyricsCache(
+            Path.Combine(AppPaths.BaseDirectory, "lyrics"), TimeProvider.System);
+        Lyrics = new LyricsService(
+            settings, new LrclibLyricsProvider(), cache, dispatcher, log);
+        LyricsViewModel = new LyricsViewModel(Lyrics, media, SettingsViewModel);
+        SettingsViewModel.ClearLyricsCache = () =>
+        {
+            Lyrics.ClearCache();
+            return true;
+        };
+        Media.PropertiesChanged += (_, snapshot) => _ = Lyrics.LoadAsync(snapshot);
+
+        Toast = new ToastViewModel(new DispatcherUiTimer(TimeSpan.FromSeconds(1)));
+
+        IChimePlayer? chime = null;
+        try
+        {
+            chime = factory.CreateChimePlayer(log);
+        }
+        catch (Exception ex)
+        {
+            log.Error("Failed to create the focus chime.", ex);
+        }
+
+        Chime = chime;
+        Focus = new FocusService(
+            settings,
+            TimeProvider.System,
+            new DispatcherUiTimer(TimeSpan.FromMilliseconds(250)),
+            log);
+        FocusViewModel = new FocusViewModel(Focus, settings, Toast, Chime, log);
+        Water = new WaterService(
+            settings,
+            TimeProvider.System,
+            new DispatcherUiTimer(TimeSpan.FromSeconds(20)),
+            log);
+        WaterViewModel = new WaterViewModel(Water, Toast, log);
+        SettingsViewModel.Water = WaterViewModel;
+
+        Shell = new ShellViewModel(Battery, Network, media, factory.Capabilities)
+        {
+            Lyrics = LyricsViewModel,
+            Focus = FocusViewModel,
+            Water = WaterViewModel,
+            Toast = Toast
+        };
+    }
+
+    public static async Task<AppServices> CreateAsync(
+        IPlatformFactory factory,
+        IUiDispatcher dispatcher,
+        CancellationToken ct = default)
+    {
+        var log = factory.CreateLog();
+        var settings = factory.CreateSettingsStore(log);
+        await settings.LoadAsync(ct);
+
+        var autostart = factory.CreateAutostart(log);
+        var reconciled = ReconcileAutostart(settings.Current, autostart.IsEnabled);
+        if (!ReferenceEquals(reconciled, settings.Current))
+        {
+            await settings.SaveAsync(reconciled, ct);
+        }
+
+        var services = new AppServices(factory, dispatcher, log, settings, autostart);
+        await services.Water.InitializeAsync(ct);
+        return services;
+    }
+
+    public static AppSettings ReconcileAutostart(AppSettings settings, bool autostartEnabled) =>
+        settings.StartWithWindows == autostartEnabled
+            ? settings
+            : settings with { StartWithWindows = autostartEnabled };
+
+    public void AttachWindow(MainWindow window)
+    {
+        Motion = new WindowMotionController(window, Shell, Placement, Settings, Log);
+
+        var commands = new TrayCommandHandler(
+            toggleVisibility: window.ToggleVisibility,
+            isAutostart: () => Autostart.IsEnabled,
+            setAutostart: enabled =>
+            {
+                if (!Autostart.SetEnabled(enabled))
+                {
+                    return false;
+                }
+
+                SettingsViewModel.StartWithWindows = enabled;
+                return true;
+            },
+            openSettings: window.ShowSettings,
+            quit: window.Quit,
+            setMinimal: window.SetMinimalNotch,
+            setMascot: window.SetShowMascot,
+            setFullscreen: window.SetHideInFullscreen,
+            showAbout: window.ShowAbout);
+
+        try
+        {
+            Tray = new TrayService(
+                commands,
+                () => Autostart.IsEnabled,
+                () => Settings.Current with
+                {
+                    MinimalNotch = SettingsViewModel.MinimalNotch,
+                    ShowMascot = SettingsViewModel.ShowMascot,
+                    HideInFullscreen = SettingsViewModel.HideInFullscreen
+                },
+                () => window.IsVisible,
+                SettingsViewModel.AutostartLabel);
+        }
+        catch (Exception ex)
+        {
+            TrayFailed = true;
+            Log.Error("Tray creation failed.", ex);
+        }
+
+        SettingsViewModel.Saved += OnSettingsSaved;
+        window.Opened += OnWindowOpened;
+    }
+
+    private void OnSettingsSaved(object? sender, AppSettings settings) => Tray?.Refresh();
+
+    private void OnWindowOpened(object? sender, EventArgs e) => Tray?.Refresh();
+
+    public void Start()
+    {
+        Media.Start();
+        Motion?.Start();
+        Water.Start();
+    }
+
+    public async ValueTask DisposeAsync() => await ShutdownAsync(TimeSpan.FromSeconds(5));
+
+    public async Task ShutdownAsync(TimeSpan timeout)
+    {
+        await _shutdownGate.WaitAsync();
+        try
+        {
+            if (_shutdownComplete)
+            {
+                return;
+            }
+
+            // Mark complete before flushing so a throwing logger cannot make a
+            // second shutdown replay flush and disposal.
+            _shutdownComplete = true;
+
+            await DisposeServiceAsync(nameof(Water), Water);
+            DisposeService(nameof(FocusViewModel), FocusViewModel);
+            DisposeService(nameof(Focus), Focus);
+            DisposeService(nameof(WaterViewModel), WaterViewModel);
+            DisposeService(nameof(Toast), Toast);
+            await FlushSettingsAsync(timeout);
+            SettingsViewModel.Saved -= OnSettingsSaved;
+
+            DisposeService(nameof(Motion), Motion, expectDisposable: true);
+            DisposeService(nameof(Tray), Tray, expectDisposable: true);
+            DisposeService(nameof(EffectLayer), EffectLayer, expectDisposable: true);
+            DisposeService(nameof(Fullscreen), Fullscreen, expectDisposable: true);
+            DisposeService(nameof(LyricsViewModel), LyricsViewModel);
+            DisposeService(nameof(Lyrics), Lyrics);
+            DisposeService(nameof(MediaViewModel), MediaViewModel, expectDisposable: true);
+            DisposeService(nameof(AudioSpectrum), AudioSpectrum, expectDisposable: true);
+            DisposeService(nameof(Media), Media);
+            DisposeService(nameof(Battery), Battery, expectDisposable: true);
+            DisposeService(nameof(Network), Network, expectDisposable: true);
+        }
+        finally
+        {
+            _shutdownGate.Release();
+        }
+    }
+
+    private async Task FlushSettingsAsync(TimeSpan timeout)
+    {
+        using var cts = new CancellationTokenSource(timeout);
+        try
+        {
+            await SettingsViewModel.FlushAsync().WaitAsync(cts.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            Log.Warn("Settings flush timed out during shutdown.");
+        }
+        catch (Exception ex)
+        {
+            Log.Error("Settings flush failed during shutdown.", ex);
+        }
+    }
+
+    private async Task DisposeServiceAsync(string name, object? service)
+    {
+        if (service is null)
+        {
+            return;
+        }
+
+        if (service is IAsyncDisposable asyncDisposable)
+        {
+            try
+            {
+                await asyncDisposable.DisposeAsync();
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Failed to dispose {name}.", ex);
+            }
+
+            return;
+        }
+
+        DisposeService(name, service);
+    }
+
+    private void DisposeService(string name, object? service, bool expectDisposable = false)
+    {
+        if (service is null)
+        {
+            return;
+        }
+
+        if (service is IDisposable disposable)
+        {
+            try
+            {
+                disposable.Dispose();
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Failed to dispose {name}.", ex);
+            }
+
+            return;
+        }
+
+        if (expectDisposable)
+        {
+            Log.Warn($"{name} is not disposable; skipping disposal.");
+        }
+    }
+}

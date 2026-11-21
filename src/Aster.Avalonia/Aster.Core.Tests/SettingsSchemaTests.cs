@@ -11,22 +11,31 @@ public class SettingsSchemaTests
     {
         var settings = SettingsSchema.Default;
 
-        Assert.Equal(1, settings.SchemaVersion);
+        Assert.Equal(4, settings.SchemaVersion);
         Assert.False(settings.StartWithWindows);
         Assert.False(settings.MinimalNotch);
         Assert.True(settings.HideInFullscreen);
         Assert.True(settings.GlassBackground);
         Assert.True(settings.BouncySpring);
+        Assert.True(settings.ShowMascot);
+    }
+
+    [Fact]
+    public void SchemaHasTwentyTwoUserFields()
+    {
+        var userFields = typeof(AppSettings).GetProperties().Length - 1;
+
+        Assert.Equal(22, userFields);
     }
 
     [Fact]
     public void JsonRoundTripPreservesValues()
     {
-        var original = new AppSettings(1, true, true, false, false, false);
+        var original = SettingsTestData.NonDefault;
         var json = JsonSerializer.Serialize(original, SettingsJsonContext.Default.AppSettings);
         var restored = JsonSerializer.Deserialize(json, SettingsJsonContext.Default.AppSettings);
 
         Assert.Equal(original, restored);
-        Assert.Contains("\"schemaVersion\": 1", json);
+        Assert.Contains("\"schemaVersion\": 4", json);
     }
 }

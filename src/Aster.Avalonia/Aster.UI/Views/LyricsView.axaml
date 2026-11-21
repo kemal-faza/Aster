@@ -1,0 +1,100 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Aster.UI.ViewModels"
+             xmlns:automation="using:Avalonia.Automation"
+             x:Class="Aster.UI.Views.LyricsView"
+             x:DataType="vm:LyricsViewModel"
+             Focusable="False">
+  <UserControl.Resources>
+    <ControlTheme x:Key="LyricsLineButton" TargetType="Button">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+      <Setter Property="Template">
+        <ControlTemplate>
+          <ContentPresenter Content="{TemplateBinding Content}"
+                            HorizontalContentAlignment="Stretch" />
+        </ControlTemplate>
+      </Setter>
+    </ControlTheme>
+  </UserControl.Resources>
+
+  <UserControl.Styles>
+    <Style Selector="TextBlock.lyric.active">
+      <Setter Property="Effect">
+        <DropShadowEffect BlurRadius="5"
+                          Color="#F5F5F7"
+                          Opacity="0.38"
+                          OffsetX="0"
+                          OffsetY="0" />
+      </Setter>
+    </Style>
+  </UserControl.Styles>
+
+  <Grid Margin="4,7,4,5" RowDefinitions="22,*">
+    <Grid>
+      <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+        <TextBlock Text="LYRICS" FontSize="9" FontWeight="SemiBold"
+                   Foreground="{StaticResource TextSecondary}" />
+        <Ellipse Width="4.5" Height="4.5" Fill="{Binding StatusBrush}"
+                 Margin="8,0,5,0" VerticalAlignment="Center" />
+        <TextBlock Text="{Binding StatusText}" FontSize="9" FontWeight="SemiBold"
+                   Foreground="{StaticResource TextTertiary}" VerticalAlignment="Center" />
+      </StackPanel>
+      <Button Theme="{StaticResource GlyphButton}" Width="22" Height="22"
+              HorizontalAlignment="Right" Command="{Binding RefreshCommand}"
+              IsEnabled="{Binding CanRefresh}"
+              automation:AutomationProperties.Name="Refresh lyrics">
+        <TextBlock x:Name="RefreshGlyph" Text="{Binding RefreshGlyph}"
+                   FontFamily="{StaticResource GlyphFont}" FontSize="11"
+                   RenderTransformOrigin="0.5,0.5">
+          <TextBlock.RenderTransform>
+            <RotateTransform />
+          </TextBlock.RenderTransform>
+        </TextBlock>
+      </Button>
+    </Grid>
+
+    <ScrollViewer x:Name="LyricsScroll" Grid.Row="1"
+                  VerticalScrollBarVisibility="Hidden"
+                  HorizontalScrollBarVisibility="Disabled"
+                  Padding="0,2,4,2"
+                  PointerWheelChanged="OnWheel">
+      <ScrollViewer.OpacityMask>
+        <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+          <GradientStop Color="#00FFFFFF" Offset="0" />
+          <GradientStop Color="#FFFFFFFF" Offset="0.04" />
+          <GradientStop Color="#FFFFFFFF" Offset="0.96" />
+          <GradientStop Color="#00FFFFFF" Offset="1" />
+        </LinearGradientBrush>
+      </ScrollViewer.OpacityMask>
+      <ItemsControl x:Name="Lines" ItemsSource="{Binding Lines}" Margin="0,6,0,6">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:LyricsLineViewModel">
+            <Button Theme="{StaticResource LyricsLineButton}"
+                    Command="{Binding $parent[UserControl].((vm:LyricsViewModel)DataContext).SeekToLineCommand}"
+                    CommandParameter="{Binding TimeSeconds}"
+                    automation:AutomationProperties.Name="{Binding Text}"
+                    Margin="0,0,0,1">
+              <TextBlock Text="{Binding Text}" FontSize="11.5" LineHeight="18"
+                         FontWeight="Bold"
+                         Classes="lyric"
+                         Classes.active="{Binding IsActive}"
+                         Margin="8,2" TextWrapping="Wrap"
+                         Foreground="{Binding Foreground}"
+                         Opacity="{Binding TextOpacity}" />
+            </Button>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+
+    <StackPanel Grid.Row="1" IsVisible="{Binding ShowMessage}"
+                MaxWidth="166" HorizontalAlignment="Center" VerticalAlignment="Center">
+      <TextBlock Text="{Binding MessageText}" FontSize="11.5"
+                 Foreground="{StaticResource TextSecondary}"
+                 TextAlignment="Center" TextWrapping="Wrap" />
+    </StackPanel>
+  </Grid>
+</UserControl>

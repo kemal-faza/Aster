@@ -26,6 +26,7 @@ public sealed class MprisMediaSession : IMediaSession, IDisposable
 
     public MediaSnapshot Current => Volatile.Read(ref _current);
     public event EventHandler<MediaSnapshot>? Changed;
+    public event EventHandler<MediaSnapshot>? PropertiesChanged;
 
     public void Start()
     {
@@ -120,6 +121,13 @@ public sealed class MprisMediaSession : IMediaSession, IDisposable
             }
         }
 
+        foreach (var stale in _lastActive.Keys
+                     .Where(key => states.All(state => state.BusName != key))
+                     .ToList())
+        {
+            _lastActive.Remove(stale);
+        }
+
         var playing = states
             .Where(state => state.Playback == PlaybackState.Playing)
             .OrderByDescending(state => _lastActive.GetValueOrDefault(state.BusName))
@@ -157,14 +165,37 @@ public sealed class MprisMediaSession : IMediaSession, IDisposable
             MediaProgress.ClampSeek(selected.Position, selected.Metadata.Duration),
             selected.Metadata.Duration,
             selected.SourceApp,
+            selected.Metadata.TrackId,
+            selected.CanSeek,
+            selected.CanGoNext,
+            selected.CanGoPrevious,
             DateTimeOffset.Now));
     }
 
     private void Publish(MediaSnapshot snapshot)
     {
+        var previous = Volatile.Read(ref _current);
         Volatile.Write(ref _current, snapshot);
-        _dispatcher.Post(() => Changed?.Invoke(this, snapshot));
+        _dispatcher.Post(() =>
+        {
+            Changed?.Invoke(this, snapshot);
+            if (IdentityChanged(previous, snapshot))
+            {
+                PropertiesChanged?.Invoke(this, snapshot);
+            }
+        });
     }
+
+    private static bool IdentityChanged(MediaSnapshot previous, MediaSnapshot current) =>
+        !string.Equals(previous.TrackId, current.TrackId, StringComparison.Ordinal) ||
+        !string.Equals(previous.Title, current.Title, StringComparison.Ordinal) ||
+        !string.Equals(previous.Artist, current.Artist, StringComparison.Ordinal) ||
+        !string.Equals(previous.Album, current.Album, StringComparison.Ordinal) ||
+        previous.Duration != current.Duration ||
+        previous.Playback != current.Playback ||
+        previous.CanSeek != current.CanSeek ||
+        previous.CanGoNext != current.CanGoNext ||
+        previous.CanGoPrevious != current.CanGoPrevious;
 
     public void Dispose()
     {

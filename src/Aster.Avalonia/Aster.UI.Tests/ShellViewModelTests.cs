@@ -1,3 +1,4 @@
+using Aster.UI.Services;
 using Aster.UI.ViewModels;
 using Aster.Core.Models;
 
@@ -38,13 +39,126 @@ public class ShellViewModelTests
     }
 
     [Fact]
+    public void PanelModeDefaultsToMusicAndCanChange()
+    {
+        var vm = new ShellViewModel();
+        Assert.Equal(PanelMode.Music, vm.PanelMode);
+        vm.PanelMode = PanelMode.Focus;
+        Assert.Equal(PanelMode.Focus, vm.PanelMode);
+    }
+
+    [Fact]
     public void ApplySettingsUpdatesMinimalAndGlass()
     {
         var vm = new ShellViewModel();
 
-        vm.ApplySettings(new AppSettings(1, false, true, true, false, true));
+        vm.ApplySettings(new AppSettings(
+            SchemaVersion: SettingsSchema.CurrentVersion,
+            StartWithWindows: false,
+            MinimalNotch: true,
+            HideInFullscreen: true,
+            GlassBackground: false,
+            BouncySpring: true,
+            ShowMascot: true,
+            VolumeToast: true,
+            BrightnessToast: true,
+            LyricsEnabled: true,
+            WaterReminderEnabled: false,
+            WaterIntervalMinutes: 60,
+            WaterActiveStartHour: 8,
+            WaterActiveEndHour: 22,
+            WaterDailyGoal: 8,
+            WaterGlassesToday: 0,
+            WaterDate: string.Empty,
+            CameraMirror: true,
+            FocusMinutes: 25,
+            ShortBreakMinutes: 5,
+            LongBreakMinutes: 15,
+            FocusChime: true));
 
         Assert.True(vm.IsMinimal);
         Assert.False(vm.GlassBackground);
+    }
+
+    [Fact]
+    public void FocusPillWinsOverClockAndMedia()
+    {
+        var vm = new ShellViewModel { Focus = TestFocus.Create(showInPill: true) };
+
+        Assert.True(vm.ShowFocusPill);
+        Assert.False(vm.ShowClockRow);
+        Assert.Equal("25:00", vm.PillText);
+    }
+
+    [Fact]
+    public void ExpandingWithASessionSwitchesToFocus()
+    {
+        var vm = new ShellViewModel { Focus = TestFocus.Create(showInPill: true) };
+
+        vm.IsExpanded = true;
+
+        Assert.Equal(PanelMode.Focus, vm.PanelMode);
+    }
+
+    [Fact]
+    public void StartingASessionSwitchesToFocus()
+    {
+        var (focus, service, _, _) = TestFocus.CreateWithService();
+        var shell = new ShellViewModel { Focus = focus };
+
+        service.StartSession();
+
+        Assert.Equal(PanelMode.Focus, shell.PanelMode);
+    }
+
+    [Fact]
+    public void CompletingASessionSwitchesToFocus()
+    {
+        var (focus, service, time, timer) = TestFocus.CreateWithService();
+        var shell = new ShellViewModel { Focus = focus };
+        service.StartSession();
+        shell.PanelMode = PanelMode.Music;
+
+        time.Advance(TimeSpan.FromMinutes(26));
+        timer.Fire();
+
+        Assert.Equal(PanelMode.Focus, shell.PanelMode);
+    }
+}
+
+internal static class TestFocus
+{
+    public static FocusViewModel Create(bool showInPill = false) =>
+        CreateWithService(showInPill).Vm;
+
+    public static (FocusViewModel Vm, FocusService Service,
+        ManualTimeProvider Time, ManualUiTimer Timer)
+        CreateWithService(bool showInPill = false)
+    {
+        var store = new TestSettingsStore(SettingsSchema.Default);
+        var time = new ManualTimeProvider(
+            new DateTimeOffset(2026, 11, 20, 9, 0, 0, TimeSpan.Zero));
+        var timer = new ManualUiTimer();
+        var service = new FocusService(store, time, timer, new NullLog());
+        var vm = new FocusViewModel(
+            service,
+            store,
+            new ToastViewModel(new ManualUiTimer()),
+            null,
+            new NullLog());
+
+        if (showInPill)
+        {
+            service.StartSession();
+        }
+
+        return (vm, service, time, timer);
+    }
+
+    private sealed class NullLog : Aster.Core.Interfaces.IAppLog
+    {
+        public void Info(string message) { }
+        public void Warn(string message) { }
+        public void Error(string message, Exception? exception = null) { }
     }
 }

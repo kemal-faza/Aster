@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Text.Json;
 using Aster.Core.Interfaces;
 using Aster.Core.Models;
 using Aster.Core.Settings;
@@ -20,20 +21,45 @@ try
 {
     var store = new JsonSettingsStore(settingsPath, log);
     await store.LoadAsync();
-    var expected = new AppSettings(1, true, false, true, false, true);
-    await store.SaveAsync(expected);
+    var settings = new AppSettings(
+        SchemaVersion: SettingsSchema.CurrentVersion,
+        StartWithWindows: true,
+        MinimalNotch: true,
+        HideInFullscreen: false,
+        GlassBackground: false,
+        BouncySpring: false,
+        ShowMascot: false,
+        VolumeToast: false,
+        BrightnessToast: false,
+        LyricsEnabled: false,
+        WaterReminderEnabled: true,
+        WaterIntervalMinutes: 90,
+        WaterActiveStartHour: 9,
+        WaterActiveEndHour: 21,
+        WaterDailyGoal: 12,
+        WaterGlassesToday: 3,
+        WaterDate: "2026-11-17",
+        CameraMirror: false,
+        FocusMinutes: 30,
+        ShortBreakMinutes: 7,
+        LongBreakMinutes: 20,
+        FocusChime: false,
+        AudioReactiveBars: false);
+    await store.SaveAsync(settings);
     var reloaded = new JsonSettingsStore(settingsPath, log);
     await reloaded.LoadAsync();
 
-    if (reloaded.Current.SchemaVersion != expected.SchemaVersion ||
-        reloaded.Current.StartWithWindows != expected.StartWithWindows ||
-        reloaded.Current.MinimalNotch != expected.MinimalNotch ||
-        reloaded.Current.HideInFullscreen != expected.HideInFullscreen ||
-        reloaded.Current.GlassBackground != expected.GlassBackground ||
-        reloaded.Current.BouncySpring != expected.BouncySpring)
+    if (reloaded.Current != settings)
     {
         Console.Error.WriteLine("JSON_ROUNDTRIP_FAILED");
         return 1;
+    }
+
+    var roundTrip = JsonSerializer.Serialize(settings, SettingsJsonContext.Default.AppSettings);
+    using var document = JsonDocument.Parse(roundTrip);
+    if (document.RootElement.GetProperty("schemaVersion").GetInt32() != 4)
+    {
+        throw new InvalidOperationException("AOT settings probe did not write schemaVersion 4.");
     }
 }
 finally

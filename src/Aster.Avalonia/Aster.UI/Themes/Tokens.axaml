@@ -1,0 +1,92 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <FontFamily x:Key="UiFont">avares://Avalonia.Fonts.Inter/Assets#Inter</FontFamily>
+  <FontFamily x:Key="GlyphFont">avares://Aster.UI/Assets/Fonts#FluentSystemIcons-Regular</FontFamily>
+
+  <Color x:Key="IslandGlassTop">#D014141B</Color>
+  <Color x:Key="IslandGlassBottom">#E807070A</Color>
+  <LinearGradientBrush x:Key="IslandGlassBackground" StartPoint="0%,0%" EndPoint="0%,100%">
+    <GradientStop Color="{StaticResource IslandGlassTop}" Offset="0" />
+    <GradientStop Color="{StaticResource IslandGlassBottom}" Offset="1" />
+  </LinearGradientBrush>
+  <SolidColorBrush x:Key="IslandSolidBackground" Color="#F2070708" />
+  <SolidColorBrush x:Key="IslandGlassShadow" Color="#1A000000" />
+  <LinearGradientBrush x:Key="IslandRimBrush" StartPoint="0%,0%" EndPoint="0%,100%">
+    <GradientStop Color="#40FFFFFF" Offset="0" />
+    <GradientStop Color="#18FFFFFF" Offset="0.35" />
+    <GradientStop Color="#08FFFFFF" Offset="1" />
+  </LinearGradientBrush>
+  <LinearGradientBrush x:Key="SettingsWindowSurface" StartPoint="0%,0%" EndPoint="80%,100%">
+    <GradientStop Color="#FF15151B" Offset="0" />
+    <GradientStop Color="#FF0C0C11" Offset="0.58" />
+    <GradientStop Color="#FF07070A" Offset="1" />
+  </LinearGradientBrush>
+  <LinearGradientBrush x:Key="SettingsWindowGlassSurface" StartPoint="0%,0%" EndPoint="80%,100%">
+    <GradientStop Color="#E61A1A21" Offset="0" />
+    <GradientStop Color="#D9121218" Offset="0.58" />
+    <GradientStop Color="#CC0B0B10" Offset="1" />
+  </LinearGradientBrush>
+  <SolidColorBrush x:Key="SettingsWindowBorder" Color="#1FFFFFFF" />
+  <SolidColorBrush x:Key="SettingsNavFill" Color="#06FFFFFF" />
+  <SolidColorBrush x:Key="SettingsNavBorder" Color="#0FFFFFFF" />
+  <SolidColorBrush x:Key="SettingsNavChecked" Color="#16FFFFFF" />
+  <SolidColorBrush x:Key="SettingsHeaderTileFill" Color="#12FFFFFF" />
+  <SolidColorBrush x:Key="SettingsHeaderTileBorder" Color="#22FFFFFF" />
+  <BoxShadows x:Key="SettingsWindowShadow">0 3 12 0 #8C000000</BoxShadows>
+  <LinearGradientBrush x:Key="IslandTopGlow" StartPoint="0%,0%" EndPoint="0%,100%">
+    <GradientStop Color="#14FFFFFF" Offset="0" />
+    <GradientStop Color="#00FFFFFF" Offset="1" />
+  </LinearGradientBrush>
+  <RadialGradientBrush x:Key="GlassSpecularBrush" GradientOrigin="30%,5%" Center="30%,5%"
+                       RadiusX="72%" RadiusY="95%">
+    <GradientStop Color="#2EFFFFFF" Offset="0" />
+    <GradientStop Color="#0FFFFFFF" Offset="0.42" />
+    <GradientStop Color="#00FFFFFF" Offset="1" />
+  </RadialGradientBrush>
+  <LinearGradientBrush x:Key="IslandGlassLyrics" StartPoint="0%,0%" EndPoint="35%,100%">
+    <GradientStop Color="#DC111118" Offset="0" />
+    <GradientStop Color="#D20C0C12" Offset="0.55" />
+    <GradientStop Color="#CC09090E" Offset="1" />
+  </LinearGradientBrush>
+  <LinearGradientBrush x:Key="IslandSolidLyrics" StartPoint="0%,0%" EndPoint="35%,100%">
+    <GradientStop Color="#F014141A" Offset="0" />
+    <GradientStop Color="#EA0D0D12" Offset="0.55" />
+    <GradientStop Color="#E60A0A0E" Offset="1" />
+  </LinearGradientBrush>
+  <LinearGradientBrush x:Key="LyricsCardStroke" StartPoint="0%,0%" EndPoint="45%,100%">
+    <GradientStop Color="#4DFFFFFF" Offset="0" />
+    <GradientStop Color="#24FFFFFF" Offset="0.42" />
+    <GradientStop Color="#12FFFFFF" Offset="1" />
+  </LinearGradientBrush>
+  <SolidColorBrush x:Key="IslandGlassToast" Color="#E61B1B22" />
+  <SolidColorBrush x:Key="IslandSolidToast" Color="#FF1B1B1F" />
+  <SolidColorBrush x:Key="DockSurface" Color="#0DFFFFFF" />
+  <SolidColorBrush x:Key="DockStroke" Color="#14FFFFFF" />
+  <SolidColorBrush x:Key="TextPrimary" Color="#F5F5F7" />
+  <SolidColorBrush x:Key="TextSecondary" Color="#94949C" />
+  <SolidColorBrush x:Key="TextTertiary" Color="#5E5E66" />
+  <SolidColorBrush x:Key="TextWarning" Color="#E0A040" />
+  <SolidColorBrush x:Key="ClockText" Color="#F2FFFFFF" />
+  <SolidColorBrush x:Key="PlayButtonFill" Color="#F5F5F7" />
+  <SolidColorBrush x:Key="PlayButtonHover" Color="#22000000" />
+  <SolidColorBrush x:Key="PlayButtonPressed" Color="#38000000" />
+  <SolidColorBrush x:Key="AccentGreen" Color="#32D74B" />
+  <SolidColorBrush x:Key="AccentWater" Color="#7FB8FF" />
+  <SolidColorBrush x:Key="LyricsAccent" Color="#8FA8FF" />
+  <SolidColorBrush x:Key="FocusAccent" Color="#FFB86B" />
+  <SolidColorBrush x:Key="TrackBrush" Color="#26FFFFFF" />
+  <SolidColorBrush x:Key="WaterTrackBrush" Color="#2EFFFFFF" />
+  <SolidColorBrush x:Key="TabPillFill" Color="#FFFFFFFF" />
+  <SolidColorBrush x:Key="TabPillText" Color="#0B0B0E" />
+  <SolidColorBrush x:Key="WindowBorder" Color="#1FFFFFFF" />
+  <SolidColorBrush x:Key="ToastBorder" Color="#24FFFFFF" />
+  <SolidColorBrush x:Key="ScrollbarThumb" Color="#33FFFFFF" />
+  <SolidColorBrush x:Key="SettingsCardFill" Color="#0AFFFFFF" />
+  <SolidColorBrush x:Key="SettingsCardBorder" Color="#14FFFFFF" />
+  <SolidColorBrush x:Key="ArtworkAccentFallback" Color="#F6A6C8" />
+  <LinearGradientBrush x:Key="ArtworkFallbackBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+    <GradientStop Color="#2B2A46" Offset="0" />
+    <GradientStop Color="#15151E" Offset="1" />
+  </LinearGradientBrush>
+  <SolidColorBrush x:Key="ArtGlyphForeground" Color="#66FFFFFF" />
+</ResourceDictionary>

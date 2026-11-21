@@ -1,0 +1,27 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Aster.UI.ViewModels"
+             xmlns:controls="using:Aster.UI.Controls"
+             x:Class="Aster.UI.Views.HeaderView"
+             x:DataType="vm:ShellViewModel">
+  <Grid ColumnDefinitions="*,Auto" Height="18">
+    <StackPanel Orientation="Horizontal" Spacing="10">
+      <TextBlock Text="{Binding DateText}" FontSize="10.5"
+                 Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center" />
+      <TextBlock Text="{Binding ClockText}" FontSize="9.5"
+                 Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center" />
+    </StackPanel>
+    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+      <controls:WaterGlassWidget DataContext="{Binding Water}" Margin="0,0,1,0" />
+      <TextBlock Text="{Binding WifiGlyph}" FontFamily="{StaticResource GlyphFont}"
+                 FontSize="11" Foreground="{StaticResource TextSecondary}"
+                 Opacity="{Binding WifiOpacity}" VerticalAlignment="Center" />
+      <controls:BatteryWidget Width="24" Height="12"
+                              Percent="{Binding BatteryPercent}"
+                              IsCharging="{Binding IsCharging}"
+                              HasBattery="{Binding HasBattery}" />
+      <TextBlock Text="{Binding BatteryText}" FontSize="9.5"
+                 Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center" />
+    </StackPanel>
+  </Grid>
+</UserControl>

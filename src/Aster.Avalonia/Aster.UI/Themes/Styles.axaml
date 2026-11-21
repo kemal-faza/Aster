@@ -1,0 +1,30 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Style Selector="Window">
+    <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
+    <Setter Property="Foreground" Value="{StaticResource TextPrimary}" />
+  </Style>
+  <Style Selector="TextBlock.title">
+    <Setter Property="FontSize" Value="20" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+  </Style>
+  <Style Selector="TextBlock.subtitle">
+    <Setter Property="FontSize" Value="11.5" />
+    <Setter Property="Foreground" Value="{StaticResource TextSecondary}" />
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+  </Style>
+  <Style Selector="TextBlock.tertiary">
+    <Setter Property="FontSize" Value="10" />
+    <Setter Property="Foreground" Value="{StaticResource TextTertiary}" />
+  </Style>
+  <Style Selector="ScrollBar[Orientation=Vertical]">
+    <Setter Property="Theme" Value="{StaticResource AsterScrollBar}" />
+  </Style>
+  <StyleInclude Source="avares://Aster.UI/Controls/SettingsCard.axaml" />
+  <StyleInclude Source="avares://Aster.UI/Controls/ChipButton.axaml" />
+  <StyleInclude Source="avares://Aster.UI/Controls/FocusButtons.axaml" />
+  <StyleInclude Source="avares://Aster.UI/Controls/WaterGlassButton.axaml" />
+  <StyleInclude Source="avares://Aster.UI/Controls/SettingsPrimaryButton.axaml" />
+  <StyleInclude Source="avares://Aster.UI/Controls/WaterBar.axaml" />
+</Styles>

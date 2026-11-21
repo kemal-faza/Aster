@@ -4,6 +4,7 @@ using Aster.Core.Logic;
 using Aster.UI.Abstractions;
 using Aster.UI.ViewModels;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Threading;
 
 namespace Aster.UI.Services;
@@ -27,6 +28,9 @@ public sealed class WindowMotionController : IDisposable
     private bool _running;
     private bool _disposed;
     private bool _hoverSuppressed;
+    private bool _pointerInside;
+    private bool _pointerEventsSeen;
+    private bool _pointerEventsAttached;
     private long _lastTicks;
     private int _lastPhysicalWidth = -1;
     private int _lastPhysicalHeight = -1;
@@ -59,18 +63,60 @@ public sealed class WindowMotionController : IDisposable
             return;
         }
 
+        AttachPointerEvents();
         ApplyCollapsedTarget(snap: true);
         _hoverTimer.Start();
+    }
+
+    private void AttachPointerEvents()
+    {
+        if (_pointerEventsAttached)
+        {
+            return;
+        }
+
+        _window.PointerEntered += OnPointerEntered;
+        _window.PointerExited += OnPointerExited;
+        _pointerEventsAttached = true;
+    }
+
+    private void DetachPointerEvents()
+    {
+        if (!_pointerEventsAttached)
+        {
+            return;
+        }
+
+        _window.PointerEntered -= OnPointerEntered;
+        _window.PointerExited -= OnPointerExited;
+        _pointerEventsAttached = false;
+    }
+
+    private void OnPointerEntered(object? sender, PointerEventArgs e)
+    {
+        _pointerEventsSeen = true;
+        _pointerInside = true;
+        _collapseTimer.Stop();
+        if (ShouldExpandOnHover(true, _hoverSuppressed))
+        {
+            SetExpanded(true);
+        }
+    }
+
+    private void OnPointerExited(object? sender, PointerEventArgs e)
+    {
+        _pointerEventsSeen = true;
+        _pointerInside = false;
+        _hoverSuppressed = false;
+        if (_expanded && !_collapseTimer.IsEnabled)
+        {
+            _collapseTimer.Start();
+        }
     }
 
     public void SetExpanded(bool expanded)
     {
         if (_disposed || _expanded == expanded)
-        {
-            return;
-        }
-
-        if (expanded && _settings.Current.MinimalNotch)
         {
             return;
         }
@@ -87,6 +133,19 @@ public sealed class WindowMotionController : IDisposable
     }
 
     public void SuppressHover() => _hoverSuppressed = true;
+
+    /// <summary>
+    /// Hover expands the island in both normal and minimal-notch modes. The
+    /// suppression flag is only set after an explicit close action.
+    /// </summary>
+    public static bool ShouldExpandOnHover(bool cursorInside, bool hoverSuppressed) =>
+        cursorInside && !hoverSuppressed;
+
+    /// <summary>
+    /// A click expands the normal notch. The minimal notch is a hover-only
+    /// surface, so a click must not open the full island.
+    /// </summary>
+    public static bool ShouldExpandOnClick(bool minimalNotch) => !minimalNotch;
 
     public void Reapply()
     {
@@ -132,21 +191,18 @@ public sealed class WindowMotionController : IDisposable
 
     private void OnHoverTick()
     {
-        if (_hwnd == IntPtr.Zero)
+        if (_hwnd == IntPtr.Zero || !_pointerEventsSeen || !_expanded)
         {
             return;
         }
 
-        var inside = _placement.IsCursorInside(_hwnd);
-        if (inside && !_hoverSuppressed && !_settings.Current.MinimalNotch)
+        // Pointer enter/leave is the source of truth. The geometry check is a
+        // safety net for a missed leave event; it must never re-expand the
+        // island, because XQueryPointer can be stale under XWayland.
+        if (_pointerInside && !_placement.IsCursorInside(_hwnd))
         {
-            _collapseTimer.Stop();
-            SetExpanded(true);
-        }
-        else if (!inside)
-        {
-            _hoverSuppressed = false;
-            if (_expanded && !_collapseTimer.IsEnabled)
+            _pointerInside = false;
+            if (!_collapseTimer.IsEnabled)
             {
                 _collapseTimer.Start();
             }
@@ -156,7 +212,7 @@ public sealed class WindowMotionController : IDisposable
     private void OnCollapseTick()
     {
         _collapseTimer.Stop();
-        if (_hwnd == IntPtr.Zero || _placement.IsCursorInside(_hwnd))
+        if (_hwnd == IntPtr.Zero || _pointerInside)
         {
             return;
         }
@@ -257,6 +313,7 @@ public sealed class WindowMotionController : IDisposable
     public void Dispose()
     {
         _disposed = true;
+        DetachPointerEvents();
         _hoverTimer.Stop();
         _collapseTimer.Stop();
     }

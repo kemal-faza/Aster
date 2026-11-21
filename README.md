@@ -25,7 +25,7 @@ published as a NativeAOT portable preview.
 
 ## What is in this release
 
-- Compact pill with clock, battery, Wi-Fi, and now-playing.
+- Compact pill with clock and now-playing; battery and Wi-Fi in the expanded header.
 - Expanded media panel with artwork, title, artist, source,
   previous/play-pause/next, seek, settings, and close.
 - Windows: SMTC media session.
@@ -70,6 +70,10 @@ glibc 2.39+, libicu, and the X11 libraries. The tray uses
 StatusNotifierItem; KDE provides it. GNOME needs an extension and is not part
 of the validated matrix. MPRIS controls require an MPRIS-capable player.
 
+The audio-reactive bars read the default sink monitor through `parec` from
+`pulseaudio-utils`; if it is unavailable, the bars fall back to a generated
+animation. No audio is recorded or sent.
+
 Autostart records the current executable path. If you move the folder, turn
 autostart off and on again.
 
@@ -77,12 +81,13 @@ autostart off and on again.
 
 | Feature | Windows | Linux | Notes |
 |---|---|---|---|
-| Compact pill (clock, battery, Wi-Fi, media) | Yes | Yes | |
+| Compact pill (clock, media) | Yes | Yes | |
 | Expanded media + controls + seek | Yes | Yes | Windows SMTC / Linux MPRIS |
 | Settings window | Yes | Yes | autostart, minimal notch, fullscreen hide, glass, bouncy |
 | Tray | Yes | Yes | KDE SNI validated |
 | Start with OS | Yes | Yes | adapter present on both; Linux UI toggle verified in R-07; Windows UI toggle NOT RUN |
 | Single instance | Yes | Yes | |
+| Audio-reactive rhythm bars | No (Phase 5) | Yes | Linux uses the default sink monitor; Windows parity is deferred |
 | Camera, shelf, focus, water, lyrics, overlays, mascot | No | No | WPF-only, not in this release |
 
 ## Build from source

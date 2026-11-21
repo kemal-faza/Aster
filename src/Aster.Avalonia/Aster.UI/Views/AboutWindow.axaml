@@ -1,0 +1,56 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:automation="using:Avalonia.Automation"
+        x:Class="Aster.UI.Views.AboutWindow"
+        Title="About Aster"
+        Width="420" Height="300"
+        CanResize="False"
+        ShowInTaskbar="False"
+        WindowDecorations="None"
+        TransparencyLevelHint="Transparent"
+        Background="Transparent"
+        WindowStartupLocation="Manual">
+  <Border Margin="10"
+          CornerRadius="22"
+          Background="{StaticResource IslandGlassBackground}"
+          BorderBrush="{StaticResource WindowBorder}"
+          BorderThickness="1">
+    <Grid RowDefinitions="*,Auto" Margin="24">
+      <StackPanel Spacing="6">
+        <TextBlock Text="Aster"
+                   Foreground="{StaticResource TextPrimary}"
+                   FontSize="22"
+                   FontWeight="SemiBold" />
+        <TextBlock Text="A compact, always-on-top island for your desktop."
+                   Foreground="{StaticResource TextSecondary}"
+                   FontSize="12.5"
+                   TextWrapping="Wrap" />
+        <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,12,0,0">
+          <TextBlock Text="Version"
+                     Foreground="{StaticResource TextTertiary}"
+                     FontSize="12" />
+          <TextBlock x:Name="VersionText"
+                     Foreground="{StaticResource TextSecondary}"
+                     FontSize="12" />
+        </StackPanel>
+        <TextBlock Text="Storage"
+                   Foreground="{StaticResource TextTertiary}"
+                   FontSize="12"
+                   Margin="0,8,0,0" />
+        <TextBlock x:Name="DataPathText"
+                   Foreground="{StaticResource TextSecondary}"
+                   FontSize="12"
+                   TextWrapping="NoWrap"
+                   TextTrimming="CharacterEllipsis" />
+      </StackPanel>
+
+      <Button Grid.Row="1"
+              Content="Close"
+              Theme="{StaticResource SettingsGhostButton}"
+              HorizontalAlignment="Right"
+              Click="OnCloseClick"
+              automation:AutomationProperties.Name="Close"
+              automation:AutomationProperties.HelpText="Close the About dialog." />
+    </Grid>
+  </Border>
+</Window>

@@ -31,6 +31,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aster.Platform.Linux.Tests"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aster.Desktop.Linux.Wayland", "Aster.Desktop.Linux.Wayland\Aster.Desktop.Linux.Wayland.csproj", "{F30CFA4A-CE72-4A79-B5EA-14BD4E63937D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aster.SpectrumProbe", "tools\Aster.SpectrumProbe\Aster.SpectrumProbe.csproj", "{84E0E48B-D699-475E-9725-3C8EEB76893C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -197,11 +199,24 @@ Global
 		{F30CFA4A-CE72-4A79-B5EA-14BD4E63937D}.Release|x64.Build.0 = Release|Any CPU
 		{F30CFA4A-CE72-4A79-B5EA-14BD4E63937D}.Release|x86.ActiveCfg = Release|Any CPU
 		{F30CFA4A-CE72-4A79-B5EA-14BD4E63937D}.Release|x86.Build.0 = Release|Any CPU
+		{84E0E48B-D699-475E-9725-3C8EEB76893C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{84E0E48B-D699-475E-9725-3C8EEB76893C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{84E0E48B-D699-475E-9725-3C8EEB76893C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{84E0E48B-D699-475E-9725-3C8EEB76893C}.Debug|x64.Build.0 = Debug|Any CPU
+		{84E0E48B-D699-475E-9725-3C8EEB76893C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{84E0E48B-D699-475E-9725-3C8EEB76893C}.Debug|x86.Build.0 = Debug|Any CPU
+		{84E0E48B-D699-475E-9725-3C8EEB76893C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{84E0E48B-D699-475E-9725-3C8EEB76893C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{84E0E48B-D699-475E-9725-3C8EEB76893C}.Release|x64.ActiveCfg = Release|Any CPU
+		{84E0E48B-D699-475E-9725-3C8EEB76893C}.Release|x64.Build.0 = Release|Any CPU
+		{84E0E48B-D699-475E-9725-3C8EEB76893C}.Release|x86.ActiveCfg = Release|Any CPU
+		{84E0E48B-D699-475E-9725-3C8EEB76893C}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{C807432E-759F-4318-A4BE-9B9D4899AED5} = {07C2787E-EAC7-C090-1BA3-A61EC2A24D84}
+		{84E0E48B-D699-475E-9725-3C8EEB76893C} = {07C2787E-EAC7-C090-1BA3-A61EC2A24D84}
 	EndGlobalSection
 EndGlobal

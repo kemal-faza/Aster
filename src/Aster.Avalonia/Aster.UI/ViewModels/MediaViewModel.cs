@@ -1,6 +1,10 @@
 using System.Globalization;
 using Aster.Core.Interfaces;
+using Aster.Core.Logic;
 using Aster.Core.Models;
+using Aster.UI.Media;
+using Avalonia;
+using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -8,12 +12,17 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace Aster.UI.ViewModels;
 
-public partial class MediaViewModel : ObservableObject
+public partial class MediaViewModel : ObservableObject, IDisposable
 {
     private readonly IMediaSession _media;
     private readonly IUiDispatcher _dispatcher;
     private readonly IAppLog _log;
-    private readonly DispatcherTimer _progressTimer;
+    private readonly IAudioSpectrumSource? _spectrumSource;
+    private readonly ISettingsStore? _settings;
+    private bool _audioReactive;
+    private readonly DispatcherTimer _playbackTimer =
+        new() { Interval = TimeSpan.FromMilliseconds(33) };
+    private int _lastPositionSecond = -1;
     private string _artKey = string.Empty;
 
     [ObservableProperty] private string _title = string.Empty;
@@ -27,32 +36,137 @@ public partial class MediaViewModel : ObservableObject
     [ObservableProperty] private string _positionText = "0:00";
     [ObservableProperty] private string _durationText = "0:00";
     [ObservableProperty] private Bitmap? _artworkImage;
+    [ObservableProperty] private string _trackKey = string.Empty;
+    [ObservableProperty] private bool _canSeek;
+    [ObservableProperty] private bool _canGoNext;
+    [ObservableProperty] private bool _canGoPrevious;
+    [ObservableProperty] private int _waveformSeed;
+    [ObservableProperty] private bool _hasArtwork;
+    [ObservableProperty] private Color _accentColor = Color.Parse("#F6A6C8");
+    [ObservableProperty] private IBrush _accentBrush = new SolidColorBrush(Color.Parse("#F6A6C8"));
+    [ObservableProperty] private string _rawArtist = string.Empty;
+    [ObservableProperty] private string _displayTitle = "Nothing playing";
+    [ObservableProperty] private string _displayArtist = "Start something on Spotify, YouTube, or Apple Music";
+    [ObservableProperty] private SpectrumFrame _spectrum;
 
     public bool IsSeeking { get; set; }
 
-    public MediaViewModel(IMediaSession media, IUiDispatcher dispatcher, IAppLog log)
+    public double SpectrumEnergy => Spectrum.Energy;
+
+    public double PlayingDotOpacity => IsPlaying ? 1 : 0;
+
+    public IBrush AccentGlowBrush => new RadialGradientBrush
+    {
+        GradientOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative),
+        Center = new RelativePoint(0.5, 0.5, RelativeUnit.Relative),
+        RadiusX = new RelativeScalar(0.5, RelativeUnit.Relative),
+        RadiusY = new RelativeScalar(0.5, RelativeUnit.Relative),
+        GradientStops = new GradientStops
+        {
+            new(Color.FromArgb(76, AccentColor.R, AccentColor.G, AccentColor.B), 0),
+            new(Color.FromArgb(0, AccentColor.R, AccentColor.G, AccentColor.B), 1)
+        }
+    };
+
+    public IBrush LyricsGlowBrush => CreateGlowBrush(AccentColor);
+
+    private static IBrush CreateGlowBrush(Color color) =>
+        new RadialGradientBrush
+        {
+            GradientOrigin = new RelativePoint(0.82, 0.04, RelativeUnit.Relative),
+            Center = new RelativePoint(0.82, 0.04, RelativeUnit.Relative),
+            RadiusX = new RelativeScalar(0.9, RelativeUnit.Relative),
+            RadiusY = new RelativeScalar(1.0, RelativeUnit.Relative),
+            GradientStops = new GradientStops
+            {
+                new(Color.FromArgb(36, color.R, color.G, color.B), 0),
+                new(Color.FromArgb(12, color.R, color.G, color.B), 0.55),
+                new(Color.FromArgb(0, color.R, color.G, color.B), 1)
+            }
+        };
+
+    public MediaViewModel(
+        IMediaSession media,
+        IUiDispatcher dispatcher,
+        IAppLog log,
+        IAudioSpectrumSource? spectrum = null,
+        ISettingsStore? settings = null)
     {
         _media = media;
         _dispatcher = dispatcher;
         _log = log;
+        _spectrumSource = spectrum;
+        _settings = settings;
+        _audioReactive = settings?.Current.AudioReactiveBars ?? true;
+        if (_settings is not null)
+        {
+            _settings.Changed += OnSettingsChanged;
+        }
 
         _media.Changed += OnMediaChanged;
-        _progressTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
-        _progressTimer.Tick += (_, _) => UpdateProgress(_media.Current);
+        _playbackTimer.Tick += (_, _) => OnPlaybackTick();
         Apply(_media.Current);
+    }
+
+    public void Dispose()
+    {
+        _playbackTimer.Stop();
+        _media.Changed -= OnMediaChanged;
+        _settings?.Changed -= OnSettingsChanged;
+        _spectrumSource?.Stop();
     }
 
     [RelayCommand]
     private Task PlayPauseAsync() => _media.PlayPauseAsync();
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanGoNext))]
     private Task NextAsync() => _media.NextAsync();
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanGoPrevious))]
     private Task PreviousAsync() => _media.PreviousAsync();
 
     [RelayCommand]
-    private Task SeekAsync(double seconds) => _media.SeekAsync(TimeSpan.FromSeconds(seconds));
+    private async Task SeekAsync(double seconds)
+    {
+        if (DurationSeconds <= 0)
+        {
+            return;
+        }
+
+        var target = Math.Clamp(seconds, 0, DurationSeconds);
+        var position = TimeSpan.FromSeconds(target);
+        PositionSeconds = target;
+        PositionText = Format(position);
+        Progress = target / DurationSeconds;
+        IsSeeking = true;
+
+        try
+        {
+            await _media.SeekAsync(position);
+            var deadline = DateTimeOffset.UtcNow + TimeSpan.FromMilliseconds(500);
+            while (DateTimeOffset.UtcNow < deadline &&
+                   Math.Abs(_media.Current.Position.TotalSeconds - target) > 1.0)
+            {
+                await Task.Delay(25);
+            }
+        }
+        finally
+        {
+            IsSeeking = false;
+        }
+    }
+
+    partial void OnCanGoNextChanged(bool value) => NextCommand.NotifyCanExecuteChanged();
+    partial void OnCanGoPreviousChanged(bool value) => PreviousCommand.NotifyCanExecuteChanged();
+    partial void OnIsPlayingChanged(bool value) => OnPropertyChanged(nameof(PlayingDotOpacity));
+    partial void OnAccentColorChanged(Color value)
+    {
+        OnPropertyChanged(nameof(AccentGlowBrush));
+        OnPropertyChanged(nameof(LyricsGlowBrush));
+    }
+
+    partial void OnSpectrumChanged(SpectrumFrame value) =>
+        OnPropertyChanged(nameof(SpectrumEnergy));
 
     private void OnMediaChanged(object? sender, MediaSnapshot snapshot) =>
         _dispatcher.Post(() => Apply(snapshot));
@@ -61,16 +175,28 @@ public partial class MediaViewModel : ObservableObject
     {
         HasSession = snapshot.HasSession;
         IsPlaying = snapshot.Playback == PlaybackState.Playing;
-        Title = string.IsNullOrWhiteSpace(snapshot.Title) ? "Nothing playing" : snapshot.Title;
-        Artist = !string.IsNullOrWhiteSpace(snapshot.Artist)
-            ? snapshot.Artist
-            : !string.IsNullOrWhiteSpace(snapshot.Album)
-                ? snapshot.Album
-                : "Unknown artist";
+        Title = snapshot.Title;
+        RawArtist = snapshot.Artist;
+        Artist = ResolveArtist(snapshot);
         SourceApp = snapshot.SourceApp;
+        TrackKey = BuildTrackKey(snapshot);
+        CanSeek = snapshot.CanSeek;
+        CanGoNext = snapshot.CanGoNext;
+        CanGoPrevious = snapshot.CanGoPrevious;
+        WaveformSeed = snapshot.HasSession
+            ? TrackHash.Of($"{snapshot.Title}|{snapshot.Artist}|{snapshot.Album}")
+            : 0;
+        DisplayTitle = snapshot.HasSession
+            ? (string.IsNullOrWhiteSpace(snapshot.Title) ? "Unknown track" : snapshot.Title)
+            : "Nothing playing";
+        DisplayArtist = snapshot.HasSession
+            ? ResolveArtist(snapshot)
+            : "Start something on Spotify, YouTube, or Apple Music";
         DurationSeconds = Math.Max(0, snapshot.Duration.TotalSeconds);
         DurationText = Format(snapshot.Duration);
+        _lastPositionSecond = -1;
         UpdateProgress(snapshot);
+        UpdatePlaybackTimer();
 
         if (!string.Equals(snapshot.ArtworkKey, _artKey, StringComparison.Ordinal))
         {
@@ -80,12 +206,60 @@ public partial class MediaViewModel : ObservableObject
 
         if (IsPlaying)
         {
-            _progressTimer.Start();
+            _playbackTimer.Start();
         }
         else
         {
-            _progressTimer.Stop();
+            _playbackTimer.Stop();
         }
+
+        if (IsPlaying && _audioReactive)
+        {
+            _spectrumSource?.Start();
+        }
+        else
+        {
+            _spectrumSource?.Stop();
+            Spectrum = SpectrumFrame.Silence;
+        }
+    }
+
+    private static string BuildTrackKey(MediaSnapshot snapshot) =>
+        string.IsNullOrWhiteSpace(snapshot.TrackId)
+            ? $"{snapshot.Title}|{snapshot.Artist}|{snapshot.Album}|{snapshot.SourceApp}"
+            : snapshot.TrackId;
+
+    private static string ResolveArtist(MediaSnapshot snapshot) =>
+        !string.IsNullOrWhiteSpace(snapshot.Artist)
+            ? snapshot.Artist
+            : !string.IsNullOrWhiteSpace(snapshot.Album)
+                ? snapshot.Album
+                : "Unknown artist";
+
+    private void UpdatePlaybackTimer()
+    {
+        if (!HasSession)
+        {
+            _playbackTimer.Stop();
+            return;
+        }
+
+        if (!IsPlaying)
+        {
+            _playbackTimer.Stop();
+            return;
+        }
+
+        if (!_playbackTimer.IsEnabled)
+        {
+            _playbackTimer.Start();
+        }
+    }
+
+    private void OnPlaybackTick()
+    {
+        UpdateProgress(_media.Current);
+        UpdateSpectrum();
     }
 
     private void UpdateProgress(MediaSnapshot snapshot)
@@ -96,16 +270,75 @@ public partial class MediaViewModel : ObservableObject
         }
 
         var position = _media.EstimatedPosition(DateTimeOffset.Now);
-        PositionSeconds = Math.Max(0, position.TotalSeconds);
-        PositionText = Format(position);
-        Progress = snapshot.Duration.TotalSeconds <= 0
+        var tick = ComputePlaybackTick(position, snapshot.Duration, _lastPositionSecond);
+        PositionSeconds = tick.PositionSeconds;
+        Progress = tick.Progress;
+
+        if (tick.PositionText is not null)
+        {
+            PositionText = tick.PositionText;
+            _lastPositionSecond = tick.WholeSecond;
+        }
+    }
+
+    internal static PlaybackTick ComputePlaybackTick(
+        TimeSpan position,
+        TimeSpan duration,
+        int lastSecond)
+    {
+        var seconds = Math.Max(0, position.TotalSeconds);
+        var progress = duration.TotalSeconds <= 0
             ? 0
-            : Math.Clamp(position.TotalSeconds / snapshot.Duration.TotalSeconds, 0, 1);
+            : Math.Clamp(seconds / duration.TotalSeconds, 0, 1);
+        var whole = (int)Math.Floor(seconds);
+        var text = whole == lastSecond ? null : Format(position);
+        return new PlaybackTick(seconds, progress, text, whole);
+    }
+
+    internal readonly record struct PlaybackTick(
+        double PositionSeconds,
+        double Progress,
+        string? PositionText,
+        int WholeSecond);
+
+    private void UpdateSpectrum()
+    {
+        Spectrum = _audioReactive && _spectrumSource is { IsAvailable: true }
+            ? _spectrumSource.Latest
+            : SimulatedSpectrum.Next(PositionSeconds, WaveformSeed);
+    }
+
+    private void OnSettingsChanged(object? sender, AppSettings settings) =>
+        _dispatcher.Post(() => ApplyAudioReactiveSetting(settings));
+
+    private void ApplyAudioReactiveSetting(AppSettings settings)
+    {
+        if (_audioReactive == settings.AudioReactiveBars)
+        {
+            return;
+        }
+
+        _audioReactive = settings.AudioReactiveBars;
+
+        if (!_audioReactive)
+        {
+            _spectrumSource?.Stop();
+            Spectrum = IsPlaying
+                ? SimulatedSpectrum.Next(PositionSeconds, WaveformSeed)
+                : SpectrumFrame.Silence;
+            return;
+        }
+
+        if (IsPlaying)
+        {
+            _spectrumSource?.Start();
+        }
     }
 
     private async Task DecodeAndApplyAsync(byte[]? bytes, string key)
     {
         var bitmap = await Task.Run(() => Decode(bytes));
+        var accent = await Task.Run(() => ArtworkAccent.Extract(bytes));
         _dispatcher.Post(() =>
         {
             if (!string.Equals(_artKey, key, StringComparison.Ordinal))
@@ -116,6 +349,9 @@ public partial class MediaViewModel : ObservableObject
 
             ArtworkImage?.Dispose();
             ArtworkImage = bitmap;
+            HasArtwork = bitmap is not null;
+            AccentColor = accent;
+            AccentBrush = new SolidColorBrush(accent);
         });
     }
 

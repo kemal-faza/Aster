@@ -16,7 +16,13 @@ public static class LinuxArtworkReader
             if (url.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
             {
                 var comma = url.IndexOf(',');
-                return comma < 0 ? null : Convert.FromBase64String(url[(comma + 1)..]);
+                if (comma < 0)
+                {
+                    return null;
+                }
+
+                var bytes = Convert.FromBase64String(url[(comma + 1)..]);
+                return bytes.Length <= MaxBytes ? bytes : null;
             }
 
             if (url.StartsWith("file://", StringComparison.OrdinalIgnoreCase))
@@ -29,8 +35,33 @@ public static class LinuxArtworkReader
                 url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
             {
                 using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(3) };
-                var bytes = await http.GetByteArrayAsync(url, ct);
-                return bytes.Length <= MaxBytes ? bytes : null;
+                using var response = await http.GetAsync(
+                    url, HttpCompletionOption.ResponseHeadersRead, ct);
+                if (!response.IsSuccessStatusCode)
+                {
+                    return null;
+                }
+
+                if (response.Content.Headers.ContentLength is > MaxBytes)
+                {
+                    return null;
+                }
+
+                await using var stream = await response.Content.ReadAsStreamAsync(ct);
+                using var buffer = new MemoryStream();
+                var chunk = new byte[8192];
+                int read;
+                while ((read = await stream.ReadAsync(chunk, ct)) > 0)
+                {
+                    if (buffer.Length + read > MaxBytes)
+                    {
+                        return null;
+                    }
+
+                    buffer.Write(chunk, 0, read);
+                }
+
+                return buffer.ToArray();
             }
         }
         catch

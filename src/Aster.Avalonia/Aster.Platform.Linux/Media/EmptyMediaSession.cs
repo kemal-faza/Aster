@@ -11,6 +11,11 @@ public sealed class EmptyMediaSession : IMediaSession
         add { }
         remove { }
     }
+    public event EventHandler<MediaSnapshot>? PropertiesChanged
+    {
+        add { }
+        remove { }
+    }
     public Task PlayPauseAsync(CancellationToken ct = default) => Task.CompletedTask;
     public Task NextAsync(CancellationToken ct = default) => Task.CompletedTask;
     public Task PreviousAsync(CancellationToken ct = default) => Task.CompletedTask;

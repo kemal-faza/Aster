@@ -29,13 +29,27 @@ public class JsonSettingsStoreTests : IDisposable
     {
         var store = new JsonSettingsStore(PathToSettings, _log);
         await store.LoadAsync();
-        var changed = new AppSettings(1, true, true, false, false, false);
+        var changed = SettingsTestData.NonDefault;
 
         await store.SaveAsync(changed);
 
         var reloaded = new JsonSettingsStore(PathToSettings, _log);
         await reloaded.LoadAsync();
         Assert.Equal(changed, reloaded.Current);
+    }
+
+    [Fact]
+    public async Task SaveAlwaysWritesCurrentSchemaVersion()
+    {
+        var store = new JsonSettingsStore(PathToSettings, _log);
+        await store.LoadAsync();
+
+        await store.SaveAsync(SettingsTestData.NonDefault with { SchemaVersion = 1 });
+
+        Assert.Equal(SettingsSchema.CurrentVersion, store.Current.SchemaVersion);
+        var reloaded = new JsonSettingsStore(PathToSettings, _log);
+        await reloaded.LoadAsync();
+        Assert.Equal(SettingsTestData.NonDefault, reloaded.Current);
     }
 
     [Fact]
@@ -70,7 +84,7 @@ public class JsonSettingsStoreTests : IDisposable
     [Fact]
     public async Task NewerSchemaDisablesSaveAndPreservesFile()
     {
-        var newer = """{"schemaVersion":2,"startWithWindows":true}""";
+        var newer = """{"schemaVersion":5,"startWithWindows":true}""";
         await File.WriteAllTextAsync(PathToSettings, newer);
         var store = new JsonSettingsStore(PathToSettings, _log);
 
@@ -79,6 +93,54 @@ public class JsonSettingsStoreTests : IDisposable
         Assert.False(store.CanSave);
         Assert.NotNull(store.LoadWarning);
         Assert.Equal(newer, await File.ReadAllTextAsync(PathToSettings));
+    }
+
+    [Fact]
+    public async Task UpdateAsyncAppliesInsideTheGate()
+    {
+        var store = new JsonSettingsStore(PathToSettings, _log);
+        await store.LoadAsync();
+
+        var result = await store.UpdateAsync(s => s with
+        {
+            FocusMinutes = 40,
+            WaterGlassesToday = s.WaterGlassesToday + 1
+        });
+
+        Assert.True(result.Succeeded);
+        Assert.Equal(40, store.Current.FocusMinutes);
+        Assert.Equal(1, store.Current.WaterGlassesToday);
+        Assert.Equal(SettingsSchema.CurrentVersion, store.Current.SchemaVersion);
+    }
+
+    [Fact]
+    public async Task UpdateAsyncKeepsCurrentWhenReadOnly()
+    {
+        await File.WriteAllTextAsync(
+            PathToSettings,
+            """{"schemaVersion":99}""");
+        var store = new JsonSettingsStore(PathToSettings, _log);
+        await store.LoadAsync();
+
+        var before = store.Current;
+        var result = await store.UpdateAsync(s => s with { FocusMinutes = 40 });
+
+        Assert.False(result.Succeeded);
+        Assert.Same(before, result.Settings);
+        Assert.Same(before, store.Current);
+    }
+
+    [Fact]
+    public async Task ConcurrentUpdatesDoNotLoseIncrements()
+    {
+        var store = new JsonSettingsStore(PathToSettings, _log);
+        await store.LoadAsync();
+
+        await Task.WhenAll(
+            store.UpdateAsync(s => s with { WaterGlassesToday = s.WaterGlassesToday + 1 }),
+            store.UpdateAsync(s => s with { WaterGlassesToday = s.WaterGlassesToday + 1 }));
+
+        Assert.Equal(2, store.Current.WaterGlassesToday);
     }
 
     private sealed class NullLog : IAppLog

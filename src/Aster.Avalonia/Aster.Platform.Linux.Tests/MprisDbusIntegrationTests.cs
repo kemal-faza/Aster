@@ -20,6 +20,11 @@ public class MprisDbusIntegrationTests
         await WaitUntilAsync(() => session.Current.Title == "Tone 1");
         await session.NextAsync();
         await WaitUntilAsync(() => session.Current.Title == "Tone 2");
+
+        await session.SeekAsync(TimeSpan.FromSeconds(30));
+        await WaitUntilAsync(() =>
+            session.Current.Position >= TimeSpan.FromSeconds(29) &&
+            session.Current.Position <= TimeSpan.FromSeconds(31));
     }
 
     private static async Task WaitUntilAsync(Func<bool> condition)

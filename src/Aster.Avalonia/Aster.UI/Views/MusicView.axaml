@@ -1,0 +1,138 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:automation="using:Avalonia.Automation"
+             xmlns:vm="using:Aster.UI.ViewModels"
+             xmlns:views="using:Aster.UI.Views"
+             xmlns:controls="using:Aster.UI.Controls"
+             x:Class="Aster.UI.Views.MusicView"
+             x:DataType="vm:ShellViewModel">
+  <Grid RowDefinitions="152,18" ClipToBounds="True">
+    <StackPanel Orientation="Horizontal" ClipToBounds="True">
+      <Grid x:Name="MusicMedia" Width="464" Margin="0,8,0,4" ColumnDefinitions="92,16,*">
+        <Grid.Transitions>
+          <Transitions>
+            <DoubleTransition Property="Width" Duration="0:0:0.3">
+              <DoubleTransition.Easing><CubicEaseOut /></DoubleTransition.Easing>
+            </DoubleTransition>
+          </Transitions>
+        </Grid.Transitions>
+        <Grid Width="92" Height="92" VerticalAlignment="Center">
+          <Border Width="92" Height="92" CornerRadius="20" ClipToBounds="True"
+                  HorizontalAlignment="Left" VerticalAlignment="Center">
+            <Grid>
+              <Border IsVisible="{Binding !Media.HasArtwork}" CornerRadius="20"
+                      Background="{StaticResource ArtworkFallbackBrush}" />
+              <TextBlock IsVisible="{Binding !Media.HasArtwork}"
+                         Text="{Binding MusicGlyph}" FontFamily="{StaticResource GlyphFont}"
+                         FontSize="32" Foreground="{StaticResource ArtGlyphForeground}"
+                         HorizontalAlignment="Center" VerticalAlignment="Center" />
+              <Image Source="{Binding Media.ArtworkImage}" Stretch="UniformToFill" />
+            </Grid>
+          </Border>
+        </Grid>
+
+        <Grid x:Name="MusicInfo" Grid.Column="2" VerticalAlignment="Center"
+              RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+          <Grid.RenderTransform><TranslateTransform /></Grid.RenderTransform>
+          <TextBlock Grid.Row="0" Text="{Binding Media.DisplayTitle}" Classes="title" />
+          <TextBlock Grid.Row="1" Text="{Binding Media.DisplayArtist}" Classes="subtitle"
+                     Margin="0,3,0,0" />
+
+          <controls:WaveformScrubber Grid.Row="2" x:Name="Waveform" Height="36" Margin="0,7,0,0"
+                                     Progress="{Binding Media.Progress}"
+                                     Seed="{Binding Media.WaveformSeed}"
+                                     PlayedBrush="{Binding Media.AccentBrush}"
+                                     DurationSeconds="{Binding Media.DurationSeconds}"
+                                     Energy="{Binding Media.SpectrumEnergy}"
+                                     Phase="{Binding Media.PositionSeconds}"
+                                     IsEnabled="{Binding Media.CanSeek}"
+                                     automation:AutomationProperties.Name="Playback position"
+                                     automation:AutomationProperties.HelpText="Drag or use the arrow keys to seek."
+                                     SeekRequested="OnWaveformSeek" />
+
+          <Grid Grid.Row="3" ColumnDefinitions="*,*" Margin="0,2,0,0"
+                IsVisible="{Binding Media.HasSession}">
+            <TextBlock Text="{Binding Media.PositionText}" Classes="tertiary"
+                       HorizontalAlignment="Left" />
+            <TextBlock Grid.Column="1" Text="{Binding Media.DurationText}" Classes="tertiary"
+                       HorizontalAlignment="Right" />
+          </Grid>
+
+          <Grid Grid.Row="4" ColumnDefinitions="Auto,Auto,Auto,*,Auto" Margin="0,3,0,0">
+            <Button Theme="{StaticResource GlyphButton}" Content="{Binding PreviousGlyph}"
+                    Command="{Binding Media.PreviousCommand}"
+                    IsEnabled="{Binding Media.CanGoPrevious}"
+                    automation:AutomationProperties.Name="Previous track"
+                    ToolTip.Tip="Previous" />
+            <Grid Grid.Column="1" Width="52" Height="36">
+              <Border Width="56" Height="56" CornerRadius="28"
+                      HorizontalAlignment="Center" VerticalAlignment="Center"
+                      Background="{Binding Media.AccentGlowBrush}"
+                      IsHitTestVisible="False" />
+              <Button x:Name="PlayButton" Theme="{StaticResource PlayButton}"
+                      Width="36" Height="36"
+                      HorizontalAlignment="Center" VerticalAlignment="Center"
+                      Background="{Binding Media.AccentBrush}"
+                      Content="{Binding PlayGlyph}" Command="{Binding Media.PlayPauseCommand}"
+                      IsEnabled="{Binding Media.HasSession}"
+                      automation:AutomationProperties.Name="Play or pause"
+                      ToolTip.Tip="Play / pause" />
+            </Grid>
+            <Button Grid.Column="2" Theme="{StaticResource GlyphButton}"
+                    Content="{Binding NextGlyph}" Command="{Binding Media.NextCommand}"
+                    IsEnabled="{Binding Media.CanGoNext}"
+                    automation:AutomationProperties.Name="Next track"
+                    ToolTip.Tip="Next" />
+            <Button x:Name="LyricsButton" Grid.Column="4" Theme="{StaticResource GlyphButton}"
+                    Content="{Binding LyricsGlyph}" IsEnabled="{Binding Media.HasSession}"
+                    Click="OnLyricsClick"
+                    automation:AutomationProperties.Name="Lyrics"
+                    ToolTip.Tip="Show lyrics" />
+          </Grid>
+        </Grid>
+      </Grid>
+
+      <Grid x:Name="LyricsPane" Width="0" ClipToBounds="True">
+        <Grid.Transitions>
+          <Transitions>
+            <DoubleTransition Property="Width" Duration="0:0:0.3">
+              <DoubleTransition.Easing><CubicEaseOut /></DoubleTransition.Easing>
+            </DoubleTransition>
+          </Transitions>
+        </Grid.Transitions>
+        <Border Margin="8,2,6,6" CornerRadius="18" ClipToBounds="True"
+                BorderBrush="{StaticResource LyricsCardStroke}" BorderThickness="1">
+          <Grid>
+            <Border CornerRadius="18" IsVisible="{Binding GlassBackground}"
+                    Background="{StaticResource IslandGlassLyrics}" />
+            <Border CornerRadius="18" IsVisible="{Binding !GlassBackground}"
+                    Background="{StaticResource IslandSolidLyrics}" />
+            <Border CornerRadius="18" IsHitTestVisible="False"
+                    Background="{Binding Media.LyricsGlowBrush}" />
+            <Border Height="58" VerticalAlignment="Top" CornerRadius="18"
+                    IsHitTestVisible="False">
+              <Border.Background>
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                  <GradientStop Color="#1AFFFFFF" Offset="0" />
+                  <GradientStop Color="#00FFFFFF" Offset="1" />
+                </LinearGradientBrush>
+              </Border.Background>
+            </Border>
+            <views:LyricsView x:Name="LyricsView" DataContext="{Binding Lyrics}" />
+          </Grid>
+        </Border>
+      </Grid>
+    </StackPanel>
+
+    <Grid Grid.Row="1" Width="464" HorizontalAlignment="Left"
+          IsVisible="{Binding Media.HasSession}">
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+        <Ellipse Width="5" Height="5" Fill="{StaticResource AccentGreen}"
+                 Margin="0,0,5,0" VerticalAlignment="Center"
+                 Opacity="{Binding Media.PlayingDotOpacity}" />
+        <TextBlock Text="{Binding Media.SourceApp}" FontSize="10"
+                   Foreground="{StaticResource TextSecondary}" />
+      </StackPanel>
+    </Grid>
+  </Grid>
+</UserControl>

@@ -1,10 +1,20 @@
 #!/usr/bin/env python3
+import argparse
 import asyncio
 from dbus_next.aio import MessageBus
 from dbus_next.service import (
     ServiceInterface, method, dbus_property, PropertyAccess,
 )
 from dbus_next import Variant
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--title", default="Tone {n}",
+                    help="Title pattern; {n} is replaced by the track number.")
+parser.add_argument("--artist", default="Aster Lab")
+parser.add_argument("--album", default="Phase 2")
+parser.add_argument("--duration", type=float, default=120.0)
+parser.add_argument("--art", default="", help="file:// URL for mpris:artUrl")
+args = parser.parse_args()
 
 
 class Player(ServiceInterface):
@@ -21,13 +31,14 @@ class Player(ServiceInterface):
     @dbus_property(access=PropertyAccess.READ)
     def Metadata(self) -> "a{sv}":
         return {
-            "xesam:title": Variant("s", f"Tone {self.track}"),
-            "xesam:artist": Variant("as", ["Aster Lab"]),
-            "xesam:album": Variant("s", "Phase 2"),
-            "mpris:length": Variant("x", 120_000_000),
+            "xesam:title": Variant(
+                "s", args.title.replace("{n}", str(self.track))),
+            "xesam:artist": Variant("as", [args.artist]),
+            "xesam:album": Variant("s", args.album),
+            "mpris:length": Variant("x", int(args.duration * 1_000_000)),
             "mpris:trackid": Variant(
                 "o", f"/org/mpris/MediaPlayer2/Track/{self.track}"),
-            "mpris:artUrl": Variant("s", ""),
+            "mpris:artUrl": Variant("s", args.art),
         }
 
     @dbus_property(access=PropertyAccess.READ)

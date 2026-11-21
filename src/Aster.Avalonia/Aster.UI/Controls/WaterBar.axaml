@@ -1,0 +1,20 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Style Selector="Border.waterbar">
+    <Setter Property="Background" Value="{StaticResource WaterTrackBrush}" />
+    <Setter Property="Width" Value="3" />
+    <Setter Property="Height" Value="6" />
+    <Setter Property="CornerRadius" Value="1.5" />
+  </Style>
+  <Style Selector="Border.waterbar.filled">
+    <Setter Property="Background" Value="{StaticResource AccentWater}" />
+  </Style>
+  <Style Selector="Border.waterbar.goal">
+    <Setter Property="Background" Value="{StaticResource AccentGreen}" />
+  </Style>
+  <Style Selector="Border.waterbar.preview">
+    <Setter Property="Width" Value="24" />
+    <Setter Property="Height" Value="5" />
+    <Setter Property="CornerRadius" Value="2.5" />
+  </Style>
+</Styles>

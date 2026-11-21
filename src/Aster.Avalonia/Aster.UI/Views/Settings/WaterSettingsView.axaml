@@ -1,0 +1,113 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Aster.UI.ViewModels"
+             xmlns:automation="using:Avalonia.Automation"
+             x:Class="Aster.UI.Views.WaterSettingsView"
+             x:DataType="vm:SettingsViewModel">
+  <StackPanel>
+    <Border Classes="settings-card">
+      <StackPanel>
+        <TextBlock Classes="settings-card-title" Text="REMINDERS" />
+        <CheckBox Theme="{StaticResource ToggleSwitch}"
+                  IsChecked="{Binding WaterReminderEnabled, Mode=TwoWay}"
+                  IsEnabled="{Binding CanSave}"
+                  automation:AutomationProperties.Name="Water reminder">
+          <StackPanel>
+            <TextBlock Classes="settings-label" Text="Water reminder" />
+            <TextBlock Classes="settings-description"
+                       Text="A gentle toast appears in the pill at the chosen interval." />
+          </StackPanel>
+        </CheckBox>
+      </StackPanel>
+    </Border>
+
+    <Border Classes="settings-card">
+      <StackPanel>
+        <TextBlock Classes="settings-card-title" Text="SCHEDULE" />
+        <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,10">
+          <StackPanel>
+            <TextBlock Classes="settings-label" Text="Reminder interval" />
+            <TextBlock Classes="settings-description" Text="1–240 minutes." />
+          </StackPanel>
+          <TextBox x:Name="IntervalBox" Grid.Column="1" Classes="settings-textbox"
+                   Width="56" MaxLength="3" IsEnabled="{Binding CanSave}"
+                   LostFocus="OnIntervalLostFocus" KeyDown="OnIntervalKeyDown"
+                   TextInput="OnNumericTextInput"
+                   automation:AutomationProperties.Name="Reminder interval" />
+        </Grid>
+        <Grid ColumnDefinitions="*,Auto">
+          <StackPanel>
+            <TextBlock Classes="settings-label" Text="Active hours" />
+            <TextBlock Classes="settings-description" Text="Start equals end for 24 hours." />
+          </StackPanel>
+          <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6"
+                      VerticalAlignment="Center">
+            <TextBox x:Name="StartBox" Classes="settings-textbox" Width="52" MaxLength="2"
+                     IsEnabled="{Binding CanSave}"
+                     LostFocus="OnStartLostFocus" KeyDown="OnStartKeyDown"
+                     TextInput="OnNumericTextInput"
+                     automation:AutomationProperties.Name="Active start hour" />
+            <TextBlock Text="to" Foreground="{StaticResource TextSecondary}"
+                       VerticalAlignment="Center" />
+            <TextBox x:Name="EndBox" Classes="settings-textbox" Width="52" MaxLength="2"
+                     IsEnabled="{Binding CanSave}"
+                     LostFocus="OnEndLostFocus" KeyDown="OnEndKeyDown"
+                     TextInput="OnNumericTextInput"
+                     automation:AutomationProperties.Name="Active end hour" />
+            <TextBlock Text="h" Foreground="{StaticResource TextSecondary}"
+                       VerticalAlignment="Center" />
+          </StackPanel>
+        </Grid>
+      </StackPanel>
+    </Border>
+
+    <Border Classes="settings-card">
+      <StackPanel>
+        <TextBlock Classes="settings-card-title" Text="DAILY GOAL" />
+        <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,10">
+          <StackPanel>
+            <TextBlock Classes="settings-label" Text="Glasses per day" />
+            <TextBlock Classes="settings-description" Text="Between 1 and 20 glasses." />
+          </StackPanel>
+          <TextBox x:Name="GoalBox" Grid.Column="1" Classes="settings-textbox"
+                   Width="52" MaxLength="2" IsEnabled="{Binding CanSave}"
+                   LostFocus="OnGoalLostFocus" KeyDown="OnGoalKeyDown"
+                   TextInput="OnNumericTextInput"
+                   automation:AutomationProperties.Name="Glasses per day" />
+        </Grid>
+
+        <ItemsControl ItemsSource="{Binding Water.Bars}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel Orientation="Horizontal" Spacing="4" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:WaterBarViewModel">
+              <Border Classes="waterbar preview"
+                      Classes.filled="{Binding Filled}"
+                      Classes.goal="{Binding Goal}" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <TextBlock Text="{Binding Water.StatusText}" FontSize="10.5"
+                   Foreground="{StaticResource TextSecondary}" TextWrapping="Wrap"
+                   Margin="0,8,0,10" />
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <Button Classes="settingsPrimary" Content="Log a glass"
+                  Command="{Binding Water.LogCommand}" IsEnabled="{Binding CanSave}"
+                  automation:AutomationProperties.Name="Log a glass of water" />
+          <Button Theme="{StaticResource SettingsGhostButton}" Content="Preview"
+                  Command="{Binding Water.PreviewCommand}"
+                  automation:AutomationProperties.Name="Preview water reminder" />
+          <Button Theme="{StaticResource SettingsGhostButton}" Content="Reset today"
+                  Command="{Binding Water.ResetCommand}" IsEnabled="{Binding CanSave}"
+                  automation:AutomationProperties.Name="Reset today's water count" />
+        </StackPanel>
+        <TextBlock Classes="settings-description" Margin="0,10,0,0"
+                   Text="Reminders pause while the island is hidden. The daily counter follows your local date." />
+      </StackPanel>
+    </Border>
+  </StackPanel>
+</UserControl>
