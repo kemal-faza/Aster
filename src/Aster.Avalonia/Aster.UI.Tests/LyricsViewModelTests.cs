@@ -91,6 +91,17 @@ public class LyricsViewModelTests
         public event EventHandler<AppSettings>? Changed;
         public Task LoadAsync(CancellationToken ct = default) => Task.CompletedTask;
         public Task SaveAsync(AppSettings settings, CancellationToken ct = default) => Task.CompletedTask;
+        public Task<SettingsUpdateResult> UpdateAsync(
+            Func<AppSettings, AppSettings> update,
+            CancellationToken ct = default)
+        {
+            Current = update(Current) with
+            {
+                SchemaVersion = SettingsSchema.CurrentVersion
+            };
+            Changed?.Invoke(this, Current);
+            return Task.FromResult(new SettingsUpdateResult(true, Current));
+        }
         public void RaiseChanged() => Changed?.Invoke(this, Current);
     }
 

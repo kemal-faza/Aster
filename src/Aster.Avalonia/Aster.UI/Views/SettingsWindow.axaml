@@ -3,6 +3,7 @@
         xmlns:automation="using:Avalonia.Automation"
         xmlns:converters="using:Avalonia.Data.Converters"
         xmlns:vm="using:Aster.UI.ViewModels"
+        xmlns:views="using:Aster.UI.Views"
         x:Class="Aster.UI.Views.SettingsWindow"
         x:DataType="vm:SettingsViewModel"
         Title="Aster Settings"
@@ -342,8 +343,8 @@
                         </StackPanel>
                       </Border>
                     </StackPanel>
-                    <StackPanel x:Name="FocusPage" IsVisible="False" />
-                    <StackPanel x:Name="WaterPage" IsVisible="False" />
+                    <views:FocusSettingsView x:Name="FocusPage" IsVisible="False" />
+                    <views:WaterSettingsView x:Name="WaterPage" IsVisible="False" />
 
                     <StackPanel x:Name="AboutPage" IsVisible="False">
                       <Border Classes="settings-card">

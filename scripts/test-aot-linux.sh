@@ -61,12 +61,13 @@ cleanup() {
 trap cleanup EXIT
 
 mkdir -p "$(dirname "$settings")" "$work/config"
-cat >"$settings" <<'JSON'
+water_date="$(date +%F)"
+cat >"$settings" <<JSON
 {"schemaVersion":4,"startWithWindows":false,"minimalNotch":false,"hideInFullscreen":true,
  "glassBackground":true,"bouncySpring":true,"showMascot":true,"volumeToast":true,
  "brightnessToast":true,"lyricsEnabled":true,
  "waterReminderEnabled":false,"waterIntervalMinutes":60,"waterActiveStartHour":8,
- "waterActiveEndHour":22,"waterDailyGoal":8,"waterGlassesToday":0,"waterDate":"",
+ "waterActiveEndHour":22,"waterDailyGoal":8,"waterGlassesToday":0,"waterDate":"$water_date",
  "cameraMirror":true,"focusMinutes":25,"shortBreakMinutes":5,"longBreakMinutes":15,
  "focusChime":true,"audioReactiveBars":true}
 JSON

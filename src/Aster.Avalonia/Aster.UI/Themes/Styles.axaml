@@ -22,4 +22,9 @@
     <Setter Property="Theme" Value="{StaticResource AsterScrollBar}" />
   </Style>
   <StyleInclude Source="avares://Aster.UI/Controls/SettingsCard.axaml" />
+  <StyleInclude Source="avares://Aster.UI/Controls/ChipButton.axaml" />
+  <StyleInclude Source="avares://Aster.UI/Controls/FocusButtons.axaml" />
+  <StyleInclude Source="avares://Aster.UI/Controls/WaterGlassButton.axaml" />
+  <StyleInclude Source="avares://Aster.UI/Controls/SettingsPrimaryButton.axaml" />
+  <StyleInclude Source="avares://Aster.UI/Controls/WaterBar.axaml" />
 </Styles>

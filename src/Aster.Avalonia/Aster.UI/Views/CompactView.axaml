@@ -4,13 +4,25 @@
              xmlns:views="using:Aster.UI.Views"
              x:Class="Aster.UI.Views.CompactView"
              x:DataType="vm:ShellViewModel">
+  <UserControl.Styles>
+    <Style Selector="TextBlock.paused">
+      <Setter Property="Opacity" Value="0.6" />
+    </Style>
+  </UserControl.Styles>
+
   <Grid Margin="14,0">
-    <Grid IsVisible="{Binding HasNoMedia}">
+    <Grid IsVisible="{Binding ShowFocusPill}">
+      <TextBlock Text="{Binding PillText}" FontSize="15" FontWeight="SemiBold"
+                 Foreground="{StaticResource FocusAccent}"
+                 Classes.paused="{Binding IsFocusPaused}"
+                 VerticalAlignment="Center" HorizontalAlignment="Center" />
+    </Grid>
+    <Grid IsVisible="{Binding ShowClockRow}">
       <TextBlock Text="{Binding ClockText}" FontSize="15" FontWeight="SemiBold"
                  Foreground="{StaticResource ClockText}" VerticalAlignment="Center"
                  HorizontalAlignment="Center" />
     </Grid>
-    <Grid IsVisible="{Binding HasMedia}" ColumnDefinitions="22,8,*,Auto">
+    <Grid IsVisible="{Binding ShowMediaRow}" ColumnDefinitions="22,8,*,Auto">
       <Border Width="22" Height="22" CornerRadius="7" ClipToBounds="True">
         <Image Source="{Binding Media.ArtworkImage}" Stretch="UniformToFill" />
       </Border>

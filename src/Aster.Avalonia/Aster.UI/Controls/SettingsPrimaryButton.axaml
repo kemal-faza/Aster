@@ -1,0 +1,23 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Style Selector="Button.settingsPrimary">
+    <Setter Property="Background" Value="#F5F5F7" />
+    <Setter Property="Foreground" Value="#08080A" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="FontSize" Value="11.5" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Padding" Value="14,7" />
+    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="Focusable" Value="False" />
+  </Style>
+  <Style Selector="Button.settingsPrimary:pointerover">
+    <Setter Property="Background" Value="#E4E4E9" />
+  </Style>
+  <Style Selector="Button.settingsPrimary:pressed">
+    <Setter Property="Background" Value="#CFCFD6" />
+  </Style>
+  <Style Selector="Button.settingsPrimary:disabled">
+    <Setter Property="Opacity" Value="0.4" />
+  </Style>
+</Styles>

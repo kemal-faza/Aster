@@ -1,0 +1,39 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Style Selector="Button.focusPrimary">
+    <Setter Property="Background" Value="{StaticResource FocusAccent}" />
+    <Setter Property="Foreground" Value="#0B0B0E" />
+    <Setter Property="FontSize" Value="11.5" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Padding" Value="14,6" />
+    <Setter Property="CornerRadius" Value="14" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="Focusable" Value="False" />
+  </Style>
+  <Style Selector="Button.focusPrimary:pointerover">
+    <Setter Property="Background" Value="#FFC98A" />
+  </Style>
+  <Style Selector="Button.focusPrimary:pressed">
+    <Setter Property="Background" Value="#E6A45E" />
+  </Style>
+  <Style Selector="Button.focusGhost">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="#B8FFFFFF" />
+    <Setter Property="BorderBrush" Value="#33FFFFFF" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="FontSize" Value="11.5" />
+    <Setter Property="Padding" Value="12,5" />
+    <Setter Property="CornerRadius" Value="14" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="Focusable" Value="False" />
+  </Style>
+  <Style Selector="Button.focusGhost:pointerover">
+    <Setter Property="Background" Value="#12FFFFFF" />
+    <Setter Property="BorderBrush" Value="#59FFFFFF" />
+    <Setter Property="Foreground" Value="#FFFFFFFF" />
+  </Style>
+  <Style Selector="Button.focusGhost:pressed">
+    <Setter Property="Background" Value="#1FFFFFFF" />
+  </Style>
+</Styles>

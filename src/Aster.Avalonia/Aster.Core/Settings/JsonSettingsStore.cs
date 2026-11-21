@@ -83,20 +83,31 @@ public sealed class JsonSettingsStore : ISettingsStore
 
     public async Task SaveAsync(AppSettings settings, CancellationToken ct = default)
     {
+        await UpdateAsync(_ => settings, ct);
+    }
+
+    public async Task<SettingsUpdateResult> UpdateAsync(
+        Func<AppSettings, AppSettings> update,
+        CancellationToken ct = default)
+    {
         if (!CanSave)
         {
-            _log.Warn("Settings save skipped because the store is read-only.");
-            return;
+            _log.Warn("Settings update skipped because the store is read-only.");
+            return new SettingsUpdateResult(false, Current);
         }
 
-        settings = settings with { SchemaVersion = SettingsSchema.CurrentVersion };
-
+        AppSettings? applied = null;
         await _gate.WaitAsync(ct);
         try
         {
+            var next = update(Current) with
+            {
+                SchemaVersion = SettingsSchema.CurrentVersion
+            };
+
             Directory.CreateDirectory(Path.GetDirectoryName(_path)!);
             var temp = _path + ".tmp";
-            var json = JsonSerializer.Serialize(settings, SettingsJsonContext.Default.AppSettings);
+            var json = JsonSerializer.Serialize(next, SettingsJsonContext.Default.AppSettings);
             await File.WriteAllTextAsync(temp, json, ct);
 
             if (File.Exists(_path))
@@ -108,19 +119,21 @@ public sealed class JsonSettingsStore : ISettingsStore
                 File.Move(temp, _path);
             }
 
-            Current = settings;
+            Current = next;
+            applied = next;
         }
         catch (Exception ex)
         {
-            _log.Error("Settings save failed.", ex);
-            return;
+            _log.Error("Settings update failed.", ex);
+            return new SettingsUpdateResult(false, Current);
         }
         finally
         {
             _gate.Release();
         }
 
-        Changed?.Invoke(this, settings);
+        Changed?.Invoke(this, applied!);
+        return new SettingsUpdateResult(true, applied!);
     }
 
     private void BackupCorrupt(string suffix = "")

@@ -29,10 +29,16 @@
       <Grid x:Name="ExpandedLayer" Opacity="{Binding ExpandedOpacity}" Margin="18,18,18,14"
             RowDefinitions="18,*,28" IsVisible="{Binding !IsMinimal}">
         <views:HeaderView />
-        <views:MusicView x:Name="MusicView" Grid.Row="1" />
+        <Grid Grid.Row="1">
+          <views:MusicView IsVisible="{Binding IsMusicMode}" />
+          <Grid IsVisible="{Binding IsFocusMode}">
+            <views:FocusView DataContext="{Binding Focus}" />
+          </Grid>
+        </Grid>
         <views:DockView x:Name="DockView" Grid.Row="2" />
       </Grid>
-      <controls:ToastHost x:Name="Toast" VerticalAlignment="Top" Margin="0,5,0,0" />
+      <controls:ToastHost DataContext="{Binding Toast}"
+                          x:Name="Toast" VerticalAlignment="Top" Margin="0,5,0,0" />
     </Grid>
   </Border>
 </UserControl>

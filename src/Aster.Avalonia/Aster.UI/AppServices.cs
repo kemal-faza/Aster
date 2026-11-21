@@ -30,6 +30,12 @@ public sealed class AppServices : IAsyncDisposable
     public SettingsViewModel SettingsViewModel { get; }
     public LyricsService Lyrics { get; }
     public LyricsViewModel LyricsViewModel { get; }
+    public ToastViewModel Toast { get; }
+    public IChimePlayer? Chime { get; }
+    public FocusService Focus { get; }
+    public FocusViewModel FocusViewModel { get; }
+    public WaterService Water { get; }
+    public WaterViewModel WaterViewModel { get; }
     public WindowMotionController? Motion { get; private set; }
     public TrayService? Tray { get; private set; }
     public bool TrayFailed { get; private set; }
@@ -79,9 +85,39 @@ public sealed class AppServices : IAsyncDisposable
         };
         Media.PropertiesChanged += (_, snapshot) => _ = Lyrics.LoadAsync(snapshot);
 
+        Toast = new ToastViewModel(new DispatcherUiTimer(TimeSpan.FromSeconds(1)));
+
+        IChimePlayer? chime = null;
+        try
+        {
+            chime = factory.CreateChimePlayer(log);
+        }
+        catch (Exception ex)
+        {
+            log.Error("Failed to create the focus chime.", ex);
+        }
+
+        Chime = chime;
+        Focus = new FocusService(
+            settings,
+            TimeProvider.System,
+            new DispatcherUiTimer(TimeSpan.FromMilliseconds(250)),
+            log);
+        FocusViewModel = new FocusViewModel(Focus, settings, Toast, Chime, log);
+        Water = new WaterService(
+            settings,
+            TimeProvider.System,
+            new DispatcherUiTimer(TimeSpan.FromSeconds(20)),
+            log);
+        WaterViewModel = new WaterViewModel(Water, Toast, log);
+        SettingsViewModel.Water = WaterViewModel;
+
         Shell = new ShellViewModel(Battery, Network, media, factory.Capabilities)
         {
-            Lyrics = LyricsViewModel
+            Lyrics = LyricsViewModel,
+            Focus = FocusViewModel,
+            Water = WaterViewModel,
+            Toast = Toast
         };
     }
 
@@ -101,7 +137,9 @@ public sealed class AppServices : IAsyncDisposable
             await settings.SaveAsync(reconciled, ct);
         }
 
-        return new AppServices(factory, dispatcher, log, settings, autostart);
+        var services = new AppServices(factory, dispatcher, log, settings, autostart);
+        await services.Water.InitializeAsync(ct);
+        return services;
     }
 
     public static AppSettings ReconcileAutostart(AppSettings settings, bool autostartEnabled) =>
@@ -165,6 +203,7 @@ public sealed class AppServices : IAsyncDisposable
     {
         Media.Start();
         Motion?.Start();
+        Water.Start();
     }
 
     public async ValueTask DisposeAsync() => await ShutdownAsync(TimeSpan.FromSeconds(5));
@@ -183,6 +222,11 @@ public sealed class AppServices : IAsyncDisposable
             // second shutdown replay flush and disposal.
             _shutdownComplete = true;
 
+            await DisposeServiceAsync(nameof(Water), Water);
+            DisposeService(nameof(FocusViewModel), FocusViewModel);
+            DisposeService(nameof(Focus), Focus);
+            DisposeService(nameof(WaterViewModel), WaterViewModel);
+            DisposeService(nameof(Toast), Toast);
             await FlushSettingsAsync(timeout);
             SettingsViewModel.Saved -= OnSettingsSaved;
 
@@ -219,6 +263,30 @@ public sealed class AppServices : IAsyncDisposable
         {
             Log.Error("Settings flush failed during shutdown.", ex);
         }
+    }
+
+    private async Task DisposeServiceAsync(string name, object? service)
+    {
+        if (service is null)
+        {
+            return;
+        }
+
+        if (service is IAsyncDisposable asyncDisposable)
+        {
+            try
+            {
+                await asyncDisposable.DisposeAsync();
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Failed to dispose {name}.", ex);
+            }
+
+            return;
+        }
+
+        DisposeService(name, service);
     }
 
     private void DisposeService(string name, object? service, bool expectDisposable = false)

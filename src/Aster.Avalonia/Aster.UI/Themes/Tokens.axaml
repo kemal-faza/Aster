@@ -75,6 +75,7 @@
   <SolidColorBrush x:Key="LyricsAccent" Color="#8FA8FF" />
   <SolidColorBrush x:Key="FocusAccent" Color="#FFB86B" />
   <SolidColorBrush x:Key="TrackBrush" Color="#26FFFFFF" />
+  <SolidColorBrush x:Key="WaterTrackBrush" Color="#2EFFFFFF" />
   <SolidColorBrush x:Key="TabHighlight" Color="#1FFFFFFF" />
   <SolidColorBrush x:Key="WindowBorder" Color="#1FFFFFFF" />
   <SolidColorBrush x:Key="ToastBorder" Color="#24FFFFFF" />

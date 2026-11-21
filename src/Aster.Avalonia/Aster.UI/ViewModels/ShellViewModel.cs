@@ -11,8 +11,41 @@ public partial class ShellViewModel : ObservableObject
     private readonly IBatteryStatus? _battery;
     private readonly INetworkStatus? _network;
     private readonly MediaViewModel? _media;
+    private FocusViewModel? _focus;
+    private bool _lastFocusRunning;
+    private bool _lastFocusComplete;
 
     public MediaViewModel? Media => _media;
+
+    public FocusViewModel? Focus
+    {
+        get => _focus;
+        set
+        {
+            if (ReferenceEquals(_focus, value))
+            {
+                return;
+            }
+
+            if (_focus is not null)
+            {
+                _focus.PropertyChanged -= OnFocusPropertyChanged;
+            }
+
+            _focus = value;
+            _lastFocusRunning = value?.IsRunning ?? false;
+            _lastFocusComplete = value?.IsComplete ?? false;
+            if (_focus is not null)
+            {
+                _focus.PropertyChanged += OnFocusPropertyChanged;
+            }
+
+            OnPropertyChanged();
+            NotifyPill();
+        }
+    }
+
+    public ToastViewModel? Toast { get; init; }
     public LyricsViewModel? Lyrics { get; set; }
     public bool HasMedia => _media?.HasSession == true;
     public bool HasNoMedia => !HasMedia;
@@ -30,6 +63,7 @@ public partial class ShellViewModel : ObservableObject
     [ObservableProperty] private string _toastText = string.Empty;
     [ObservableProperty] private string _toastGlyph = string.Empty;
     [ObservableProperty] private bool _isToastVisible;
+    [ObservableProperty] private WaterViewModel? _water;
 
     public ShellViewModel(
         IBatteryStatus? battery = null,
@@ -40,7 +74,8 @@ public partial class ShellViewModel : ObservableObject
         Capabilities = capabilities ?? new CapabilityMatrix(
             Capability.Media | Capability.Battery | Capability.Network | Capability.Tray |
             Capability.Autostart | Capability.Fullscreen | Capability.NoActivate |
-            Capability.DpiChange | Capability.SingleInstance);
+            Capability.DpiChange | Capability.SingleInstance | Capability.Focus |
+            Capability.Water);
         _battery = battery;
         _network = network;
         _media = media;
@@ -65,6 +100,7 @@ public partial class ShellViewModel : ObservableObject
                 {
                     OnPropertyChanged(nameof(HasMedia));
                     OnPropertyChanged(nameof(HasNoMedia));
+                    NotifyPill();
                 }
 
                 if (e.PropertyName == nameof(MediaViewModel.IsPlaying))
@@ -97,6 +133,14 @@ public partial class ShellViewModel : ObservableObject
     public string SettingsGlyph => Glyph.Get(Glyph.Kind.Settings);
     public string LyricsGlyph => Glyph.Get(Glyph.Kind.Lyrics);
 
+    public bool ShowFocusPill => Focus?.ShowInPill == true;
+    public bool IsFocusPaused => Focus?.IsPaused == true;
+    public bool ShowClockRow => !ShowFocusPill && HasNoMedia;
+    public bool ShowMediaRow => !ShowFocusPill && HasMedia;
+    public string PillText => ShowFocusPill ? Focus!.RemainingText : ClockText;
+    public bool IsMusicMode => PanelMode == PanelMode.Music;
+    public bool IsFocusMode => PanelMode == PanelMode.Focus;
+
     public CapabilityMatrix Capabilities { get; }
 
     partial void OnExpansionProgressChanged(double value)
@@ -111,10 +155,71 @@ public partial class ShellViewModel : ObservableObject
         OnPropertyChanged(nameof(WifiOpacity));
     }
 
+    partial void OnIsExpandedChanged(bool value)
+    {
+        if (value && Focus?.HasSession == true)
+        {
+            PanelMode = PanelMode.Focus;
+        }
+    }
+
+    partial void OnPanelModeChanged(PanelMode value)
+    {
+        OnPropertyChanged(nameof(IsMusicMode));
+        OnPropertyChanged(nameof(IsFocusMode));
+    }
+
+    partial void OnClockTextChanged(string value) => NotifyPill();
+
     public void ApplySettings(AppSettings settings)
     {
         IsMinimal = settings.MinimalNotch;
         GlassBackground = settings.GlassBackground;
+        if (Toast is not null)
+        {
+            Toast.IsGlass = settings.GlassBackground;
+        }
+    }
+
+    private void OnFocusPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(FocusViewModel.ShowInPill)
+            or nameof(FocusViewModel.RemainingText)
+            or nameof(FocusViewModel.IsPaused))
+        {
+            NotifyPill();
+        }
+
+        if (e.PropertyName == nameof(FocusViewModel.IsRunning))
+        {
+            var running = Focus?.IsRunning == true;
+            if (running && !_lastFocusRunning)
+            {
+                PanelMode = PanelMode.Focus;
+            }
+
+            _lastFocusRunning = running;
+        }
+
+        if (e.PropertyName == nameof(FocusViewModel.IsComplete))
+        {
+            var complete = Focus?.IsComplete == true;
+            if (complete && !_lastFocusComplete)
+            {
+                PanelMode = PanelMode.Focus;
+            }
+
+            _lastFocusComplete = complete;
+        }
+    }
+
+    private void NotifyPill()
+    {
+        OnPropertyChanged(nameof(ShowFocusPill));
+        OnPropertyChanged(nameof(IsFocusPaused));
+        OnPropertyChanged(nameof(ShowClockRow));
+        OnPropertyChanged(nameof(ShowMediaRow));
+        OnPropertyChanged(nameof(PillText));
     }
 
     private void OnBatteryChanged(object? sender, BatterySnapshot snapshot) => ApplyBattery(snapshot);
