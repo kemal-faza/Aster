@@ -10,7 +10,12 @@ namespace Aster.UI.Views;
 public partial class FocusView : UserControl
 {
     private const double Center = 75;
-    private const double Radius = 72;
+
+    // Ellipse strokes are drawn inside their 144 DIP bounds, so the idle ring
+    // has an outer radius of 72. The arc must use the same centerline radius
+    // minus half the stroke (72 - 3), otherwise it renders 6 DIP wider when
+    // the full ring is replaced by the progress arc.
+    private const double Radius = 69;
     private FocusViewModel? _viewModel;
 
     public FocusView()
@@ -31,6 +36,7 @@ public partial class FocusView : UserControl
         {
             _viewModel.PropertyChanged += OnPropertyChanged;
             UpdateArc(_viewModel.RemainingRatio);
+            UpdatePhasePill(animate: false);
         }
     }
 
@@ -39,7 +45,41 @@ public partial class FocusView : UserControl
         if (e.PropertyName == nameof(FocusViewModel.RemainingRatio))
         {
             UpdateArc(_viewModel?.RemainingRatio ?? 0);
+            return;
         }
+
+        if (_viewModel is null)
+        {
+            return;
+        }
+
+        var chip = e.PropertyName switch
+        {
+            nameof(FocusViewModel.IsFocusPhase) when _viewModel.IsFocusPhase => FocusChipButton,
+            nameof(FocusViewModel.IsShortBreakPhase) when _viewModel.IsShortBreakPhase => ShortChipButton,
+            nameof(FocusViewModel.IsLongBreakPhase) when _viewModel.IsLongBreakPhase => LongChipButton,
+            _ => null
+        };
+
+        if (chip is not null)
+        {
+            PhasePill.MoveTo(chip);
+        }
+    }
+
+    private void UpdatePhasePill(bool animate)
+    {
+        if (_viewModel is null)
+        {
+            return;
+        }
+
+        var chip = _viewModel.IsFocusPhase
+            ? FocusChipButton
+            : _viewModel.IsShortBreakPhase
+                ? ShortChipButton
+                : LongChipButton;
+        PhasePill.MoveTo(chip, animate);
     }
 
     private void UpdateArc(double ratio)

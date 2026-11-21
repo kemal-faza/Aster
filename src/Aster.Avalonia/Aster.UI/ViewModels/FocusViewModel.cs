@@ -28,10 +28,8 @@ public sealed partial class FocusViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _isFocusPhase = true;
     [ObservableProperty] private bool _isShortBreakPhase;
     [ObservableProperty] private bool _isLongBreakPhase;
-    [ObservableProperty] private string _modeLabel = "FOCUS SESSION";
     [ObservableProperty] private string _title = "Focus session";
     [ObservableProperty] private string _ringPhase = "DEEP WORK";
-    [ObservableProperty] private string _sessionText = "Notifications muted while the timer runs. 0 sessions today.";
     [ObservableProperty] private string _startLabel = "Start";
     [ObservableProperty] private bool _isStartVisible = true;
     [ObservableProperty] private string _breakLabel = "Start short break";
@@ -112,7 +110,6 @@ public sealed partial class FocusViewModel : ObservableObject, IDisposable
         IsShortBreakPhase = phase == FocusPhase.ShortBreak;
         IsLongBreakPhase = phase == FocusPhase.LongBreak;
 
-        ModeLabel = phase == FocusPhase.Focus ? "FOCUS SESSION" : "BREAK";
         Title = phase switch
         {
             FocusPhase.ShortBreak => "Short break",
@@ -126,7 +123,6 @@ public sealed partial class FocusViewModel : ObservableObject, IDisposable
             _ => "DEEP WORK"
         };
 
-        SessionText = BuildSessionText(timer);
         StartLabel = timer.IsRunning ? "Pause" : "Start";
         IsStartVisible = !timer.IsComplete;
         IsBreakVisible = timer.IsComplete;
@@ -146,25 +142,6 @@ public sealed partial class FocusViewModel : ObservableObject, IDisposable
 
         UpdateCountdown();
         RemainingRatio = Ratio();
-    }
-
-    private string BuildSessionText(FocusTimer timer)
-    {
-        if (timer.IsComplete)
-        {
-            return timer.Phase == FocusPhase.Focus
-                ? "Complete · take a break"
-                : "Break complete · back to focus";
-        }
-
-        var count = timer.CompletedSessionsToday;
-        var sessions = count == 1 ? "1 session today" : $"{count} sessions today";
-        return timer.Phase switch
-        {
-            FocusPhase.ShortBreak => $"Step away for a moment. {sessions}.",
-            FocusPhase.LongBreak => $"A longer pause to reset. {sessions}.",
-            _ => $"Notifications muted while the timer runs. {sessions}."
-        };
     }
 
     private void UpdateCountdown()

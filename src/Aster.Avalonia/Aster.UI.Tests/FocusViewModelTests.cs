@@ -39,7 +39,6 @@ public class FocusViewModelTests
         Assert.Equal("Focus 1", vm.FocusChipText);
         Assert.Equal("Short 1", vm.ShortChipText);
         Assert.Equal("Long 1", vm.LongChipText);
-        Assert.Equal("FOCUS SESSION", vm.ModeLabel);
         Assert.Equal("Focus session", vm.Title);
         Assert.True(vm.IsFocusPhase);
         Assert.Equal("Start", vm.StartLabel);
@@ -74,7 +73,6 @@ public class FocusViewModelTests
         Assert.False(vm.IsStartVisible);
         Assert.True(vm.IsBreakVisible);
         Assert.Equal("Start short break", vm.BreakLabel);
-        Assert.Equal("Complete · take a break", vm.SessionText);
         Assert.Equal(Glyph.Get(Glyph.Kind.Focus), toast.Glyph);
         Assert.Equal("Focus complete · Take a break", toast.Text);
         Assert.Equal(1, chime.Plays);
@@ -133,7 +131,6 @@ public class FocusViewModelTests
         time.Advance(TimeSpan.FromMinutes(2));
         timer.Fire();
 
-        Assert.Equal("Break complete · back to focus", vm.SessionText);
         Assert.Equal("Start focus", vm.BreakLabel);
         Assert.Equal("Break over · Back to focus", toast.Text);
     }
@@ -145,12 +142,15 @@ public class FocusViewModelTests
 
         vm.SelectShortCommand.Execute(null);
         Assert.True(vm.IsShortBreakPhase);
+        Assert.Equal("Short break", vm.Title);
 
         vm.SelectLongCommand.Execute(null);
         Assert.True(vm.IsLongBreakPhase);
+        Assert.Equal("Long break", vm.Title);
 
         vm.SelectFocusCommand.Execute(null);
         Assert.True(vm.IsFocusPhase);
+        Assert.Equal("Focus session", vm.Title);
     }
 
     private sealed class FakeChime : Aster.UI.Abstractions.IChimePlayer

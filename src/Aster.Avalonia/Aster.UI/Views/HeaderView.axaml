@@ -7,7 +7,7 @@
   <Grid ColumnDefinitions="*,Auto" Height="18">
     <StackPanel Orientation="Horizontal" Spacing="10">
       <TextBlock Text="{Binding DateText}" FontSize="10.5"
-                 Foreground="{StaticResource TextTertiary}" VerticalAlignment="Center" />
+                 Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center" />
       <TextBlock Text="{Binding ClockText}" FontSize="9.5"
                  Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center" />
     </StackPanel>

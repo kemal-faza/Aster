@@ -16,6 +16,7 @@ public partial class DockView : UserControl
     public DockView()
     {
         InitializeComponent();
+        DockTabs.MoveTo(MusicTab, animate: false);
         DataContextChanged += OnDataContextChanged;
     }
 
@@ -44,6 +45,11 @@ public partial class DockView : UserControl
 
     private void OnTabChecked(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
+        if (sender is RadioButton { IsChecked: true } checkedTab && DockTabs is not null)
+        {
+            DockTabs.MoveTo(checkedTab);
+        }
+
         if (_syncing || sender is not RadioButton { IsChecked: true, Tag: string tag })
         {
             return;
