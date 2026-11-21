@@ -64,6 +64,7 @@ public partial class ShellViewModel : ObservableObject
     [ObservableProperty] private string _toastGlyph = string.Empty;
     [ObservableProperty] private bool _isToastVisible;
     [ObservableProperty] private WaterViewModel? _water;
+    [ObservableProperty] private ShelfViewModel? _shelf;
 
     public ShellViewModel(
         IBatteryStatus? battery = null,
@@ -75,7 +76,7 @@ public partial class ShellViewModel : ObservableObject
             Capability.Media | Capability.Battery | Capability.Network | Capability.Tray |
             Capability.Autostart | Capability.Fullscreen | Capability.NoActivate |
             Capability.DpiChange | Capability.SingleInstance | Capability.Focus |
-            Capability.Water);
+            Capability.Water | Capability.Shelf);
         _battery = battery;
         _network = network;
         _media = media;
@@ -140,6 +141,9 @@ public partial class ShellViewModel : ObservableObject
     public string PillText => ShowFocusPill ? Focus!.RemainingText : ClockText;
     public bool IsMusicMode => PanelMode == PanelMode.Music;
     public bool IsFocusMode => PanelMode == PanelMode.Focus;
+    public bool IsShelfMode => PanelMode == PanelMode.Shelf;
+    public bool HasShelf => Capabilities.Has(Capability.Shelf);
+    public bool ShowShelfPanel => HasShelf && IsShelfMode;
 
     public CapabilityMatrix Capabilities { get; }
 
@@ -161,13 +165,23 @@ public partial class ShellViewModel : ObservableObject
         {
             PanelMode = PanelMode.Focus;
         }
+
+        UpdateShelfActivity();
     }
 
     partial void OnPanelModeChanged(PanelMode value)
     {
         OnPropertyChanged(nameof(IsMusicMode));
         OnPropertyChanged(nameof(IsFocusMode));
+        OnPropertyChanged(nameof(IsShelfMode));
+        OnPropertyChanged(nameof(ShowShelfPanel));
+        UpdateShelfActivity();
     }
+
+    partial void OnShelfChanged(ShelfViewModel? value) => UpdateShelfActivity();
+
+    private void UpdateShelfActivity() =>
+        Shelf?.SetActive(IsExpanded && IsShelfMode);
 
     partial void OnClockTextChanged(string value) => NotifyPill();
 

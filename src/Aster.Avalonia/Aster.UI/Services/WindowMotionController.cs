@@ -31,6 +31,7 @@ public sealed class WindowMotionController : IDisposable
     private bool _pointerInside;
     private bool _pointerEventsSeen;
     private bool _pointerEventsAttached;
+    private bool _dragActive;
     private long _lastTicks;
     private int _lastPhysicalWidth = -1;
     private int _lastPhysicalHeight = -1;
@@ -108,7 +109,8 @@ public sealed class WindowMotionController : IDisposable
         _pointerEventsSeen = true;
         _pointerInside = false;
         _hoverSuppressed = false;
-        if (_expanded && !_collapseTimer.IsEnabled)
+        if (ShouldStartCollapse(_expanded, _pointerInside, _dragActive) &&
+            !_collapseTimer.IsEnabled)
         {
             _collapseTimer.Start();
         }
@@ -117,6 +119,11 @@ public sealed class WindowMotionController : IDisposable
     public void SetExpanded(bool expanded)
     {
         if (_disposed || _expanded == expanded)
+        {
+            return;
+        }
+
+        if (!expanded && _dragActive)
         {
             return;
         }
@@ -134,6 +141,28 @@ public sealed class WindowMotionController : IDisposable
 
     public void SuppressHover() => _hoverSuppressed = true;
 
+    public void SetDragActive(bool active)
+    {
+        if (_disposed || _dragActive == active)
+        {
+            return;
+        }
+
+        _dragActive = active;
+
+        if (active)
+        {
+            _collapseTimer.Stop();
+            return;
+        }
+
+        if (ShouldStartCollapse(_expanded, _pointerInside, _dragActive) &&
+            !_collapseTimer.IsEnabled)
+        {
+            _collapseTimer.Start();
+        }
+    }
+
     /// <summary>
     /// Hover expands the island in both normal and minimal-notch modes. The
     /// suppression flag is only set after an explicit close action.
@@ -146,6 +175,10 @@ public sealed class WindowMotionController : IDisposable
     /// surface, so a click must not open the full island.
     /// </summary>
     public static bool ShouldExpandOnClick(bool minimalNotch) => !minimalNotch;
+
+    public static bool ShouldStartCollapse(
+        bool expanded, bool pointerInside, bool dragActive) =>
+        expanded && !pointerInside && !dragActive;
 
     public void Reapply()
     {
@@ -191,7 +224,7 @@ public sealed class WindowMotionController : IDisposable
 
     private void OnHoverTick()
     {
-        if (_hwnd == IntPtr.Zero || !_pointerEventsSeen || !_expanded)
+        if (_hwnd == IntPtr.Zero || !_pointerEventsSeen || !_expanded || _dragActive)
         {
             return;
         }
@@ -212,7 +245,7 @@ public sealed class WindowMotionController : IDisposable
     private void OnCollapseTick()
     {
         _collapseTimer.Stop();
-        if (_hwnd == IntPtr.Zero || _pointerInside)
+        if (_hwnd == IntPtr.Zero || _pointerInside || _dragActive)
         {
             return;
         }
@@ -313,6 +346,7 @@ public sealed class WindowMotionController : IDisposable
     public void Dispose()
     {
         _disposed = true;
+        _dragActive = false;
         DetachPointerEvents();
         _hoverTimer.Stop();
         _collapseTimer.Stop();

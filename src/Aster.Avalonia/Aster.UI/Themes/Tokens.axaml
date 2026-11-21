@@ -62,6 +62,11 @@
   <SolidColorBrush x:Key="IslandSolidToast" Color="#FF1B1B1F" />
   <SolidColorBrush x:Key="DockSurface" Color="#0DFFFFFF" />
   <SolidColorBrush x:Key="DockStroke" Color="#14FFFFFF" />
+  <SolidColorBrush x:Key="ShelfCardFill" Color="#12FFFFFF" />
+  <SolidColorBrush x:Key="ShelfCardStroke" Color="#16FFFFFF" />
+  <SolidColorBrush x:Key="ShelfCardHoverFill" Color="#1CFFFFFF" />
+  <SolidColorBrush x:Key="ShelfCardHoverStroke" Color="#2AFFFFFF" />
+  <SolidColorBrush x:Key="ShelfMissing" Color="#FF6B63" />
   <SolidColorBrush x:Key="TextPrimary" Color="#F5F5F7" />
   <SolidColorBrush x:Key="TextSecondary" Color="#94949C" />
   <SolidColorBrush x:Key="TextTertiary" Color="#5E5E66" />

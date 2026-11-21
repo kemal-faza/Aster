@@ -25,7 +25,9 @@ public sealed class LinuxPlatformFactory : IPlatformFactory
         Capability.Media | Capability.Battery | Capability.Network | Capability.Tray |
         Capability.Autostart | Capability.DpiChange | Capability.SingleInstance |
         Capability.Focus | Capability.Water |
-        (_useX11 ? Capability.NoActivate | Capability.Fullscreen : Capability.None));
+        (_useX11
+            ? Capability.NoActivate | Capability.Fullscreen | Capability.Shelf
+            : Capability.None));
 
     public IAppLog CreateLog() => new FileAppLog(AppPaths.LogPath);
     public ISettingsStore CreateSettingsStore(IAppLog log) =>
