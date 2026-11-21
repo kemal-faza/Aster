@@ -225,7 +225,7 @@ require_text "$appearance_text" "Appearance descriptions" \
     "Shrink the compact island to a thin 160 x 12 notch." \
     "Show a small toast when system volume changes." \
     "Show a small toast when screen brightness changes." \
-    "Frosted glass instead of solid black" \
+    "Frosted glass" \
     "Adds a spring overshoot when the panel opens or closes."
 
 # Disabled toggles must render dimmer than enabled ones. Read the label text
@@ -286,10 +286,10 @@ grep -Fq "AsterLab/Avalonia" <<<"$compact_text" ||
     fail "About: data path suffix 'AsterLab/Avalonia' not found in OCR text: $about_text"
 
 # --- Lyrics. ---
-lyrics_text="$(show_page "Source, highlight color, and local cache." settings-lyrics.png 10)" ||
+lyrics_text="$(show_page "Source and local cache." settings-lyrics.png 10)" ||
     fail "Lyrics page did not open (Tab/Space navigation failed)"
 require_text "$lyrics_text" "Lyrics settings" \
-    "Fetch lyrics from LRCLIB" "Active lyric line" "Hex #RRGGBB"
+    "SOURCE" "Only title, artist, album, and duration are sent."
 
 echo "Linux settings probe PASS"
 echo "  title: $title"

@@ -2,16 +2,37 @@ using Aster.UI.ViewModels;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Media;
 
 namespace Aster.UI.Views;
 
 public partial class SettingsWindow : Window
 {
     private bool _ready;
+    private SettingsViewModel? _viewModel;
 
     public SettingsWindow()
     {
         InitializeComponent();
+        if (OperatingSystem.IsLinux())
+        {
+            TransparencyLevelHint = new[]
+            {
+                WindowTransparencyLevel.Blur,
+                WindowTransparencyLevel.Transparent
+            };
+        }
+
+        DataContextChanged += (_, _) => AttachViewModel();
+        Opened += (_, _) => UpdateSurface();
+        Closed += (_, _) => DetachViewModel();
+        PropertyChanged += (_, e) =>
+        {
+            if (e.Property == TopLevel.ActualTransparencyLevelProperty)
+            {
+                UpdateSurface();
+            }
+        };
         _ready = true;
         ShowPage("General");
     }
@@ -64,7 +85,7 @@ public partial class SettingsWindow : Window
         (PageTitle.Text, PageSubtitle.Text) = page switch
         {
             "Appearance" => ("Appearance", "Glass, motion, and island behavior."),
-            "Lyrics" => ("Lyrics", "Source, highlight color, and local cache."),
+            "Lyrics" => ("Lyrics", "Source and local cache."),
             "Focus" => ("Focus", "Session lengths and completion sound."),
             "Water" => ("Water", "Reminders, active hours, and daily goal."),
             "About" => ("About", "Data, credits, and app information."),
@@ -95,36 +116,48 @@ public partial class SettingsWindow : Window
         }
     }
 
-    private void OnLyricsColorCommitted(object? sender, RoutedEventArgs e) =>
-        CommitLyricsColor();
-
-    private void OnLyricsColorKeyDown(object? sender, KeyEventArgs e)
+    private void AttachViewModel()
     {
-        if (e.Key == Key.Enter)
+        if (_viewModel is not null)
         {
-            CommitLyricsColor();
-            e.Handled = true;
+            _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
+        }
+
+        _viewModel = DataContext as SettingsViewModel;
+        if (_viewModel is not null)
+        {
+            _viewModel.PropertyChanged += OnViewModelPropertyChanged;
+        }
+
+        UpdateSurface();
+    }
+
+    private void DetachViewModel()
+    {
+        if (_viewModel is not null)
+        {
+            _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
+            _viewModel = null;
         }
     }
 
-    private void CommitLyricsColor()
+    private void OnViewModelPropertyChanged(
+        object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        if (DataContext is not SettingsViewModel vm)
+        if (e.PropertyName == nameof(SettingsViewModel.GlassBackground))
         {
-            return;
+            UpdateSurface();
         }
-
-        vm.TrySetLyricsColor(LyricsColorBox.Text);
-        LyricsColorBox.Text = vm.LyricsHighlightColor;
     }
 
-    private void OnLyricsSwatchClick(object? sender, RoutedEventArgs e)
+    private void UpdateSurface()
     {
-        if (DataContext is SettingsViewModel vm &&
-            sender is Button { Tag: string hex })
+        var glass = _viewModel?.GlassBackground == true &&
+            ActualTransparencyLevel == WindowTransparencyLevel.Blur;
+        var resourceKey = glass ? "SettingsWindowGlassSurface" : "SettingsWindowSurface";
+        if (this.TryFindResource(resourceKey, out var resource) && resource is IBrush brush)
         {
-            vm.TrySetLyricsColor(hex);
-            LyricsColorBox.Text = vm.LyricsHighlightColor;
+            Surface.Background = brush;
         }
     }
 }

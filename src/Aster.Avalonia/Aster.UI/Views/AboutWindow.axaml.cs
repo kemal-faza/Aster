@@ -8,7 +8,18 @@ namespace Aster.UI.Views;
 
 public partial class AboutWindow : Window
 {
-    public AboutWindow() => InitializeComponent();
+    public AboutWindow()
+    {
+        InitializeComponent();
+        if (OperatingSystem.IsLinux())
+        {
+            TransparencyLevelHint = new[]
+            {
+                WindowTransparencyLevel.Blur,
+                WindowTransparencyLevel.Transparent
+            };
+        }
+    }
 
     public AboutWindow(IAppLog log) : this()
     {

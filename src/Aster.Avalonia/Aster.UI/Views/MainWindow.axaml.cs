@@ -31,6 +31,15 @@ public partial class MainWindow : Window
     public MainWindow(AppServices services)
     {
         InitializeComponent();
+        if (OperatingSystem.IsLinux())
+        {
+            TransparencyLevelHint = new[]
+            {
+                WindowTransparencyLevel.Blur,
+                WindowTransparencyLevel.Transparent
+            };
+        }
+
         _services = services;
         if (services.Shell.Media is { } media)
         {
