@@ -65,16 +65,10 @@
                     CommandParameter="{Binding TimeSeconds}"
                     automation:AutomationProperties.Name="{Binding Text}"
                     Margin="0,0,0,1">
-              <Grid>
-                <Border CornerRadius="7"
-                        Opacity="{Binding HighlightOpacity}"
-                        IsHitTestVisible="False"
-                        Background="{Binding $parent[UserControl].((vm:LyricsViewModel)DataContext).HighlightBrush}" />
-                <TextBlock Text="{Binding Text}" FontSize="11.5" LineHeight="18"
-                           Margin="8,2" TextWrapping="Wrap"
-                           Foreground="{Binding Foreground}"
-                           Opacity="{Binding TextOpacity}" />
-              </Grid>
+              <TextBlock Text="{Binding Text}" FontSize="11.5" LineHeight="18"
+                         Margin="8,2" TextWrapping="Wrap"
+                         Foreground="{Binding Foreground}"
+                         Opacity="{Binding TextOpacity}" />
             </Button>
           </DataTemplate>
         </ItemsControl.ItemTemplate>

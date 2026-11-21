@@ -11,22 +11,21 @@ public class SettingsSchemaTests
     {
         var settings = SettingsSchema.Default;
 
-        Assert.Equal(3, settings.SchemaVersion);
+        Assert.Equal(4, settings.SchemaVersion);
         Assert.False(settings.StartWithWindows);
         Assert.False(settings.MinimalNotch);
         Assert.True(settings.HideInFullscreen);
         Assert.True(settings.GlassBackground);
         Assert.True(settings.BouncySpring);
         Assert.True(settings.ShowMascot);
-        Assert.Equal("#7C9CFF", settings.LyricsHighlightColor);
     }
 
     [Fact]
-    public void SchemaHasTwentyThreeUserFields()
+    public void SchemaHasTwentyTwoUserFields()
     {
         var userFields = typeof(AppSettings).GetProperties().Length - 1;
 
-        Assert.Equal(23, userFields);
+        Assert.Equal(22, userFields);
     }
 
     [Fact]
@@ -37,6 +36,6 @@ public class SettingsSchemaTests
         var restored = JsonSerializer.Deserialize(json, SettingsJsonContext.Default.AppSettings);
 
         Assert.Equal(original, restored);
-        Assert.Contains("\"schemaVersion\": 3", json);
+        Assert.Contains("\"schemaVersion\": 4", json);
     }
 }

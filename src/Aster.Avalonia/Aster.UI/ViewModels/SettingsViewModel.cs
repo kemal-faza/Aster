@@ -1,11 +1,8 @@
 using System.Diagnostics;
 using Aster.Core;
 using Aster.Core.Interfaces;
-using Aster.Core.Logic;
 using Aster.Core.Models;
 using Aster.UI.Controls;
-using Avalonia;
-using Avalonia.Media;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 
@@ -29,7 +26,6 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private bool _volumeToast;
     [ObservableProperty] private bool _brightnessToast;
     [ObservableProperty] private bool _lyricsEnabled;
-    [ObservableProperty] private string _lyricsHighlightColor = SettingsSchema.DefaultLyricsHighlight;
     [ObservableProperty] private bool _waterReminderEnabled;
     [ObservableProperty] private int _waterIntervalMinutes = 60;
     [ObservableProperty] private int _waterActiveStartHour = 8;
@@ -60,7 +56,6 @@ public partial class SettingsViewModel : ObservableObject
         _volumeToast = current.VolumeToast;
         _brightnessToast = current.BrightnessToast;
         _lyricsEnabled = current.LyricsEnabled;
-        _lyricsHighlightColor = current.LyricsHighlightColor;
         _waterReminderEnabled = current.WaterReminderEnabled;
         _waterIntervalMinutes = current.WaterIntervalMinutes;
         _waterActiveStartHour = current.WaterActiveStartHour;
@@ -110,45 +105,7 @@ public partial class SettingsViewModel : ObservableObject
     public string FocusGlyph => Glyph.Get(Glyph.Kind.Focus);
     public string AboutGlyph => Glyph.Get(Glyph.Kind.Info);
 
-    public IBrush LyricsHighlightBrush => new SolidColorBrush(ParseLyricsColor());
-
-    public IBrush LyricsPreviewBrush
-    {
-        get
-        {
-            var color = ParseLyricsColor();
-            return new LinearGradientBrush
-            {
-                StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
-                EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative),
-                GradientStops = new GradientStops
-                {
-                    new(Color.FromArgb(0x34, color.R, color.G, color.B), 0),
-                    new(Color.FromArgb(0x18, color.R, color.G, color.B), 1)
-                }
-            };
-        }
-    }
-
     public Func<bool>? ClearLyricsCache { get; set; }
-
-    public bool TrySetLyricsColor(string? text)
-    {
-        var normalized = ColorHex.Normalize(text);
-        if (normalized is null)
-        {
-            return false;
-        }
-
-        LyricsHighlightColor = normalized;
-        return true;
-    }
-
-    private Color ParseLyricsColor()
-    {
-        var normalized = ColorHex.Normalize(LyricsHighlightColor);
-        return normalized is null ? Color.Parse("#7C9CFF") : Color.Parse(normalized);
-    }
 
     public event EventHandler<AppSettings>? Saved;
 
@@ -179,7 +136,6 @@ public partial class SettingsViewModel : ObservableObject
                 VolumeToast = VolumeToast,
                 BrightnessToast = BrightnessToast,
                 LyricsEnabled = LyricsEnabled,
-                LyricsHighlightColor = LyricsHighlightColor,
                 WaterReminderEnabled = WaterReminderEnabled,
                 WaterIntervalMinutes = WaterIntervalMinutes,
                 WaterActiveStartHour = WaterActiveStartHour,
@@ -243,12 +199,6 @@ public partial class SettingsViewModel : ObservableObject
     partial void OnVolumeToastChanged(bool value) => ScheduleSave();
     partial void OnBrightnessToastChanged(bool value) => ScheduleSave();
     partial void OnLyricsEnabledChanged(bool value) => ScheduleSave();
-    partial void OnLyricsHighlightColorChanged(string value)
-    {
-        ScheduleSave();
-        OnPropertyChanged(nameof(LyricsHighlightBrush));
-        OnPropertyChanged(nameof(LyricsPreviewBrush));
-    }
     partial void OnWaterReminderEnabledChanged(bool value) => ScheduleSave();
     partial void OnWaterIntervalMinutesChanged(int value) => ScheduleSave();
     partial void OnWaterActiveStartHourChanged(int value) => ScheduleSave();
@@ -279,10 +229,6 @@ public partial class SettingsViewModel : ObservableObject
             VolumeToast = Reconcile(VolumeToast, baseline.VolumeToast, settings.VolumeToast);
             BrightnessToast = Reconcile(BrightnessToast, baseline.BrightnessToast, settings.BrightnessToast);
             LyricsEnabled = Reconcile(LyricsEnabled, baseline.LyricsEnabled, settings.LyricsEnabled);
-            LyricsHighlightColor = Reconcile(
-                LyricsHighlightColor,
-                baseline.LyricsHighlightColor,
-                settings.LyricsHighlightColor);
             WaterReminderEnabled = Reconcile(
                 WaterReminderEnabled,
                 baseline.WaterReminderEnabled,

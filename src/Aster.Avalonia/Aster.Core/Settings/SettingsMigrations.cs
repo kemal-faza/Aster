@@ -1,5 +1,4 @@
 using System.Globalization;
-using Aster.Core.Logic;
 using Aster.Core.Models;
 
 namespace Aster.Core.Settings;
@@ -35,7 +34,6 @@ public static class SettingsMigrations
             VolumeToast: doc.VolumeToast ?? d.VolumeToast,
             BrightnessToast: doc.BrightnessToast ?? d.BrightnessToast,
             LyricsEnabled: doc.LyricsEnabled ?? d.LyricsEnabled,
-            LyricsHighlightColor: ColorHex.Normalize(doc.LyricsHighlightColor) ?? d.LyricsHighlightColor,
             WaterReminderEnabled: doc.WaterReminderEnabled ?? d.WaterReminderEnabled,
             WaterIntervalMinutes: Math.Clamp(doc.WaterIntervalMinutes ?? d.WaterIntervalMinutes, 1, 240),
             WaterActiveStartHour: Math.Clamp(doc.WaterActiveStartHour ?? d.WaterActiveStartHour, 0, 23),

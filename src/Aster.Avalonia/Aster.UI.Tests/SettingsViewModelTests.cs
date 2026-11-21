@@ -35,7 +35,6 @@ public class SettingsViewModelTests
         var seeded = SettingsSchema.Default with
         {
             ShowMascot = false,
-            LyricsHighlightColor = "#112233",
             WaterDailyGoal = 12,
             WaterDate = "2026-11-17",
             CameraMirror = false,
@@ -70,18 +69,6 @@ public class SettingsViewModelTests
     }
 
     [Fact]
-    public void LyricsColorRejectsInvalidAndNormalizesValid()
-    {
-        var vm = new SettingsViewModel(new FakeStore(), new NullLog(), "Start with system");
-
-        Assert.True(vm.TrySetLyricsColor("#32d74b"));
-        Assert.Equal("#32D74B", vm.LyricsHighlightColor);
-
-        Assert.False(vm.TrySetLyricsColor("nope"));
-        Assert.Equal("#32D74B", vm.LyricsHighlightColor);
-    }
-
-    [Fact]
     public void NewerSchemaDisablesSave()
     {
         var store = new FakeStore { CanSave = false, Warning = "newer" };
@@ -105,7 +92,6 @@ public class SettingsViewModelTests
             VolumeToast: false,
             BrightnessToast: false,
             LyricsEnabled: false,
-            LyricsHighlightColor: "#112233",
             WaterReminderEnabled: true,
             WaterIntervalMinutes: 45,
             WaterActiveStartHour: 7,
@@ -130,7 +116,6 @@ public class SettingsViewModelTests
             VolumeToast: true,
             BrightnessToast: true,
             LyricsEnabled: true,
-            LyricsHighlightColor: "#445566",
             WaterReminderEnabled: false,
             WaterIntervalMinutes: 90,
             WaterActiveStartHour: 9,
@@ -156,7 +141,6 @@ public class SettingsViewModelTests
             VolumeToast = expected.VolumeToast,
             BrightnessToast = expected.BrightnessToast,
             LyricsEnabled = expected.LyricsEnabled,
-            LyricsHighlightColor = expected.LyricsHighlightColor,
             WaterReminderEnabled = expected.WaterReminderEnabled,
             WaterIntervalMinutes = expected.WaterIntervalMinutes,
             WaterActiveStartHour = expected.WaterActiveStartHour,

@@ -12,7 +12,6 @@ public sealed class SettingsDocument
     public bool? VolumeToast { get; set; }
     public bool? BrightnessToast { get; set; }
     public bool? LyricsEnabled { get; set; }
-    public string? LyricsHighlightColor { get; set; }
     public bool? WaterReminderEnabled { get; set; }
     public int? WaterIntervalMinutes { get; set; }
     public int? WaterActiveStartHour { get; set; }

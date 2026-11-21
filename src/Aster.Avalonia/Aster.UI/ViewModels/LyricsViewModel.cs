@@ -1,8 +1,6 @@
 using System.Collections.ObjectModel;
-using Aster.Core.Logic;
 using Aster.Core.Lyrics;
 using Aster.UI.Controls;
-using Avalonia;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -26,7 +24,6 @@ public partial class LyricsViewModel : ObservableObject, IDisposable
     [ObservableProperty] private IBrush _statusBrush = MutedBrush;
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private bool _hasError;
-    [ObservableProperty] private IBrush _highlightBrush = new SolidColorBrush(Color.Parse("#7C9CFF"));
 
     public ObservableCollection<LyricsLineViewModel> Lines { get; } = new();
     public IRelayCommand<double> SeekToLineCommand { get; }
@@ -43,7 +40,6 @@ public partial class LyricsViewModel : ObservableObject, IDisposable
         _lyrics.Changed += OnLyricsChanged;
         _media.PropertyChanged += OnMediaPropertyChanged;
         _settings.PropertyChanged += OnSettingsPropertyChanged;
-        UpdateHighlight();
         OnLyricsChanged(this, EventArgs.Empty);
     }
 
@@ -166,37 +162,15 @@ public partial class LyricsViewModel : ObservableObject, IDisposable
                 : ActiveIndex < 0
                     ? 0.7
                     : distance switch { 1 => 0.8, 2 => 0.56, _ => 0.36 };
-            line.HighlightOpacity = active ? 1 : 0;
         }
     }
 
     private void OnSettingsPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(SettingsViewModel.LyricsHighlightColor))
-        {
-            UpdateHighlight();
-        }
-
         if (e.PropertyName == nameof(SettingsViewModel.LyricsEnabled))
         {
             OnPropertyChanged(nameof(CanRefresh));
         }
-    }
-
-    private void UpdateHighlight()
-    {
-        var normalized = ColorHex.Normalize(_settings.LyricsHighlightColor);
-        var color = normalized is null ? Color.Parse("#7C9CFF") : Color.Parse(normalized);
-        HighlightBrush = new LinearGradientBrush
-        {
-            StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
-            EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative),
-            GradientStops = new GradientStops
-            {
-                new(Color.FromArgb(0x34, color.R, color.G, color.B), 0),
-                new(Color.FromArgb(0x18, color.R, color.G, color.B), 1)
-            }
-        };
     }
 
     private void SeekToLine(double seconds)
@@ -229,5 +203,4 @@ public sealed partial class LyricsLineViewModel : ObservableObject
     public bool IsSynced { get; }
     [ObservableProperty] private IBrush _foreground = new SolidColorBrush(Color.Parse("#8C8C96"));
     [ObservableProperty] private double _textOpacity = 0.7;
-    [ObservableProperty] private double _highlightOpacity;
 }

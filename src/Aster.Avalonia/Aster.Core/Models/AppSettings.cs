@@ -11,7 +11,6 @@ public sealed record AppSettings(
     bool VolumeToast,
     bool BrightnessToast,
     bool LyricsEnabled,
-    string LyricsHighlightColor,
     bool WaterReminderEnabled,
     int WaterIntervalMinutes,
     int WaterActiveStartHour,
@@ -28,8 +27,7 @@ public sealed record AppSettings(
 
 public static class SettingsSchema
 {
-    public const int CurrentVersion = 3;
-    public const string DefaultLyricsHighlight = "#7C9CFF";
+    public const int CurrentVersion = 4;
 
     public static AppSettings Default { get; } = new(
         SchemaVersion: CurrentVersion,
@@ -42,7 +40,6 @@ public static class SettingsSchema
         VolumeToast: true,
         BrightnessToast: true,
         LyricsEnabled: true,
-        LyricsHighlightColor: DefaultLyricsHighlight,
         WaterReminderEnabled: false,
         WaterIntervalMinutes: 60,
         WaterActiveStartHour: 8,

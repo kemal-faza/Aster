@@ -26,7 +26,7 @@ public class SettingsMigrationTests
 
         var settings = SettingsMigrations.FromDocument(loaded!);
 
-        Assert.Equal(3, settings.SchemaVersion);
+        Assert.Equal(4, settings.SchemaVersion);
         Assert.True(settings.StartWithWindows);
         Assert.True(settings.MinimalNotch);
         Assert.False(settings.HideInFullscreen);
@@ -36,7 +36,6 @@ public class SettingsMigrationTests
         Assert.True(settings.VolumeToast);
         Assert.True(settings.BrightnessToast);
         Assert.True(settings.LyricsEnabled);
-        Assert.Equal("#7C9CFF", settings.LyricsHighlightColor);
         Assert.False(settings.WaterReminderEnabled);
         Assert.Equal(60, settings.WaterIntervalMinutes);
         Assert.Equal(8, settings.WaterActiveStartHour);
@@ -57,12 +56,11 @@ public class SettingsMigrationTests
     {
         var settings = SettingsMigrations.FromDocument(new SettingsDocument());
 
-        Assert.Equal(3, settings.SchemaVersion);
+        Assert.Equal(4, settings.SchemaVersion);
         Assert.True(settings.HideInFullscreen);
         Assert.True(settings.GlassBackground);
         Assert.True(settings.BouncySpring);
         Assert.Equal(8, settings.WaterActiveStartHour);
-        Assert.Equal("#7C9CFF", settings.LyricsHighlightColor);
         Assert.True(settings.AudioReactiveBars);
     }
 
@@ -72,13 +70,11 @@ public class SettingsMigrationTests
         var settings = SettingsMigrations.FromDocument(new SettingsDocument
         {
             SchemaVersion = 1,
-            LyricsHighlightColor = "#112233",
             WaterDailyGoal = 12,
             FocusMinutes = 30,
             AudioReactiveBars = false
         });
 
-        Assert.Equal("#7C9CFF", settings.LyricsHighlightColor);
         Assert.Equal(8, settings.WaterDailyGoal);
         Assert.Equal(25, settings.FocusMinutes);
         Assert.True(settings.AudioReactiveBars);
@@ -93,8 +89,28 @@ public class SettingsMigrationTests
             AudioReactiveBars = false
         });
 
-        Assert.Equal(3, settings.SchemaVersion);
+        Assert.Equal(4, settings.SchemaVersion);
         Assert.False(settings.AudioReactiveBars);
+    }
+
+    [Fact]
+    public void V3LyricsHighlightColorIsIgnored()
+    {
+        const string json = """
+        {
+          "schemaVersion": 3,
+          "startWithWindows": true,
+          "lyricsHighlightColor": "#112233"
+        }
+        """;
+
+        var loaded = JsonSerializer.Deserialize(json, SettingsJsonContext.Default.SettingsDocument);
+        Assert.NotNull(loaded);
+
+        var settings = SettingsMigrations.FromDocument(loaded!);
+
+        Assert.Equal(4, settings.SchemaVersion);
+        Assert.True(settings.StartWithWindows);
     }
 
     [Fact]
@@ -107,7 +123,6 @@ public class SettingsMigrationTests
             WaterActiveStartHour = -4,
             WaterDailyGoal = 99,
             FocusMinutes = 0,
-            LyricsHighlightColor = "nope",
             WaterDate = "2026-13-99"
         });
 
@@ -115,7 +130,6 @@ public class SettingsMigrationTests
         Assert.Equal(0, settings.WaterActiveStartHour);
         Assert.Equal(20, settings.WaterDailyGoal);
         Assert.Equal(1, settings.FocusMinutes);
-        Assert.Equal("#7C9CFF", settings.LyricsHighlightColor);
         Assert.Equal(string.Empty, settings.WaterDate);
     }
 }

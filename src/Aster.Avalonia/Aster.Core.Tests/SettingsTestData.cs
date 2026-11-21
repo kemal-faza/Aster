@@ -15,7 +15,6 @@ internal static class SettingsTestData
         VolumeToast = false,
         BrightnessToast = false,
         LyricsEnabled = false,
-        LyricsHighlightColor = "#112233",
         WaterReminderEnabled = true,
         WaterIntervalMinutes = 90,
         WaterActiveStartHour = 9,

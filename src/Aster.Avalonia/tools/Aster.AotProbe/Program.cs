@@ -32,7 +32,6 @@ try
         VolumeToast: false,
         BrightnessToast: false,
         LyricsEnabled: false,
-        LyricsHighlightColor: "#112233",
         WaterReminderEnabled: true,
         WaterIntervalMinutes: 90,
         WaterActiveStartHour: 9,
@@ -58,9 +57,9 @@ try
 
     var roundTrip = JsonSerializer.Serialize(settings, SettingsJsonContext.Default.AppSettings);
     using var document = JsonDocument.Parse(roundTrip);
-    if (document.RootElement.GetProperty("schemaVersion").GetInt32() != 3)
+    if (document.RootElement.GetProperty("schemaVersion").GetInt32() != 4)
     {
-        throw new InvalidOperationException("AOT settings probe did not write schemaVersion 3.");
+        throw new InvalidOperationException("AOT settings probe did not write schemaVersion 4.");
     }
 }
 finally

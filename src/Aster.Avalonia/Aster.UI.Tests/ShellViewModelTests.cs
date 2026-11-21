@@ -62,7 +62,6 @@ public class ShellViewModelTests
             VolumeToast: true,
             BrightnessToast: true,
             LyricsEnabled: true,
-            LyricsHighlightColor: SettingsSchema.DefaultLyricsHighlight,
             WaterReminderEnabled: false,
             WaterIntervalMinutes: 60,
             WaterActiveStartHour: 8,
