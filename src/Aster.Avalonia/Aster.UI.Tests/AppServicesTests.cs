@@ -1,3 +1,4 @@
+using System.Globalization;
 using Aster.Core.Interfaces;
 using Aster.Core.Models;
 using Aster.UI.Abstractions;
@@ -10,7 +11,12 @@ public class AppServicesTests
     [Fact]
     public async Task CreateAsyncReconcilesAutostartAndSavesOnce()
     {
-        var store = new FakeSettingsStore(SettingsSchema.Default with { StartWithWindows = false });
+        var today = DateTime.Today.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+        var store = new FakeSettingsStore(SettingsSchema.Default with
+        {
+            StartWithWindows = false,
+            WaterDate = today
+        });
         var factory = new FakePlatformFactory(store);
         factory.Autostart.IsEnabled = true;
 
@@ -78,6 +84,22 @@ public class AppServicesTests
 
         Assert.Equal(1, factory.Store.SaveCount);
         AssertAllDisposedOnce(factory);
+    }
+
+    [Fact]
+    public async Task CreateAsyncRollsOverAnOldWaterDate()
+    {
+        var today = DateTime.Today.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+        var store = new FakeSettingsStore(SettingsSchema.Default with
+        {
+            WaterDate = DateTime.Today.AddDays(-1).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
+        });
+        var factory = new FakePlatformFactory(store);
+        var services = await AppServices.CreateAsync(factory, new ImmediateDispatcher());
+
+        Assert.Equal(today, store.Current.WaterDate);
+        Assert.Equal(1, store.SaveCount);
+        await services.DisposeAsync();
     }
 
     [Fact]
@@ -386,7 +408,10 @@ public class AppServicesTests
     {
         public FakePlatformFactory(FakeSettingsStore? store = null)
         {
-            Store = store ?? new FakeSettingsStore();
+            Store = store ?? new FakeSettingsStore(SettingsSchema.Default with
+            {
+                WaterDate = DateTime.Today.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
+            });
             Store.Order = Order;
             Media.Order = Order;
             EffectLayer.Order = Order;

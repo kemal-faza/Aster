@@ -32,6 +32,8 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         _services = services;
+        _services.Water.IsSuppressed = true;
+        PropertyChanged += OnWindowPropertyChanged;
         if (services.Shell.Media is { } media)
         {
             media.PropertyChanged += (_, e) =>
@@ -93,6 +95,7 @@ public partial class MainWindow : Window
             }
 
             _initialized = true;
+            _services.Water.IsSuppressed = false;
             _services.Log.Info("Aster Lab Avalonia started.");
             _settingsViewModel.Saved += (_, settings) => ApplySettings(settings);
             ApplySettings(_services.Settings.Current);
@@ -112,6 +115,7 @@ public partial class MainWindow : Window
             UpdateEffectLayer();
             _services.Start();
         };
+        Closed += (_, _) => PropertyChanged -= OnWindowPropertyChanged;
     }
 
     public void ToggleVisibility()
@@ -226,6 +230,14 @@ public partial class MainWindow : Window
         if (!string.IsNullOrWhiteSpace(path))
         {
             File.WriteAllText(path, App.StartupClock.ElapsedMilliseconds.ToString());
+        }
+    }
+
+    private void OnWindowPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.Property == Visual.IsVisibleProperty)
+        {
+            _services.Water.IsSuppressed = !IsVisible;
         }
     }
 

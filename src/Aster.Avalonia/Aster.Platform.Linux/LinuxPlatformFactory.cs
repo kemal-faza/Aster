@@ -24,6 +24,7 @@ public sealed class LinuxPlatformFactory : IPlatformFactory
     public CapabilityMatrix Capabilities => new(
         Capability.Media | Capability.Battery | Capability.Network | Capability.Tray |
         Capability.Autostart | Capability.DpiChange | Capability.SingleInstance |
+        Capability.Focus | Capability.Water |
         (_useX11 ? Capability.NoActivate | Capability.Fullscreen : Capability.None));
 
     public IAppLog CreateLog() => new FileAppLog(AppPaths.LogPath);
