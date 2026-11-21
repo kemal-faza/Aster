@@ -1,7 +1,7 @@
 # Aster Phase 4 — Linux Parity PLAN
 
 - **Status:** 4A–4C sudah diimplementasikan di line 0.12.0-dev; 4D–4G belum. v0.11.0 masih release candidate dan dokumen rilisnya sudah masuk ke `main` fork.
-- **Branch:** `phase-4-release` (branch aktif; PR ke `main` fork)
+- **Branch:** `main` (branch aktif lokal, tracking `main` fork); line `phase-4-release` sudah di-merge ke `main` fork lewat PR #2
 - **Baseline:** WPF Aster v0.10.0, commit `fcc6cb5`, MIT
 - **Target:** Full design and behavior parity with the WPF app on Linux X11/XWayland first; Windows parity later; native Wayland deferred.
 - **Stack:** Avalonia 12.1.6, .NET 10, NativeAOT. The WPF app remains the visual and behavioral oracle and is not modified.
@@ -46,7 +46,7 @@ Phase 4 tidak dibuat sebagai satu spec raksasa. Pekerjaan dipecah menjadi tujuh 
 | 2A — Windows hardening | NOT RUN | Tidak ada host Windows pada sesi tersebut |
 | 2B — Linux L2 | PARTIAL | Core PASS; click-through fractional, a11y, soak terbuka |
 | 3 — Release engineering | RELEASE CANDIDATE | v0.11.0 portable preview; publish manual; dokumen rilis sudah di `main` fork |
-| 4 — Linux parity | IN PROGRESS | 4A–4C di `phase-4-release`; 4D–4G pending |
+| 4 — Linux parity | IN PROGRESS | 4A–4C sudah masuk `main` fork; 4D–4G pending |
 
 Detail historis tetap ada di `docs/specs/`, `docs/plans/`, dan `docs/results/` (local-only), serta di riwayat Git. Dokumen ini menggantikan isi `PLAN.md` sebelumnya, bukan menghapus bukti fase lama.
 
@@ -118,7 +118,7 @@ Tidak ada pekerjaan Rust di Phase 4. Backend tetap C#. Rust hanya dipertimbangka
 
 ### 4.1 Worktree dan commit policy
 
-- Branch `phase-4-release` dibuat dari `main` fork setelah baseline v0.11.0. PR fitur mengarah ke `main` fork; setelah line siap, satu PR upstream dibuat dari `main` fork ke `main` upstream. Worktree terpisah (mis. `../aster-phase4`) opsional; jangan mengubah metadata worktree dari Windows.
+- Branch aktif lokal adalah `main`, tracking `main` fork. Line `phase-4-release` (dibuat setelah baseline v0.11.0) sudah di-merge ke `main` fork lewat PR #2; branch fitur baru dibuat dari `main` fork dan PR-nya kembali ke `main` fork. Setelah line siap, satu PR upstream dibuat dari `main` fork ke `main` upstream. Worktree terpisah (mis. `../aster-phase4`) opsional; jangan mengubah metadata worktree dari Windows.
 - Kode produk di `src/Aster.Avalonia/`; script verifikasi di `scripts/`; workflow di `.github/workflows/`; packaging di `packaging/`.
 - Root docs yang boleh di-commit: `PLAN.md`, `README.md`, `CHANGELOG.md`, `THIRD-PARTY-NOTICES.txt`. `docs/*` local-only, kecuali dua screenshot yang sudah di-track.
 - Jangan commit `src/DynamicIsland`, `DynamicIsland.sln`, `build.ps1`, `.gitignore`, `artifacts/`, `bin/`, `obj/`, atau file generated.
