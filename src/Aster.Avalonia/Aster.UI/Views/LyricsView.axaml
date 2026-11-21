@@ -20,6 +20,18 @@
     </ControlTheme>
   </UserControl.Resources>
 
+  <UserControl.Styles>
+    <Style Selector="TextBlock.lyric.active">
+      <Setter Property="Effect">
+        <DropShadowEffect BlurRadius="5"
+                          Color="#F5F5F7"
+                          Opacity="0.38"
+                          OffsetX="0"
+                          OffsetY="0" />
+      </Setter>
+    </Style>
+  </UserControl.Styles>
+
   <Grid Margin="4,7,4,5" RowDefinitions="22,*">
     <Grid>
       <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -66,6 +78,9 @@
                     automation:AutomationProperties.Name="{Binding Text}"
                     Margin="0,0,0,1">
               <TextBlock Text="{Binding Text}" FontSize="11.5" LineHeight="18"
+                         FontWeight="Bold"
+                         Classes="lyric"
+                         Classes.active="{Binding IsActive}"
                          Margin="8,2" TextWrapping="Wrap"
                          Foreground="{Binding Foreground}"
                          Opacity="{Binding TextOpacity}" />

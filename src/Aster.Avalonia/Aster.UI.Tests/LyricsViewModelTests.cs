@@ -16,6 +16,8 @@ public class LyricsViewModelTests
         env.MediaSession.Update(env.Snapshot with { Position = TimeSpan.FromSeconds(11) });
 
         Assert.Equal(1, env.ViewModel.ActiveIndex);
+        Assert.False(env.ViewModel.Lines[0].IsActive);
+        Assert.True(env.ViewModel.Lines[1].IsActive);
     }
 
     private sealed class Env : IDisposable

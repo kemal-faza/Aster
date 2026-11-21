@@ -162,6 +162,7 @@ public partial class LyricsViewModel : ObservableObject, IDisposable
                 : ActiveIndex < 0
                     ? 0.7
                     : distance switch { 1 => 0.8, 2 => 0.56, _ => 0.36 };
+            line.IsActive = active;
         }
     }
 
@@ -203,4 +204,5 @@ public sealed partial class LyricsLineViewModel : ObservableObject
     public bool IsSynced { get; }
     [ObservableProperty] private IBrush _foreground = new SolidColorBrush(Color.Parse("#8C8C96"));
     [ObservableProperty] private double _textOpacity = 0.7;
+    [ObservableProperty] private bool _isActive;
 }
