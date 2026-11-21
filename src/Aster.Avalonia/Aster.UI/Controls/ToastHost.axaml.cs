@@ -15,6 +15,7 @@ public partial class ToastHost : UserControl
 {
     private ToastViewModel? _viewModel;
     private int _generation;
+    private readonly SemaphoreSlim _animationGate = new(1, 1);
 
     public ToastHost()
     {
@@ -59,24 +60,42 @@ public partial class ToastHost : UserControl
     private async Task ApplyVisibilityAsync()
     {
         var generation = ++_generation;
-        if (_viewModel?.IsVisible == true)
+        var visible = _viewModel?.IsVisible == true;
+        if (visible)
         {
             ToastBorder.IsVisible = true;
-            ToastBorder.Opacity = 0;
             UpdateCursor();
-            await AnimateOpacityAsync(1, 140);
-            return;
         }
 
-        if (!ToastBorder.IsVisible)
+        await _animationGate.WaitAsync();
+        try
         {
-            return;
-        }
+            if (generation != _generation)
+            {
+                return;
+            }
 
-        await AnimateOpacityAsync(0, 220);
-        if (generation == _generation)
+            if (visible)
+            {
+                ToastBorder.Opacity = 0;
+                await AnimateOpacityAsync(1, 140);
+                return;
+            }
+
+            if (!ToastBorder.IsVisible)
+            {
+                return;
+            }
+
+            await AnimateOpacityAsync(0, 220);
+            if (generation == _generation)
+            {
+                ToastBorder.IsVisible = false;
+            }
+        }
+        finally
         {
-            ToastBorder.IsVisible = false;
+            _animationGate.Release();
         }
     }
 
