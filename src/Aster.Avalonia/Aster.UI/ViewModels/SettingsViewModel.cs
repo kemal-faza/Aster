@@ -19,6 +19,7 @@ public partial class SettingsViewModel : ObservableObject
     private readonly SemaphoreSlim _saveGate = new(1, 1);
     private AppSettings? _lastSaved;
     private bool _refreshing;
+    private bool _saving;
 
     [ObservableProperty] private bool _startWithWindows;
     [ObservableProperty] private bool _minimalNotch;
@@ -43,6 +44,7 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private int _longBreakMinutes = 15;
     [ObservableProperty] private bool _focusChime = true;
     [ObservableProperty] private bool _audioReactiveBars;
+    [ObservableProperty] private WaterViewModel? _water;
 
     public SettingsViewModel(ISettingsStore store, IAppLog log, string autostartLabel)
     {
@@ -89,6 +91,11 @@ public partial class SettingsViewModel : ObservableObject
 
         _store.Changed += (_, settings) =>
         {
+            if (_saving)
+            {
+                return;
+            }
+
             if (_lastSaved is not null && settings == _lastSaved)
             {
                 return;
@@ -165,58 +172,56 @@ public partial class SettingsViewModel : ObservableObject
             return;
         }
 
+        _saving = true;
         await _saveGate.WaitAsync();
         try
         {
-            var next = _store.Current with
+            AppSettings? attempted = null;
+            var result = await _store.UpdateAsync(current =>
             {
-                StartWithWindows = StartWithWindows,
-                MinimalNotch = MinimalNotch,
-                HideInFullscreen = HideInFullscreen,
-                GlassBackground = GlassBackground,
-                BouncySpring = BouncySpring,
-                ShowMascot = ShowMascot,
-                VolumeToast = VolumeToast,
-                BrightnessToast = BrightnessToast,
-                LyricsEnabled = LyricsEnabled,
-                LyricsHighlightColor = LyricsHighlightColor,
-                WaterReminderEnabled = WaterReminderEnabled,
-                WaterIntervalMinutes = WaterIntervalMinutes,
-                WaterActiveStartHour = WaterActiveStartHour,
-                WaterActiveEndHour = WaterActiveEndHour,
-                WaterDailyGoal = WaterDailyGoal,
-                WaterGlassesToday = WaterGlassesToday,
-                WaterDate = WaterDate,
-                CameraMirror = CameraMirror,
-                FocusMinutes = FocusMinutes,
-                ShortBreakMinutes = ShortBreakMinutes,
-                LongBreakMinutes = LongBreakMinutes,
-                FocusChime = FocusChime,
-                AudioReactiveBars = AudioReactiveBars
-            };
+                var next = current with
+                {
+                    StartWithWindows = StartWithWindows,
+                    MinimalNotch = MinimalNotch,
+                    HideInFullscreen = HideInFullscreen,
+                    GlassBackground = GlassBackground,
+                    BouncySpring = BouncySpring,
+                    ShowMascot = ShowMascot,
+                    VolumeToast = VolumeToast,
+                    BrightnessToast = BrightnessToast,
+                    LyricsEnabled = LyricsEnabled,
+                    LyricsHighlightColor = LyricsHighlightColor,
+                    WaterReminderEnabled = WaterReminderEnabled,
+                    WaterIntervalMinutes = WaterIntervalMinutes,
+                    WaterActiveStartHour = WaterActiveStartHour,
+                    WaterActiveEndHour = WaterActiveEndHour,
+                    WaterDailyGoal = WaterDailyGoal,
+                    CameraMirror = CameraMirror,
+                    FocusMinutes = FocusMinutes,
+                    ShortBreakMinutes = ShortBreakMinutes,
+                    LongBreakMinutes = LongBreakMinutes,
+                    FocusChime = FocusChime,
+                    AudioReactiveBars = AudioReactiveBars
+                };
 
-            _lastSaved = next;
-            try
-            {
-                await _store.SaveAsync(next);
-            }
-            catch
-            {
-                _lastSaved = _store.Current;
-                throw;
-            }
+                attempted = next;
+                return next;
+            });
 
-            if (_store.Current != next)
+            if (!result.Succeeded)
             {
                 _log.Warn("Settings save did not persist.");
+                _lastSaved = attempted ?? _store.Current;
                 RefreshFromStore(_store.Current);
                 return;
             }
 
-            Saved?.Invoke(this, next);
+            _lastSaved = result.Settings;
+            Saved?.Invoke(this, result.Settings);
         }
         finally
         {
+            _saving = false;
             _saveGate.Release();
         }
     }

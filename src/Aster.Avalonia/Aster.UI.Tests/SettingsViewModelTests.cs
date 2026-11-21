@@ -136,8 +136,8 @@ public class SettingsViewModelTests
             WaterActiveStartHour: 9,
             WaterActiveEndHour: 20,
             WaterDailyGoal: 6,
-            WaterGlassesToday: 1,
-            WaterDate: "2026-11-18",
+            WaterGlassesToday: 3,
+            WaterDate: "2026-11-17",
             CameraMirror: true,
             FocusMinutes: 50,
             ShortBreakMinutes: 10,
@@ -175,6 +175,26 @@ public class SettingsViewModelTests
         await vm.SaveNowAsync();
 
         Assert.Equal(expected, store.Saved);
+    }
+
+    [Fact]
+    public async Task SaveNowPreservesWaterRuntimeFields()
+    {
+        var store = new FakeStore(SettingsSchema.Default with
+        {
+            WaterGlassesToday = 5,
+            WaterDate = "2026-11-20"
+        });
+        var vm = new SettingsViewModel(store, new NullLog(), "Start with system")
+        {
+            WaterDailyGoal = 10
+        };
+
+        await vm.SaveNowAsync();
+
+        Assert.Equal(10, store.Current.WaterDailyGoal);
+        Assert.Equal(5, store.Current.WaterGlassesToday);
+        Assert.Equal("2026-11-20", store.Current.WaterDate);
     }
 
     [Fact]

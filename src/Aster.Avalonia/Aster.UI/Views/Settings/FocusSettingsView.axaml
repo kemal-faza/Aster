@@ -1,0 +1,65 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Aster.UI.ViewModels"
+             xmlns:automation="using:Avalonia.Automation"
+             x:Class="Aster.UI.Views.FocusSettingsView"
+             x:DataType="vm:SettingsViewModel">
+  <StackPanel>
+    <Border Classes="settings-card">
+      <StackPanel>
+        <TextBlock Classes="settings-card-title" Text="DURATIONS" />
+        <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,10">
+          <StackPanel>
+            <TextBlock Classes="settings-label" Text="Focus" />
+            <TextBlock Classes="settings-description" Text="Default deep work session." />
+          </StackPanel>
+          <TextBox x:Name="FocusBox" Grid.Column="1" Classes="settings-textbox"
+                   Width="64" MaxLength="3" IsEnabled="{Binding CanSave}"
+                   LostFocus="OnFocusLostFocus" KeyDown="OnFocusKeyDown"
+                   TextInput="OnNumericTextInput"
+                   automation:AutomationProperties.Name="Focus duration" />
+        </Grid>
+        <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,10">
+          <StackPanel>
+            <TextBlock Classes="settings-label" Text="Short break" />
+            <TextBlock Classes="settings-description" Text="A short reset between sessions." />
+          </StackPanel>
+          <TextBox x:Name="ShortBox" Grid.Column="1" Classes="settings-textbox"
+                   Width="64" MaxLength="3" IsEnabled="{Binding CanSave}"
+                   LostFocus="OnShortLostFocus" KeyDown="OnShortKeyDown"
+                   TextInput="OnNumericTextInput"
+                   automation:AutomationProperties.Name="Short break duration" />
+        </Grid>
+        <Grid ColumnDefinitions="*,Auto">
+          <StackPanel>
+            <TextBlock Classes="settings-label" Text="Long break" />
+            <TextBlock Classes="settings-description" Text="A longer reset every four sessions." />
+          </StackPanel>
+          <TextBox x:Name="LongBox" Grid.Column="1" Classes="settings-textbox"
+                   Width="64" MaxLength="3" IsEnabled="{Binding CanSave}"
+                   LostFocus="OnLongLostFocus" KeyDown="OnLongKeyDown"
+                   TextInput="OnNumericTextInput"
+                   automation:AutomationProperties.Name="Long break duration" />
+        </Grid>
+        <TextBlock Classes="settings-description" Margin="0,10,0,0"
+                   Text="1–180 minutes. New durations apply after the timer is reset." />
+      </StackPanel>
+    </Border>
+
+    <Border Classes="settings-card">
+      <StackPanel>
+        <TextBlock Classes="settings-card-title" Text="COMPLETION" />
+        <CheckBox Theme="{StaticResource ToggleSwitch}"
+                  IsChecked="{Binding FocusChime, Mode=TwoWay}"
+                  IsEnabled="{Binding CanSave}"
+                  automation:AutomationProperties.Name="Chime when a session ends">
+          <StackPanel>
+            <TextBlock Classes="settings-label" Text="Chime when a session ends" />
+            <TextBlock Classes="settings-description"
+                       Text="Play a short system sound when focus or break finishes." />
+          </StackPanel>
+        </CheckBox>
+      </StackPanel>
+    </Border>
+  </StackPanel>
+</UserControl>
