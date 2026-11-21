@@ -37,4 +37,21 @@ public class WindowMotionControllerTests
     {
         Assert.Equal(expected, WindowMotionController.ShouldExpandOnClick(minimalNotch));
     }
+
+    [Theory]
+    [InlineData(true, false, false, true)]
+    [InlineData(true, false, true, false)]
+    [InlineData(true, true, false, false)]
+    [InlineData(false, false, false, false)]
+    public void CollapseOnlyStartsWhenExpandedOutsideAndNotDragging(
+        bool expanded,
+        bool pointerInside,
+        bool dragActive,
+        bool expected)
+    {
+        Assert.Equal(
+            expected,
+            WindowMotionController.ShouldStartCollapse(
+                expanded, pointerInside, dragActive));
+    }
 }

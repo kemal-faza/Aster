@@ -68,6 +68,8 @@ public partial class MainWindow : Window
             _services.Motion?.SuppressHover();
             _services.Motion?.SetExpanded(false);
         };
+        IslandShell.DragOutChanged += (_, active) =>
+            _services.Motion?.SetDragActive(active);
         IslandShell.PointerPressed += (_, _) =>
         {
             if (WindowMotionController.ShouldExpandOnClick(_services.Settings.Current.MinimalNotch))

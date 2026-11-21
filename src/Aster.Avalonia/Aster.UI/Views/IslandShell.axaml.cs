@@ -6,11 +6,14 @@ public partial class IslandShell : UserControl
 {
     public event EventHandler? SettingsRequested;
     public event EventHandler? CloseRequested;
+    public event EventHandler<bool>? DragOutChanged;
 
     public IslandShell()
     {
         InitializeComponent();
         DockView.CloseRequested += (_, _) => CloseRequested?.Invoke(this, EventArgs.Empty);
         DockView.SettingsRequested += (_, _) => SettingsRequested?.Invoke(this, EventArgs.Empty);
+        ShelfView.DragOutChanged += (_, active) =>
+            DragOutChanged?.Invoke(this, active);
     }
 }

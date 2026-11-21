@@ -98,7 +98,10 @@
                     Opacity="{Binding Opacity}"
                     ToolTip.Tip="{Binding Path}"
                     automation:AutomationProperties.Name="{Binding Name}"
-                    DoubleTapped="OnCardDoubleTapped">
+                    DoubleTapped="OnCardDoubleTapped"
+                    PointerPressed="OnCardPointerPressed"
+                    PointerMoved="OnCardPointerMoved"
+                    PointerReleased="OnCardPointerReleased">
               <Grid>
                 <Grid Margin="7" ColumnDefinitions="30,6,*" RowDefinitions="*,Auto">
                   <Border Grid.RowSpan="2"
