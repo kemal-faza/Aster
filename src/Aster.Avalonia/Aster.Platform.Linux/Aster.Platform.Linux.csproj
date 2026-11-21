@@ -13,4 +13,9 @@
     <ProjectReference Include="..\Aster.Core\Aster.Core.csproj" />
     <ProjectReference Include="..\Aster.UI.Abstractions\Aster.UI.Abstractions.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Assets\focus-chime.wav"
+          CopyToOutputDirectory="PreserveNewest"
+          CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>
