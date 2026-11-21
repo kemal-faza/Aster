@@ -1,7 +1,7 @@
 # Aster Phase 4 — Linux Parity PLAN
 
-- **Status:** Design decomposition approved; spec 4A approved. Implementation plan 4A is written in two parts and under final review. Phase 4 implementation starts only after v0.11.0 is published and PR #1 is merged.
-- **Branch:** `phase-4-linux-parity` (proposed; branch from `main` after the release merge)
+- **Status:** 4A–4C sudah diimplementasikan di line 0.12.0-dev; 4D–4G belum. v0.11.0 masih release candidate dan dokumen rilisnya sudah masuk ke `main` fork.
+- **Branch:** `phase-4-release` (branch aktif; PR ke `main` fork)
 - **Baseline:** WPF Aster v0.10.0, commit `fcc6cb5`, MIT
 - **Target:** Full design and behavior parity with the WPF app on Linux X11/XWayland first; Windows parity later; native Wayland deferred.
 - **Stack:** Avalonia 12.1.6, .NET 10, NativeAOT. The WPF app remains the visual and behavioral oracle and is not modified.
@@ -45,8 +45,8 @@ Phase 4 tidak dibuat sebagai satu spec raksasa. Pekerjaan dipecah menjadi tujuh 
 | 1 — Avalonia Windows L2 | FAIL/waived | Windows L2 belum lengkap; waiver terbuka |
 | 2A — Windows hardening | NOT RUN | Tidak ada host Windows pada sesi tersebut |
 | 2B — Linux L2 | PARTIAL | Core PASS; click-through fractional, a11y, soak terbuka |
-| 3 — Release engineering | RELEASE CANDIDATE | v0.11.0 portable preview; publish manual menunggu merge |
-| 4 — Linux parity | DESIGN | Dokumen ini |
+| 3 — Release engineering | RELEASE CANDIDATE | v0.11.0 portable preview; publish manual; dokumen rilis sudah di `main` fork |
+| 4 — Linux parity | IN PROGRESS | 4A–4C di `phase-4-release`; 4D–4G pending |
 
 Detail historis tetap ada di `docs/specs/`, `docs/plans/`, dan `docs/results/` (local-only), serta di riwayat Git. Dokumen ini menggantikan isi `PLAN.md` sebelumnya, bukan menghapus bukti fase lama.
 
@@ -118,7 +118,7 @@ Tidak ada pekerjaan Rust di Phase 4. Backend tetap C#. Rust hanya dipertimbangka
 
 ### 4.1 Worktree dan commit policy
 
-- Branch `phase-4-linux-parity` dibuat dari `main` setelah PR #1 merge. Worktree terpisah (mis. `../aster-phase4`) opsional; jangan mengubah metadata worktree dari Windows.
+- Branch `phase-4-release` dibuat dari `main` fork setelah baseline v0.11.0. PR fitur mengarah ke `main` fork; setelah line siap, satu PR upstream dibuat dari `main` fork ke `main` upstream. Worktree terpisah (mis. `../aster-phase4`) opsional; jangan mengubah metadata worktree dari Windows.
 - Kode produk di `src/Aster.Avalonia/`; script verifikasi di `scripts/`; workflow di `.github/workflows/`; packaging di `packaging/`.
 - Root docs yang boleh di-commit: `PLAN.md`, `README.md`, `CHANGELOG.md`, `THIRD-PARTY-NOTICES.txt`. `docs/*` local-only, kecuali dua screenshot yang sudah di-track.
 - Jangan commit `src/DynamicIsland`, `DynamicIsland.sln`, `build.ps1`, `.gitignore`, `artifacts/`, `bin/`, `obj/`, atau file generated.
@@ -624,15 +624,13 @@ Baseline Linux Phase 2: 129 MB RSS, 25 MB binary, ~100 ms startup. Efek glass/gl
 
 ## 18. Langkah berikutnya
 
-1. Selesaikan Phase 3: merge PR #1, publish v0.11.0, smoke archive.
-2. Spec **4A** disetujui (`docs/specs/2026-11-17-aster-phase-4a-shell-design.md`).
-3. Review implementation plan **4A Part 1** (`docs/plans/2026-11-17-aster-phase-4a.md`) dan **Part 2** (`docs/plans/2026-11-17-aster-phase-4a-shell.md`), lalu eksekusi Part 1.
-4. Implementasi 4A dan tutup gate-nya.
-5. Setelah 4A stabil, tulis spec/plan 4B–4F; jalankan sesuai dependency.
-6. Jalankan 4G dan publish Linux parity candidate.
-7. Capture WPF P0 dapat dimulai sekarang saat boot ke Windows; capture P1/P2 menyusul per sub-project.
+1. Merge PR fork #1 (dokumen rilis v0.11.0) dan #2 (line 0.12.0-dev) ke `main` fork.
+2. Lanjutkan 4D shelf, 4E overlays/mascot, dan 4F camera.
+3. Jalankan 4G dan publish Linux parity candidate.
+4. Sinkronkan `main` fork dengan `main` upstream, lalu ajukan satu PR upstream dari `main` fork ke `main` upstream.
+5. Capture WPF P0/P1/P2 sesuai gate.
 
-Tidak ada kode Phase 4 sebelum spec dan plan 4A disetujui.
+4A–4C sudah diimplementasikan; 4D–4F menunggu spec dan plan.
 
 ---
 
