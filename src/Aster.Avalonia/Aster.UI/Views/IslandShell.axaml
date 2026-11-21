@@ -34,6 +34,9 @@
           <Grid IsVisible="{Binding IsFocusMode}">
             <views:FocusView DataContext="{Binding Focus}" />
           </Grid>
+          <Grid IsVisible="{Binding ShowShelfPanel}">
+            <views:ShelfView x:Name="ShelfView" DataContext="{Binding Shelf}" />
+          </Grid>
         </Grid>
         <views:DockView x:Name="DockView" Grid.Row="2" />
       </Grid>

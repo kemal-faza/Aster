@@ -26,18 +26,25 @@
           </StackPanel>
         </RadioButton>
         <RadioButton x:Name="CameraTab" Theme="{StaticResource TabButton}" GroupName="Dock"
-                     Tag="Camera" IsEnabled="False" Opacity="0.35" IsCheckedChanged="OnTabChecked">
+                     Tag="Camera" IsEnabled="False" IsCheckedChanged="OnTabChecked">
           <StackPanel Orientation="Horizontal" Spacing="5">
             <TextBlock Text="{Binding CameraGlyph}" FontFamily="{StaticResource GlyphFont}" FontSize="12" />
             <TextBlock Text="Camera" FontSize="9.5" FontWeight="Medium" />
           </StackPanel>
         </RadioButton>
         <RadioButton x:Name="ShelfTab" Theme="{StaticResource TabButton}" GroupName="Dock"
-                     Tag="Shelf" IsEnabled="False" Opacity="0.35" IsCheckedChanged="OnTabChecked">
-          <StackPanel Orientation="Horizontal" Spacing="5">
-            <TextBlock Text="{Binding ShelfGlyph}" FontFamily="{StaticResource GlyphFont}" FontSize="12" />
-            <TextBlock Text="Shelf" FontSize="9.5" FontWeight="Medium" />
-          </StackPanel>
+                     Tag="Shelf" IsEnabled="{Binding HasShelf}" IsCheckedChanged="OnTabChecked">
+          <Grid>
+            <StackPanel Orientation="Horizontal" Spacing="5">
+              <TextBlock Text="{Binding ShelfGlyph}" FontFamily="{StaticResource GlyphFont}" FontSize="12" />
+              <TextBlock Text="Shelf" FontSize="9.5" FontWeight="Medium" />
+            </StackPanel>
+            <Border Width="4" Height="4" CornerRadius="2"
+                    Background="{StaticResource LyricsAccent}"
+                    HorizontalAlignment="Right" VerticalAlignment="Top"
+                    Margin="0,-2,-2,0"
+                    IsVisible="{Binding Shelf.HasItems, FallbackValue=False}" />
+          </Grid>
         </RadioButton>
         <RadioButton x:Name="FocusTab" Theme="{StaticResource TabButton}" GroupName="Dock"
                      Tag="Focus" IsCheckedChanged="OnTabChecked">
