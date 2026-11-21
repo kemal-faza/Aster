@@ -124,6 +124,62 @@ public class ShellViewModelTests
 
         Assert.Equal(PanelMode.Focus, shell.PanelMode);
     }
+
+    [Fact]
+    public void ShelfCapabilityIsEnabledByDefault()
+    {
+        var vm = new ShellViewModel();
+
+        Assert.True(vm.HasShelf);
+    }
+
+    [Fact]
+    public void ShowShelfPanelTracksModeAndCapability()
+    {
+        var vm = new ShellViewModel();
+        Assert.False(vm.ShowShelfPanel);
+
+        vm.PanelMode = PanelMode.Shelf;
+
+        Assert.True(vm.IsShelfMode);
+        Assert.True(vm.ShowShelfPanel);
+
+        var unsupported = new ShellViewModel(
+            capabilities: new CapabilityMatrix(Capability.None));
+        unsupported.PanelMode = PanelMode.Shelf;
+
+        Assert.False(unsupported.HasShelf);
+        Assert.False(unsupported.ShowShelfPanel);
+    }
+
+    [Fact]
+    public void ShelfActivityFollowsExpansionAndMode()
+    {
+        var timer = new ManualUiTimer();
+        var shelf = new ShelfViewModel(
+            new Aster.Core.Shelf.ShelfService(), null, timer, new NullLog());
+        var vm = new ShellViewModel { Shelf = shelf };
+
+        vm.IsExpanded = true;
+        Assert.False(timer.IsEnabled);
+
+        vm.PanelMode = PanelMode.Shelf;
+        Assert.True(timer.IsEnabled);
+
+        vm.PanelMode = PanelMode.Music;
+        Assert.False(timer.IsEnabled);
+
+        vm.PanelMode = PanelMode.Shelf;
+        vm.IsExpanded = false;
+        Assert.False(timer.IsEnabled);
+    }
+
+    private sealed class NullLog : Aster.Core.Interfaces.IAppLog
+    {
+        public void Info(string message) { }
+        public void Warn(string message) { }
+        public void Error(string message, Exception? exception = null) { }
+    }
 }
 
 internal static class TestFocus

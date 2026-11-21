@@ -2,6 +2,7 @@ using Aster.Core;
 using Aster.Core.Interfaces;
 using Aster.Core.Lyrics;
 using Aster.Core.Models;
+using Aster.Core.Shelf;
 using Aster.UI.Abstractions;
 using Aster.UI.Services;
 using Aster.UI.ViewModels;
@@ -36,6 +37,8 @@ public sealed class AppServices : IAsyncDisposable
     public FocusViewModel FocusViewModel { get; }
     public WaterService Water { get; }
     public WaterViewModel WaterViewModel { get; }
+    public ShelfService Shelf { get; }
+    public ShelfViewModel ShelfViewModel { get; }
     public WindowMotionController? Motion { get; private set; }
     public TrayService? Tray { get; private set; }
     public bool TrayFailed { get; private set; }
@@ -87,6 +90,13 @@ public sealed class AppServices : IAsyncDisposable
 
         Toast = new ToastViewModel(new DispatcherUiTimer(TimeSpan.FromSeconds(1)));
 
+        Shelf = new ShelfService();
+        ShelfViewModel = new ShelfViewModel(
+            Shelf,
+            Toast,
+            new DispatcherUiTimer(TimeSpan.FromSeconds(2)),
+            Log);
+
         IChimePlayer? chime = null;
         try
         {
@@ -117,6 +127,7 @@ public sealed class AppServices : IAsyncDisposable
             Lyrics = LyricsViewModel,
             Focus = FocusViewModel,
             Water = WaterViewModel,
+            Shelf = ShelfViewModel,
             Toast = Toast
         };
     }
@@ -226,6 +237,7 @@ public sealed class AppServices : IAsyncDisposable
             DisposeService(nameof(FocusViewModel), FocusViewModel);
             DisposeService(nameof(Focus), Focus);
             DisposeService(nameof(WaterViewModel), WaterViewModel);
+            DisposeService(nameof(ShelfViewModel), ShelfViewModel);
             DisposeService(nameof(Toast), Toast);
             await FlushSettingsAsync(timeout);
             SettingsViewModel.Saved -= OnSettingsSaved;
