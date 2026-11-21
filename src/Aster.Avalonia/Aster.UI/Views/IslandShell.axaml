@@ -40,6 +40,28 @@
         </Grid>
         <views:DockView x:Name="DockView" Grid.Row="2" />
       </Grid>
+      <Grid x:Name="DropOverlay" IsVisible="False" IsHitTestVisible="False">
+        <Border Background="#E6070708" CornerRadius="0,0,22,22" />
+        <Rectangle Margin="2"
+                   Stroke="{StaticResource LyricsAccent}"
+                   StrokeThickness="1.5"
+                   StrokeDashArray="4,3"
+                   RadiusX="12"
+                   RadiusY="12" />
+        <StackPanel HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Spacing="4">
+          <TextBlock Text="{Binding ShelfGlyph}"
+                     FontFamily="{StaticResource GlyphFont}"
+                     FontSize="24"
+                     Foreground="{StaticResource LyricsAccent}"
+                     HorizontalAlignment="Center" />
+          <TextBlock Text="Drop to add to shelf"
+                     FontSize="10"
+                     Foreground="{StaticResource TextSecondary}"
+                     HorizontalAlignment="Center" />
+        </StackPanel>
+      </Grid>
       <controls:ToastHost DataContext="{Binding Toast}"
                           x:Name="Toast" VerticalAlignment="Top" Margin="0,5,0,0" />
     </Grid>
