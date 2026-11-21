@@ -33,7 +33,6 @@
       </ItemsControl>
       <TextBlock Text="{Binding CountText}" FontSize="9.5" Margin="5,0,0,0"
                  VerticalAlignment="Center"
-                 Foreground="{StaticResource AccentWater}"
                  Classes.goal="{Binding IsGoalReached}" />
     </StackPanel>
   </Button>
