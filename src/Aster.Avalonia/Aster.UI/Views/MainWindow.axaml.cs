@@ -307,10 +307,10 @@ public partial class MainWindow : Window
     public void ShowSettings()
     {
         _state.IsSettingsOpen = true;
+        UpdateEffectLayer();
         if (_settingsWindow is { IsVisible: true })
         {
             _settingsWindow.Activate();
-            UpdateEffectLayer();
             return;
         }
 
@@ -336,15 +336,7 @@ public partial class MainWindow : Window
             _state.IsSettingsOpen = false;
             UpdateEffectLayer();
         };
-        if (IsVisible)
-        {
-            _settingsWindow.Show(this);
-        }
-        else
-        {
-            _settingsWindow.Show();
-        }
-
+        _settingsWindow.Show();
         UpdateEffectLayer();
     }
 

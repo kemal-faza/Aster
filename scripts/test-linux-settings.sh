@@ -92,6 +92,11 @@ title="$(xdotool getwindowname "$wid" 2>/dev/null || true)"
 [ "$title" = "Aster Settings" ] ||
     fail "window title is '$title', expected exactly 'Aster Settings'"
 
+state="$(xprop -id "$wid" _NET_WM_STATE 2>/dev/null || true)"
+if grep -q "_NET_WM_STATE_ABOVE" <<<"$state"; then
+    fail "settings window is keep-above: $state"
+fi
+
 # Bring the window into focus so Tab and Space reach it.
 xdotool windowactivate --sync "$wid" 2>/dev/null || true
 sleep 0.3

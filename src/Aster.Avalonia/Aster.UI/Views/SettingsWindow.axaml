@@ -8,13 +8,16 @@
         Title="Aster Settings"
         Width="752" Height="592"
         CanResize="False"
+        Topmost="False"
+        ShowInTaskbar="True"
         WindowStartupLocation="Manual"
         WindowDecorations="None"
         TransparencyLevelHint="Transparent"
         Background="Transparent"
         KeyDown="OnKeyDown">
   <Grid>
-    <Border Margin="16"
+    <Border x:Name="Surface"
+            Margin="16"
             CornerRadius="22"
             Background="{StaticResource SettingsWindowSurface}"
             BorderBrush="{StaticResource SettingsWindowBorder}"
