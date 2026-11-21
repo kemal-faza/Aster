@@ -22,7 +22,6 @@ public partial class MediaViewModel : ObservableObject, IDisposable
     private bool _audioReactive;
     private readonly DispatcherTimer _playbackTimer =
         new() { Interval = TimeSpan.FromMilliseconds(33) };
-    private DateTimeOffset _lastVinylTick;
     private int _lastPositionSecond = -1;
     private string _artKey = string.Empty;
 
@@ -48,7 +47,6 @@ public partial class MediaViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _rawArtist = string.Empty;
     [ObservableProperty] private string _displayTitle = "Nothing playing";
     [ObservableProperty] private string _displayArtist = "Start something on Spotify, YouTube, or Apple Music";
-    [ObservableProperty] private double _vinylAngle;
     [ObservableProperty] private SpectrumFrame _spectrum;
 
     public bool IsSeeking { get; set; }
@@ -243,7 +241,6 @@ public partial class MediaViewModel : ObservableObject, IDisposable
         if (!HasSession)
         {
             _playbackTimer.Stop();
-            VinylAngle = 0;
             return;
         }
 
@@ -255,17 +252,12 @@ public partial class MediaViewModel : ObservableObject, IDisposable
 
         if (!_playbackTimer.IsEnabled)
         {
-            _lastVinylTick = DateTimeOffset.UtcNow;
             _playbackTimer.Start();
         }
     }
 
     private void OnPlaybackTick()
     {
-        var now = DateTimeOffset.UtcNow;
-        var elapsed = (now - _lastVinylTick).TotalSeconds;
-        _lastVinylTick = now;
-        VinylAngle = (VinylAngle + elapsed * (360.0 / 11.0)) % 360;
         UpdateProgress(_media.Current);
         UpdateSpectrum();
     }

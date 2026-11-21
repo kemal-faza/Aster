@@ -77,18 +77,9 @@
   <SolidColorBrush x:Key="SettingsCardFill" Color="#0AFFFFFF" />
   <SolidColorBrush x:Key="SettingsCardBorder" Color="#14FFFFFF" />
   <SolidColorBrush x:Key="ArtworkAccentFallback" Color="#F6A6C8" />
-  <RadialGradientBrush x:Key="VinylBrush">
-    <GradientStop Color="#45454E" Offset="0" />
-    <GradientStop Color="#1A1A20" Offset="0.38" />
-    <GradientStop Color="#08080B" Offset="0.66" />
-    <GradientStop Color="#24242C" Offset="0.73" />
-    <GradientStop Color="#0A0A0D" Offset="0.86" />
-    <GradientStop Color="#141419" Offset="1" />
-  </RadialGradientBrush>
   <LinearGradientBrush x:Key="ArtworkFallbackBrush" StartPoint="0%,0%" EndPoint="100%,100%">
     <GradientStop Color="#2B2A46" Offset="0" />
     <GradientStop Color="#15151E" Offset="1" />
   </LinearGradientBrush>
   <SolidColorBrush x:Key="ArtGlyphForeground" Color="#66FFFFFF" />
-  <SolidColorBrush x:Key="VinylRingBrush" Color="#14FFFFFF" />
 </ResourceDictionary>

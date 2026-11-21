@@ -17,29 +17,6 @@
           </Transitions>
         </Grid.Transitions>
         <Grid Width="92" Height="92" VerticalAlignment="Center">
-          <Ellipse x:Name="Vinyl" Width="100" Height="100"
-                   HorizontalAlignment="Center" VerticalAlignment="Center"
-                   IsVisible="{Binding Media.HasSession}"
-                   Fill="{StaticResource VinylBrush}"
-                   RenderTransformOrigin="0.5,0.5">
-            <Ellipse.RenderTransform>
-              <RotateTransform Angle="{Binding Media.VinylAngle}" />
-            </Ellipse.RenderTransform>
-          </Ellipse>
-
-          <Ellipse Width="96" Height="96"
-                   HorizontalAlignment="Center" VerticalAlignment="Center"
-                   Stroke="{StaticResource VinylRingBrush}" StrokeThickness="1"
-                   IsVisible="{Binding Media.HasSession}">
-            <Ellipse.OpacityMask>
-              <RadialGradientBrush>
-                <GradientStop Color="#00FFFFFF" Offset="0.6" />
-                <GradientStop Color="#FFFFFFFF" Offset="0.72" />
-                <GradientStop Color="#00FFFFFF" Offset="0.8" />
-              </RadialGradientBrush>
-            </Ellipse.OpacityMask>
-          </Ellipse>
-
           <Border Width="92" Height="92" CornerRadius="20" ClipToBounds="True"
                   HorizontalAlignment="Left" VerticalAlignment="Center">
             <Grid>
