@@ -69,6 +69,13 @@
                    Foreground="{StaticResource TextTertiary}"
                    VerticalAlignment="Center" />
       </StackPanel>
+      <Button Theme="{StaticResource ShelfClearButton}"
+              Content="Add files"
+              IsEnabled="{Binding CanAdd}"
+              HorizontalAlignment="Right"
+              VerticalAlignment="Center"
+              Click="OnAddFilesClick"
+              automation:AutomationProperties.Name="Add files to shelf" />
     </Grid>
 
     <Grid Grid.Row="1">

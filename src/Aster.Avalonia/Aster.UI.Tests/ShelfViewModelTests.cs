@@ -129,6 +129,33 @@ public sealed class ShelfViewModelTests : IDisposable
     }
 
     [Fact]
+    public void CanAddTracksTheCapacity()
+    {
+        var (vm, _, _, _) = Create();
+        Assert.True(vm.CanAdd);
+
+        for (var i = 0; i < 8; i++)
+        {
+            vm.AddPaths(new[] { PathFor($"file-{i}.txt") });
+        }
+
+        Assert.False(vm.CanAdd);
+
+        vm.Remove(vm.Items[0]);
+        Assert.True(vm.CanAdd);
+    }
+
+    [Fact]
+    public void DropFailureShowsFeedback()
+    {
+        var (vm, _, _, toast) = Create();
+
+        vm.ReportDropFailure();
+
+        Assert.Equal("Couldn't read the dropped file", toast.Text);
+    }
+
+    [Fact]
     public void SetActiveControlsTheRefreshTimer()
     {
         var (vm, _, timer, _) = Create();

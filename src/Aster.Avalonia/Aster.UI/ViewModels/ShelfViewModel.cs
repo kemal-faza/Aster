@@ -35,6 +35,7 @@ public sealed partial class ShelfViewModel : ObservableObject, IDisposable
 
     public ObservableCollection<ShelfItemViewModel> Items { get; } = new();
     public bool HasItems => Items.Count > 0;
+    public bool CanAdd => Items.Count < ShelfService.MaxItems;
     public string CountText => $"{Items.Count}/{ShelfService.MaxItems}";
     public string ShelfGlyph => Glyph.Get(Glyph.Kind.Shelf);
 
@@ -148,6 +149,30 @@ public sealed partial class ShelfViewModel : ObservableObject, IDisposable
     public void ReportDragOutFailure(Exception exception) =>
         _log.Warn($"Shelf drag-out failed: {exception.Message}");
 
+    public void ReportDropFailure(Exception? exception = null)
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _log.Warn(exception is null
+            ? "Shelf drop produced no readable files."
+            : $"Shelf drop failed: {exception.Message}");
+        ShowToast("Couldn't read the dropped file", 2200);
+    }
+
+    public void ReportPickerFailure(Exception exception)
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _log.Warn($"Shelf file picker failed: {exception.Message}");
+        ShowToast("Couldn't open the file picker", 2200);
+    }
+
     private void OnTimerTick(object? sender, EventArgs e)
     {
         if (!_active || _dragging || _disposed)
@@ -169,6 +194,7 @@ public sealed partial class ShelfViewModel : ObservableObject, IDisposable
         }
 
         OnPropertyChanged(nameof(HasItems));
+        OnPropertyChanged(nameof(CanAdd));
         OnPropertyChanged(nameof(CountText));
     }
 

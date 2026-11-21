@@ -37,6 +37,43 @@ public partial class ShelfView : UserControl
     private void OnClearClick(object? sender, RoutedEventArgs e) =>
         ViewModel?.Clear();
 
+    private async void OnAddFilesClick(object? sender, RoutedEventArgs e)
+    {
+        if (ViewModel is not { } viewModel ||
+            TopLevel.GetTopLevel(this) is not { } top)
+        {
+            return;
+        }
+
+        try
+        {
+            var files = await top.StorageProvider.OpenFilePickerAsync(
+                new FilePickerOpenOptions
+                {
+                    Title = "Add files to shelf",
+                    AllowMultiple = true
+                });
+
+            var paths = new List<string>();
+            foreach (var file in files)
+            {
+                if (file.TryGetLocalPath() is { Length: > 0 } path)
+                {
+                    paths.Add(path);
+                }
+            }
+
+            if (paths.Count > 0)
+            {
+                viewModel.AddPaths(paths);
+            }
+        }
+        catch (Exception ex)
+        {
+            viewModel.ReportPickerFailure(ex);
+        }
+    }
+
     private void OnCardDoubleTapped(object? sender, TappedEventArgs e)
     {
         if (e.Source is Visual source &&

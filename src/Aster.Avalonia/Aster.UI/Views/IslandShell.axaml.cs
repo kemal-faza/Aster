@@ -101,6 +101,10 @@ public partial class IslandShell : UserControl
         {
             vm.Shelf?.AddPaths(paths);
         }
+        else
+        {
+            vm.Shelf?.ReportDropFailure();
+        }
 
         e.DragEffects = DragDropEffects.Copy;
         e.Handled = true;
