@@ -69,14 +69,6 @@
                    Foreground="{StaticResource TextTertiary}"
                    VerticalAlignment="Center" />
       </StackPanel>
-      <Border Height="1" VerticalAlignment="Bottom" IsHitTestVisible="False">
-        <Border.Background>
-          <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
-            <GradientStop Color="#1FFFFFFF" Offset="0" />
-            <GradientStop Color="#04FFFFFF" Offset="1" />
-          </LinearGradientBrush>
-        </Border.Background>
-      </Border>
     </Grid>
 
     <Grid Grid.Row="1">
